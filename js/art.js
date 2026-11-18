@@ -260,7 +260,7 @@ export const ENEMY_HQ = {
     ctx.fillStyle = '#e0b030'; ctx.fillRect(-R * .3, -R * .82, R * .6, R * .12); ctx.fillStyle = '#2a1a00'; ctx.font = `bold ${R * .09}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('保安監督者？', 0, -R * .76);
     ctx.restore();
   },
-  // チカヨリ・ゾンビ：保安距離を無視して家や学校に近づく
+  // キョリナシ・ゾンビ：保安距離を無視して家や学校に近づく
   chikazuki(ctx, cx, cy, R, t) {
     const lean = Math.sin(t / 14) * R * .05;
     ctx.fillStyle = lin(ctx, 0, cy - R, 0, cy + R, ['#9ab88a', '#5a7a4a']);
@@ -274,20 +274,23 @@ export const ENEMY_HQ = {
     ctx.strokeStyle = '#9ab88a'; ctx.lineWidth = R * .13; ctx.lineCap = 'round';
     [-1, 1].forEach(k => { ctx.beginPath(); ctx.moveTo(cx + k * R * .3 + lean, cy - R * .1); ctx.lineTo(cx + k * R * .15 + R * .75 + lean * 2, cy - R * .2 + k * R * .08); ctx.stroke(); });
     ctx.lineCap = 'butt';
+    { const hx = cx + R * .95, hy = cy + R * .55; ctx.fillStyle = '#e8d8b0'; ctx.fillRect(hx - R * .2, hy - R * .25, R * .4, R * .3); ctx.fillStyle = '#b5523b'; ctx.beginPath(); ctx.moveTo(hx - R * .27, hy - R * .25); ctx.lineTo(hx, hy - R * .48); ctx.lineTo(hx + R * .27, hy - R * .25); ctx.fill(); ctx.fillStyle = '#6a8ad0'; ctx.fillRect(hx - R * .06, hy - R * .17, R * .12, R * .1);
+      ctx.strokeStyle = '#ff4030'; ctx.lineWidth = R * .035; ctx.beginPath(); ctx.moveTo(cx + R * .35, cy + R * .88); ctx.lineTo(hx - R * .2, cy + R * .88); ctx.stroke(); ctx.fillStyle = '#ff4030'; ctx.font = `bold ${R * .14}px sans-serif`; ctx.textAlign = 'center'; ctx.fillText('距離？', (cx + R * .35 + hx - R * .2) / 2, cy + R * .82); }
     ctx.save(); ctx.translate(cx - R * .62, cy + R * .45); ctx.rotate(-.5); ctx.fillStyle = '#f0d020'; ctx.fillRect(0, 0, R * .5, R * .1); ctx.fillStyle = '#222'; for (let i = 0; i < 5; i++) ctx.fillRect(R * (.05 + i * .09), 0, R * .015, R * .05); ctx.restore();
   },
-  // ツメコミ・ゴーレム：保有空地に樽や箱を詰め込んだ塊
+  // アキチツブシ・ゴーレム：保有空地に樽や箱を詰め込んだ塊
   tsumekomi(ctx, cx, cy, R, t) {
     const j = Math.sin(t / 16) * R * .02;
     const box = (x, y, w, h, c) => { ctx.fillStyle = lin(ctx, x, 0, x + w, 0, c); ctx.fillRect(x, y, w, h); ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = R * .02; ctx.strokeRect(x, y, w, h); };
     const wood = ['#c89a5a', '#8a6030'], drum = ['#d84a3a', '#8a2a20'];
+    ctx.save(); ctx.strokeStyle = '#fff'; ctx.lineWidth = R * .03; ctx.setLineDash([R * .08, R * .06]); ctx.beginPath(); ctx.ellipse(cx, cy + R * .82, R * 1.0, R * .16, 0, 0, 7); ctx.stroke(); ctx.restore();
     box(cx - R * .7, cy + R * .2 + j, R * .5, R * .6, wood); box(cx - R * .2, cy + R * .1 + j, R * .45, R * .7, drum); box(cx + R * .25, cy + R * .25 + j, R * .48, R * .55, wood);
     box(cx - R * .5, cy - R * .4 + j, R * .55, R * .55, drum); box(cx + R * .05, cy - R * .45 + j, R * .5, R * .6, wood);
     box(cx - R * .3, cy - R * .95 + j, R * .6, R * .52, wood);
     ctx.fillStyle = '#ffeb6a'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + k * R * .14, cy - R * .7 + j, R * .07, 0, 7); ctx.fill(); });
     ctx.fillStyle = '#2a1a0a'; ctx.fillRect(cx - R * .15, cy - R * .55 + j, R * .3, R * .05);
     ctx.fillStyle = '#5a4030'; [-1, 1].forEach(k => ctx.fillRect(cx + k * R * .78 - R * .08, cy - R * .2 + j, R * .16, R * .5));
-    ctx.fillStyle = '#fff'; ctx.font = `bold ${R * .13}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('空地？', cx + R * .02, cy + R * .45 + j);
+    ctx.fillStyle = '#fff'; ctx.font = `bold ${R * .13}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('空地', cx + R * .02, cy + R * .45 + j); ctx.fillStyle = '#ff4030'; ctx.font = `bold ${R * .2}px sans-serif`; ctx.fillText('×', cx + R * .3, cy + R * .45 + j);
   },
   // ムヒョウジ・プレート：文字も色もでたらめな看板の魔物
   muhyouji(ctx, cx, cy, R, t) {
@@ -304,7 +307,7 @@ export const ENEMY_HQ = {
     ctx.strokeStyle = '#6a5a4a'; ctx.lineWidth = R * .08; [-1, 1].forEach(k => { ctx.beginPath(); ctx.moveTo(k * R * .7, -R * 1.2); ctx.lineTo(k * R * 1.0, -R * (1.0 + .15 * Math.sin(t / 9 + k))); ctx.stroke(); });
     ctx.restore();
   },
-  // マゼコゼ・ガーゴイル：消火設備の種類をごちゃまぜにする石像
+  // ショウカマゼ・ガーゴイル：消火設備の種類をごちゃまぜにする石像
   mazekoze(ctx, cx, cy, R, t) {
     const fl = Math.sin(t / 8) * .25;
     ctx.fillStyle = '#5a5664'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.moveTo(cx + k * R * .2, cy - R * .2); ctx.lineTo(cx + k * R * (1.0 + fl * .1), cy - R * (.75 + fl * .2)); ctx.lineTo(cx + k * R * .85, cy + R * .1); ctx.lineTo(cx + k * R * .6, cy - R * .05); ctx.lineTo(cx + k * R * .45, cy + R * .2); ctx.fill(); });
@@ -317,6 +320,8 @@ export const ENEMY_HQ = {
     ctx.fillStyle = '#3a6ad8'; ctx.beginPath(); ctx.moveTo(cx - R * .78, cy + R * .2); ctx.lineTo(cx - R * .48, cy + R * .2); ctx.lineTo(cx - R * .52, cy + R * .52); ctx.lineTo(cx - R * .74, cy + R * .52); ctx.fill();
     ctx.fillStyle = '#d83030'; rr(ctx, cx + R * .5, cy + R * .05, R * .2, R * .5, R * .06); ctx.fill(); ctx.fillStyle = '#222'; ctx.fillRect(cx + R * .55, cy - R * .02, R * .1, R * .08);
     ctx.fillStyle = '#fff'; ctx.font = `bold ${R * .14}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('第?種', cx, cy + R * .3);
+    const tag = (x, y, txt) => { ctx.fillStyle = '#fffbea'; ctx.fillRect(x - R * .17, y - R * .08, R * .34, R * .16); ctx.fillStyle = '#c02020'; ctx.font = `bold ${R * .11}px sans-serif`; ctx.fillText(txt, x, y); };
+    const sw2 = Math.floor(t / 30) % 2; tag(cx - R * .63, cy + R * .02, sw2 ? '第1種' : '第3種'); tag(cx + R * .6, cy - R * .2, sw2 ? '第2種' : '第4種');
   },
   // キジュンクズシ将軍：ゆがんだ物差しの剣を持つ砦の主
   kijunkuzushi(ctx, cx, cy, R, t) {

@@ -19,6 +19,7 @@ export class Battle {
     try {
       const prefix = opt.revived ? `倒したはずの${E.name}が復活した！` : `${E.name}があらわれた！`;
       await this.msg(prefix);
+      if (E.look && !opt.revived && !((this.g.state.zukan[this.e.id] || {}).defeated)) await say(E.look);
       if (opt.revived && opt.reviveQ) await this.revivalTrial(opt.reviveQ);
       if (opt.tutorial) await say([['ショウボウ老師', '「こうげき」で戦うのじゃ。敵が大技の構えを見せたら「たいさく」で知恵を使え！']]);
       const result = await this.loop();
