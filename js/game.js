@@ -219,9 +219,22 @@ class Game {
       ['ホアン', '保安距離、保有空地、標識と掲示板、消火設備……。数字には、火事を広げないための理由がありました。'],
       ['ホアン', '10m、30m、50m。3mと5m。白地に黒、赤地に白。……覚え方より先に「なぜそうなのか」を思い出せば、迷いませんね。'],
       ['ホアン', `${n}さん、砦の奥に峠へ続く道が見えます。次は「運搬の峠」。危険物を運ぶときのルールです。`],
-      '――今の版はここまでです。運搬の峠と法令の城は次の版で追加します。',
+      ['ホアン', '峠への道は、将軍の広間の右奥にあります。泉で休んでから行きましょう。'],
     ]);
     this.state.flags.d1clear = true;
+    await this.recordScreen();
+  }
+
+  async ending5() {
+    const n = this.state.name;
+    await say([
+      'ムチャハコビ団長の背中の荷が崩れ落ち、団長は峠のむこうへ逃げていった。',
+      ['ホアン', '容器に入れて運ぶのが「運搬」、タンクローリーで運ぶのが「移送」。似ているようで、決まりがちがいました。'],
+      ['ホアン', '98%と95%、積み重ねは3m、混載できないのは第1類と第6類、「危」の標識、4時間と9時間……。運ぶ人を守る数字ばかりです。'],
+      ['ホアン', `${n}さん、峠の上から城が見えます。あれが「法令の城」。法令の国の最後の場所です。`],
+      '――今の版はここまでです。法令の城は次の版で追加します。',
+    ]);
+    this.state.flags.d2clear = true;
     await this.recordScreen();
   }
 
@@ -233,6 +246,7 @@ class Game {
       if (ev.need && !s.cleared[ev.need]) { await say(ev.needmsg || 'まだ先へは進めない。'); this.field.x -= 1; return; }
       this.field.load(ev.to, ev.tx, ev.ty); s.map = ev.to;
       if (ev.to === 'dungeon1' && !s.flags.dungeon1) { s.flags.dungeon1 = true; await say(['基準の砦に入った。', '冷たい石の通路に、たいまつの火がゆれている。', ['ホアン', 'ここは施設の「位置・構造・設備の基準」を守るための砦でした。魔物たちが数字をねじ曲げています。'], ['ホアン', '砦の中は魔物が多い。青く光る泉で休めます。宝箱も探してみましょう。']]); }
+      if (ev.to === 'pass2' && !s.flags.pass2) { s.flags.pass2 = true; await say(['運搬の峠に出た。', '細い山道を、荷車やタンクローリーの魔物が行き来している。', ['ホアン', 'ここは危険物を「運ぶ」ときの決まりを学ぶ場所です。容器に入れて運ぶ「運搬」と、タンクローリーで運ぶ「移送」。'], ['ホアン', 'この峠にも宿屋はありません。泉と宝箱を探しましょう。']]); }
       if (ev.to === 'town3' && !s.flags.town3) { s.flags.town3 = true; await say(['保安の町に着いた。', '町の中央に、大きな講習所が建っている。', ['ホアン', 'ここは危険物取扱者の町。免状や講習、保安の体制を学びましょう。']]); }
       if (ev.to === 'town2' && !s.flags.town2) { s.flags.town2 = true; await say(['許可の町に着いた。', 'あちこちで工事の音がする。真新しいタンク、建てかけの倉庫……。', ['ホアン', 'ここは「製造所等」をつくる手続きを学ぶ町です。許可、承認、届出。順番に見ていきましょう。']]); }
       if (ev.to === 'town1' && !s.flags.town1) { s.flags.town1 = true; await say(['定義の町に着いた。', '町の人たちが、樽の前で困り果てている……。', '（役場で話を聞いてみよう）']); }
@@ -307,7 +321,7 @@ class Game {
     if (r !== 'win') { await say([['ホアン', 'いったん引きましょう。準備ができたら、また来てください。']]); return; }
     s.cleared[id] = true;
     if (S.doc && !(s.docs || (s.docs = [])).includes(S.doc)) { s.docs.push(S.doc); await say([`大事なもの「${S.doc}」を手に入れた！`, ['ホアン', S.doc === '許可書' ? '設置の許可を受けた証です。次は工事、そして完成検査。手続きには順番があります。' : '完成検査で基準に適合していると認められた証です。これでようやく使い始められます。']]); }
-    if (S.boss) return ({ 'L1-boss': () => this.ending(), 'L2-boss': () => this.ending2(), 'L3-boss': () => this.ending3(), 'D1-boss': () => this.ending4() })[id]();
+    if (S.boss) return ({ 'L1-boss': () => this.ending(), 'L2-boss': () => this.ending2(), 'L3-boss': () => this.ending3(), 'D1-boss': () => this.ending4(), 'D2-boss': () => this.ending5() })[id]();
     // ホアンの確認：そのステージの五肢択一から2問（未出題を優先）
     const done = new Set(Learn.d.answers.map(a => a.qid));
     const [town, sn] = id.split('-');

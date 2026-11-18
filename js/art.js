@@ -343,6 +343,70 @@ export const ENEMY_HQ = {
     ctx.restore();
     ctx.fillStyle = steel(cx - R * .3, cx + R * .3); [-1, 1].forEach(k => ctx.fillRect(cx + k * R * .22 - R * .1, cy + R * .48, R * .2, R * .42));
   },
+  // ツメスギ・ボトル：口いっぱいまで詰めてあふれている容器
+  tsumesugi(ctx, cx, cy, R, t) {
+    const wob = Math.sin(t / 12) * .05;
+    ctx.save(); ctx.translate(cx, cy + R * .2); ctx.rotate(wob);
+    ctx.fillStyle = lin(ctx, -R * .45, 0, R * .45, 0, ['#d0e8f0', '#90b8c8', '#5a8090']); rr(ctx, -R * .45, -R * .55, R * .9, R * 1.2, R * .15); ctx.fill();
+    ctx.fillStyle = '#e8b020'; ctx.fillRect(-R * .45, -R * .55, R * .9, R * 1.2); ctx.globalAlpha = .9; ctx.fillStyle = lin(ctx, 0, -R * .55, 0, R * .6, ['#ffd84a', '#d89a10']); ctx.fillRect(-R * .43, -R * .53, R * .86, R * 1.15); ctx.globalAlpha = 1;
+    ctx.fillStyle = '#5a8090'; ctx.fillRect(-R * .2, -R * .8, R * .4, R * .27);
+    ctx.fillStyle = '#ffd84a'; for (let i = 0; i < 4; i++) { const ph = (t / 8 + i * 1.6) % 6; ctx.beginPath(); ctx.ellipse((i - 1.5) * R * .2 + Math.sin(ph) * R * .05, -R * .82 + ph * R * .25, R * .07, R * .1, 0, 0, 7); ctx.fill(); }
+    ctx.beginPath(); ctx.ellipse(0, -R * .85, R * .25, R * .1, 0, 0, 7); ctx.fill();
+    eyes(ctx, 0, -R * .15, R * .18, R * .09);
+    ctx.strokeStyle = '#3a2a00'; ctx.lineWidth = R * .04; ctx.beginPath(); ctx.arc(0, R * .1, R * .14, .2, 2.9); ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.font = `bold ${R * .2}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('100%', 0, R * .4);
+    ctx.restore();
+  },
+  // マゼヅミ・スライム：ちがう類のびんや缶を体にまぜて積んだスライム
+  mazezumi(ctx, cx, cy, R, t) {
+    const sq = Math.sin(t / 10) * R * .04;
+    ctx.fillStyle = 'rgba(150,90,200,.85)'; ctx.beginPath(); ctx.moveTo(cx - R * .8, cy + R * .7); ctx.quadraticCurveTo(cx - R * .9 - sq, cy - R * .3, cx, cy - R * .8 + sq); ctx.quadraticCurveTo(cx + R * .9 + sq, cy - R * .3, cx + R * .8, cy + R * .7); ctx.closePath(); ctx.fill();
+    const can = (x, y, c, lbl) => { ctx.fillStyle = c; rr(ctx, x - R * .14, y - R * .2, R * .28, R * .4, R * .05); ctx.fill(); ctx.fillStyle = '#fff'; ctx.font = `bold ${R * .16}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(lbl, x, y); };
+    can(cx - R * .35, cy + R * .3, '#d83a2a', '4'); can(cx + R * .35, cy + R * .32, '#e8e030', '6'); can(cx, cy + R * .45, '#3a7ad8', '1');
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = R * .05; const zz = Math.floor(t / 8) % 2; if (zz) { ctx.beginPath(); ctx.moveTo(cx - R * .1, cy + R * .1); ctx.lineTo(cx, cy + R * .2); ctx.lineTo(cx - R * .05, cy + R * .25); ctx.lineTo(cx + R * .08, cy + R * .35); ctx.stroke(); }
+    eyes(ctx, cx, cy - R * .3, R * .2, R * .1);
+    ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.beginPath(); ctx.ellipse(cx - R * .4, cy - R * .35, R * .1, R * .18, -.5, 0, 7); ctx.fill();
+  },
+  // ヒョウシキナシ・カート：「危」の標識がない、積みすぎの荷車
+  hyoshikinashi(ctx, cx, cy, R, t) {
+    const b = Math.abs(Math.sin(t / 7)) * R * .04;
+    ctx.fillStyle = '#7a5230'; ctx.fillRect(cx - R * .85, cy + R * .2 - b, R * 1.7, R * .2);
+    const drum = (x, y) => { ctx.fillStyle = lin(ctx, x - R * .2, 0, x + R * .2, 0, ['#4a8ad0', '#2a5a9a']); ctx.fillRect(x - R * .2, y - R * .45, R * .4, R * .45); ctx.fillStyle = '#1a3a6a'; ctx.fillRect(x - R * .2, y - R * .32, R * .4, R * .04); ctx.fillRect(x - R * .2, y - R * .15, R * .4, R * .04); };
+    drum(cx - R * .55, cy + R * .2 - b); drum(cx - R * .1, cy + R * .2 - b); drum(cx + R * .35, cy + R * .2 - b); drum(cx - R * .32, cy - R * .25 - b); drum(cx + R * .13, cy - R * .25 - b);
+    ctx.fillStyle = '#2a2a2a'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + k * R * .55, cy + R * .55, R * .2, 0, 7); ctx.fill(); ctx.fillStyle = '#888'; ctx.beginPath(); ctx.arc(cx + k * R * .55, cy + R * .55, R * .08, 0, 7); ctx.fill(); ctx.fillStyle = '#2a2a2a'; });
+    // 何も書いていない黒い板（本来は「危」）
+    ctx.fillStyle = '#111'; ctx.fillRect(cx + R * .7, cy - R * .2 - b, R * .3, R * .3); ctx.strokeStyle = '#ff4030'; ctx.lineWidth = R * .05; ctx.beginPath(); ctx.moveTo(cx + R * .7, cy - R * .2 - b); ctx.lineTo(cx + R, cy + R * .1 - b); ctx.stroke();
+    eyes(ctx, cx - R * .1, cy + R * .3 - b, R * .25, R * .07);
+  },
+  // ワンマン・ローリー：資格者のいない一人走りのタンクローリー
+  wanman(ctx, cx, cy, R, t) {
+    const b = Math.sin(t / 6) * R * .02;
+    ctx.fillStyle = lin(ctx, 0, cy - R * .5, 0, cy + R * .3, ['#f0f0f0', '#b8b8c0']); ctx.beginPath(); ctx.ellipse(cx - R * .15, cy - R * .05 + b, R * .65, R * .35, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#d83a2a'; ctx.fillRect(cx - R * .8, cy - R * .08 + b, R * 1.3, R * .07);
+    ctx.fillStyle = lin(ctx, 0, cy - R * .5, 0, cy + R * .3, ['#e05a2a', '#a03010']); rr(ctx, cx + R * .45, cy - R * .4 + b, R * .45, R * .7, R * .08); ctx.fill();
+    ctx.fillStyle = '#a8d8f0'; ctx.fillRect(cx + R * .55, cy - R * .32 + b, R * .28, R * .22);
+    ctx.fillStyle = '#ff3a2a'; [.62, .76].forEach(x => { ctx.beginPath(); ctx.arc(cx + R * x, cy - R * .22 + b, R * .035, 0, 7); ctx.fill(); });
+    ctx.fillStyle = '#333'; ctx.fillRect(cx - R * .85, cy + R * .3, R * 1.75, R * .08);
+    ctx.fillStyle = '#1a1a1a'; [-.55, -.1, .65].forEach(x => { ctx.beginPath(); ctx.arc(cx + R * x, cy + R * .45, R * .16, 0, 7); ctx.fill(); });
+    ctx.fillStyle = '#111'; ctx.fillRect(cx + R * .8, cy - R * .6 + b, R * .18, R * .18); ctx.fillStyle = '#f0d020'; ctx.font = `bold ${R * .15}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('危', cx + R * .89, cy - R * .51 + b);
+    ctx.fillStyle = '#fff'; ctx.font = `bold ${R * .16}px sans-serif`; ctx.fillText('1人', cx - R * .15, cy - R * .2 + b);
+  },
+  // ムチャハコビ団長：背中に山ほど荷を積んだ運び屋の大男
+  muchahakobi(ctx, cx, cy, R, t) {
+    const sw = Math.sin(t / 16) * .06;
+    ctx.save(); ctx.translate(cx, cy + R * 1.0); ctx.rotate(sw); ctx.scale(.72, .72);
+    const box = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = R * .02; ctx.strokeRect(x, y, w, h); };
+    box(-R * .7, -R * 2.0, R * .5, R * .45, '#4a8ad0'); box(-R * .2, -R * 2.1, R * .45, R * .55, '#d83a2a'); box(R * .25, -R * 1.95, R * .45, R * .4, '#e8e030');
+    box(-R * .55, -R * 2.45, R * .5, R * .45, '#9a6a3a'); box(-R * .05, -R * 2.55, R * .45, R * .45, '#3aa860');
+    ctx.fillStyle = '#c87a40'; ctx.beginPath(); ctx.ellipse(0, -R * .95, R * .58, R * .65, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#5a3a1e'; ctx.fillRect(-R * .58, -R * .7, R * 1.16, R * .14);
+    ctx.fillStyle = '#e8b888'; ctx.beginPath(); ctx.arc(0, -R * 1.62, R * .3, 0, 7); ctx.fill();
+    ctx.fillStyle = '#2a2a2a'; ctx.fillRect(-R * .32, -R * 1.9, R * .64, R * .12);
+    eyes(ctx, 0, -R * 1.62, R * .1, R * .05); ctx.strokeStyle = '#3a1a0a'; ctx.lineWidth = R * .04; ctx.beginPath(); ctx.arc(0, -R * 1.48, R * .1, .1, 3); ctx.stroke();
+    ctx.strokeStyle = '#c87a40'; ctx.lineWidth = R * .16; ctx.lineCap = 'round'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.moveTo(k * R * .5, -R * 1.2); ctx.lineTo(k * R * .65, -R * 1.9); ctx.stroke(); }); ctx.lineCap = 'butt';
+    ctx.fillStyle = '#5a3a1e'; [-1, 1].forEach(k => ctx.fillRect(k * R * .25 - R * .12, -R * .4, R * .24, R * .4));
+    ctx.restore();
+  },
 };
 function hslToHex(h, s, l) { const a = s * Math.min(l, 1 - l); const f = n => { const k = (n + h / 30) % 12; const c = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); return Math.round(255 * c).toString(16).padStart(2, '0'); }; return `#${f(0)}${f(8)}${f(4)}`; }
 
@@ -359,6 +423,7 @@ export function drawBattleBg(ctx, W, H, kind = 'grass', t = 0) {
   if (im) { const s = Math.max(W / im.width, H / im.height); ctx.drawImage(im, (W - im.width * s) / 2, (H - im.height * s) / 2, im.width * s, im.height * s); return; }
   const sky = lin(ctx, 0, 0, 0, H * .55, kind === 'town' ? ['#6a8fc8', '#c8d8ee'] : ['#4f86d8', '#bfe0ff']); ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
   ctx.fillStyle = 'rgba(255,255,255,.8)'; [[.2, .15], [.7, .1], [.5, .22]].forEach(([x, y], i) => { const xx = ((x * W + t * .2 * (i + 1)) % (W * 1.3)) - W * .15; ctx.beginPath(); ctx.ellipse(xx, y * H, W * .1, H * .04, 0, 0, 7); ctx.ellipse(xx + W * .06, y * H - H * .02, W * .07, H * .035, 0, 0, 7); ctx.fill(); });
+  if (kind === 'pass') { kind = 'grass'; }
   if (kind === 'fort') { // 砦の中：石の壁とたいまつ
     ctx.fillStyle = lin(ctx, 0, 0, 0, H * .6, ['#1a1820', '#3a3640']); ctx.fillRect(0, 0, W, H * .6);
     for (let r = 0; r < 7; r++) for (let k = 0; k < 7; k++) { const bw = W / 6, bh = H * .08, x = k * bw - (r % 2) * bw / 2, y = r * bh; ctx.fillStyle = `hsl(260,6%,${22 + ((r * 3 + k * 5) % 4) * 3}%)`; ctx.fillRect(x + 2, y + 2, bw - 4, bh - 4); }

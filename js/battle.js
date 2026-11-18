@@ -44,7 +44,7 @@ export class Battle {
   unmount() { if (this.root) this.root.remove(); this.root = null; }
   drawScene() {
     const c = this.cv.getContext('2d'), W = this.cv.width, H = this.cv.height, e = this.e;
-    const bk = this.g.field && this.g.field.map && this.g.field.map.dungeon ? 'fort' : this.g.field && /^field/.test(this.g.field.mapId) ? 'grass' : 'town';
+    const bk = this.g.field && this.g.field.map && this.g.field.map.dungeon ? (this.g.field.map.theme === 'pass' ? 'grass' : 'fort') : this.g.field && /^field/.test(this.g.field.mapId) ? 'grass' : 'town';
     if (STYLE.dot) { if (!this._bg || this.t % 30 === 0) { this._bg = document.createElement('canvas'); this._bg.width = W; this._bg.height = H; drawBattleBgDot(this._bg.getContext('2d'), W, H, bk, this.t); } c.drawImage(this._bg, 0, 0); }
     else drawBattleBg(c, W, H, bk, this.t);
     if (e.hp > 0) {
@@ -179,6 +179,7 @@ export class Battle {
     if (id === 'houreichishiki') return this.hit(m, 2.5, 'ホアンが違反を指摘した！');
     if (id === 'suuryoukeisan') return this.hit(m, ['mimic', 'ogre'].includes(this.e.id) ? 3 : 2, '倍数を突いた！');
     if (id === 'kijunsokutei') return this.hit(m, this.e.area === 'D1' ? 2.5 : 1.5, '基準の数字で、守りのすきを突いた！');
+    if (id === 'unpantenken') return this.hit(m, this.e.area === 'D2' ? 2.5 : 1.5, 'ホアンが運び方の違反を指摘した！');
     if (id === 'tetsuzuki') return this.hit(m, this.e.area === 'L2' ? 2.5 : 1.5, 'ホアンが手続きの違反を見抜いた！');
   }
   async identify() {

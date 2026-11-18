@@ -74,14 +74,14 @@ export class Field3D {
     inst(geoTile, mats.grass, lists.grass, (d, [i, j], k, m) => { d.position.set(i, -.1, j); col.setHSL(.29 + ((i * 7 + j * 13) % 5) * .006, .5, .38 + ((i * 3 + j * 5) % 4) * .02); m.setColorAt(k, col); });
     inst(geoTile, mats.road, lists.road, (d, [i, j]) => d.position.set(i, -.08, j));
     inst(geoTile, mats.stone, lists.stone, (d, [i, j], k, m) => { d.position.set(i, -.08, j); col.setHSL(.09, .12, .62 + ((i + j) % 2) * .05); m.setColorAt(k, col); });
-    inst(geoTile, mats.stone, lists.floor, (d, [i, j], k, m) => { d.position.set(i, -.08, j); col.setHSL(.08, .1, .42 + ((i * 3 + j * 7) % 3) * .03); m.setColorAt(k, col); });
+    inst(geoTile, mats.stone, lists.floor, (d, [i, j], k, m) => { d.position.set(i, -.08, j); col.setHSL(.09, this.map.theme === 'pass' ? .35 : .1, (this.map.theme === 'pass' ? .55 : .42) + ((i * 3 + j * 7) % 3) * .03); m.setColorAt(k, col); });
     this.water = inst(new THREE.BoxGeometry(1, .1, 1), mats.water, lists.water, (d, [i, j]) => d.position.set(i, -.25, j));
     inst(geoTile, mats.dark, lists.dark, (d, [i, j]) => d.position.set(i, -.06, j));
     // 木
     const trunk = inst(new THREE.CylinderGeometry(.08, .12, .6, 8), new THREE.MeshLambertMaterial({ color: 0x6a4428 }), trees, (d, [i, j]) => d.position.set(i, .3, j)); trunk.castShadow = true;
     const leaf = inst(new THREE.IcosahedronGeometry(.48, 1), new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true }), trees, (d, [i, j], k, m) => { const s = .85 + ((i * 31 + j * 17) % 7) * .05; d.position.set(i + ((i * 13) % 3 - 1) * .06, .85 * s, j); d.scale.set(s, s * 1.1, s); col.setHSL(.3 + ((i + j) % 3) * .01, .55, .28 + ((i * 7 + j) % 4) * .03); m.setColorAt(k, col); }); leaf.castShadow = true;
     // 石の壁
-    const wh = this.map.dungeon ? 1.0 : .9; const wm = inst(new THREE.BoxGeometry(1, wh, 1), new THREE.MeshLambertMaterial({ color: this.map.dungeon ? 0xffffff : 0x9a96a0 }), walls, (d, [i, j], k, m) => { d.position.set(i, wh / 2, j); if (this.map.dungeon) { col.setHSL(.07, .12, .52 + ((i * 5 + j * 3) % 4) * .04); m.setColorAt(k, col); } }); wm.castShadow = true;
+    const wh = this.map.dungeon ? 1.0 : .9; const wm = inst(new THREE.BoxGeometry(1, wh, 1), new THREE.MeshLambertMaterial({ color: this.map.dungeon ? 0xffffff : 0x9a96a0 }), walls, (d, [i, j], k, m) => { d.position.set(i, wh / 2, j); if (this.map.dungeon) { if (this.map.theme === 'pass') col.setHSL(.07, .28, .38 + ((i * 5 + j * 3) % 4) * .04); else col.setHSL(.07, .12, .52 + ((i * 5 + j * 3) % 4) * .04); m.setColorAt(k, col); } }); wm.castShadow = true;
     // 花
     inst(new THREE.SphereGeometry(.06, 6, 6), new THREE.MeshLambertMaterial({ color: 0xffffff }), flowers.flatMap(p => [0, 1, 2, 3].map(k => [p, k])), (d, [[i, j], k], n, m) => { d.position.set(i - .3 + k * .2, .06, j + ((k % 2) - .5) * .4); m.setColorAt(n, col.set([0xff7ab0, 0xffe066, 0xff6a5a, 0xffffff][k])); });
     // 橋
@@ -101,7 +101,7 @@ export class Field3D {
       if (e.type === 'spring') { const w = new THREE.Mesh(new THREE.CylinderGeometry(.42, .46, .12, 20), new THREE.MeshPhongMaterial({ color: 0x5ac8ff, emissive: 0x1a5a90, shininess: 90, transparent: true, opacity: .85 })); w.position.set(e.x, .03, e.y); scene.add(w);
         const ring = new THREE.Mesh(new THREE.TorusGeometry(.46, .07, 6, 20), new THREE.MeshLambertMaterial({ color: 0x8a8490 })); ring.rotation.x = Math.PI / 2; ring.position.set(e.x, .06, e.y); scene.add(ring); }
     });
-    if (this.map.dungeon) (this.map.torches || []).forEach(([i, j]) => { const fl = new THREE.Mesh(new THREE.SphereGeometry(.09, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffb040 })); fl.position.set(i, 1.25, j + .5); scene.add(fl); const pl = new THREE.PointLight(0xff9a40, 1.6, 5, 1.5); pl.position.set(i, 1.3, j + .7); scene.add(pl); });
+    if (this.map.dungeon && this.map.theme !== 'pass') (this.map.torches || []).forEach(([i, j]) => { const fl = new THREE.Mesh(new THREE.SphereGeometry(.09, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffb040 })); fl.position.set(i, 1.25, j + .5); scene.add(fl); const pl = new THREE.PointLight(0xff9a40, 1.6, 5, 1.5); pl.position.set(i, 1.3, j + .7); scene.add(pl); });
     this.openChests();
     // 事件の現場の目印
     this.marks = [];
@@ -148,7 +148,7 @@ export class Field3D {
   openChests() { (this.chests || []).forEach(c => { const o = this.hooks.chestOpen && this.hooks.chestOpen(c.e.id); c.lid.rotation.x = o ? -1.1 : 0; c.lid.position.z = o ? -.2 : 0; c.lid.position.y = o ? .6 : .47; }); }
   applyNight() {
     const night = this.hooks.isNight && this.hooks.isNight(); this.night = night;
-    if (this.map.dungeon) { this.hemi.intensity = .8; this.sun.intensity = 1.3; this.sun.color.set(0xd8d0ff); this.scene.background.set(0x14121a); this.scene.fog.color.set(0x14121a); this.scene.fog.near = 8; this.scene.fog.far = 22; return; }
+    if (this.map.dungeon && this.map.theme !== 'pass') { this.hemi.intensity = .8; this.sun.intensity = 1.3; this.sun.color.set(0xd8d0ff); this.scene.background.set(0x14121a); this.scene.fog.color.set(0x14121a); this.scene.fog.near = 8; this.scene.fog.far = 22; return; }
     this.hemi.intensity = night ? .35 : 1.1; this.sun.intensity = night ? .25 : 2.2; this.sun.color.set(night ? 0x8aa0ff : 0xfff2d8);
     this.scene.background.set(night ? 0x0c1430 : 0x9ccfff); this.scene.fog.color.set(night ? 0x0c1430 : 0x9ccfff);
     (this.windows || []).forEach(w => w.material.emissive.set(night ? 0xffb04a : 0x000000));

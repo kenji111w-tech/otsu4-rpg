@@ -388,14 +388,35 @@
    "subject": "法令",
    "area": "貯蔵・取扱い・運搬・移送",
    "item": "運搬の基準（容器・積載・混載・表示）",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "K5-TEIGI",
+    "K5-SHUNO",
+    "K5-UWAMUKI",
+    "K5-TSUMIKASANE",
+    "K5-MIMAN",
+    "K5-CHUI",
+    "K5-HYOJI",
+    "K5-SUIYOU",
+    "K5-KONSAI",
+    "K5-KI",
+    "K5-SHOKA",
+    "K5-DOJO",
+    "K5-SHAKO",
+    "K5-TEISHA"
+   ]
   },
   {
    "id": "L-46",
    "subject": "法令",
    "area": "貯蔵・取扱い・運搬・移送",
    "item": "移送の基準（移動タンク貯蔵所）",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "K5-JOSHA",
+    "K5-KEITAI",
+    "K5-NININ",
+    "K5-SHORUI",
+    "K5-TENKEN"
+   ]
   },
   {
    "id": "L-47",
