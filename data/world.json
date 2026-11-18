@@ -998,7 +998,10 @@
     "L1-S04"
    ],
    "weak": "類ごとの性質（固体・液体、燃える側・燃やす側）",
-   "area": "L1"
+   "area": "L1",
+   "calls": [
+    "C1-nazono"
+   ]
   },
   "niselabel": {
    "name": "ニセラベル・スライム",
@@ -1017,7 +1020,10 @@
     "L1-S08"
    ],
    "weak": "引火点による品名の区分",
-   "area": "L1"
+   "area": "L1",
+   "calls": [
+    "C1-niselabel"
+   ]
   },
   "hakarin": {
    "name": "ハカリン",
@@ -1036,7 +1042,10 @@
     "L1-S12"
    ],
    "weak": "指定数量",
-   "area": "L1"
+   "area": "L1",
+   "calls": [
+    "C1-hakarin"
+   ]
   },
   "mimic": {
    "name": "バイスウ・ミミック",
@@ -1053,7 +1062,10 @@
     "L1-S14"
    ],
    "weak": "倍数の計算と指定数量未満の扱い",
-   "area": "L1"
+   "area": "L1",
+   "calls": [
+    "C1-mimic"
+   ]
   },
   "ogre": {
    "name": "カリチョゾウ・オーガ",
@@ -1075,7 +1087,12 @@
    ],
    "weak": "仮貯蔵・仮取扱い、指定数量以上の貯蔵",
    "area": "L1",
-   "boss": true
+   "boss": true,
+   "calls": [
+    "C1-nazono",
+    "C1-mimic",
+    "C1-hakarin"
+   ]
   },
   "kakuretank": {
    "name": "カクレタンク",
@@ -1094,7 +1111,10 @@
     "L2-S04"
    ],
    "weak": "製造所等の区分（貯蔵所7種・取扱所4種）",
-   "area": "L2"
+   "area": "L2",
+   "calls": [
+    "C2-kakuretank"
+   ]
   },
   "mukyoka": {
    "name": "ムキョカ・ゴーレム",
@@ -1113,7 +1133,10 @@
     "L2-S08"
    ],
    "weak": "設置・変更の許可（市町村長等）",
-   "area": "L2"
+   "area": "L2",
+   "calls": [
+    "C2-mukyoka"
+   ]
   },
   "mikensa": {
    "name": "ミケンサ・ゴースト",
@@ -1151,7 +1174,10 @@
     "L2-S16"
    ],
    "weak": "品名等の変更の届出（10日前まで）、譲渡・引渡しの届出",
-   "area": "L2"
+   "area": "L2",
+   "calls": [
+    "C2-todokewasure"
+   ]
   },
   "troll": {
    "name": "カッテカイゾウ・トロール",
@@ -1173,7 +1199,12 @@
    ],
    "weak": "無許可の変更・完成検査前の使用への処分",
    "area": "L2",
-   "boss": true
+   "boss": true,
+   "calls": [
+    "C2-kakuretank",
+    "C2-mukyoka",
+    "C2-todokewasure"
+   ]
   },
   "mushikaku": {
    "name": "ムシカク・ゴブリン",
@@ -1192,7 +1223,10 @@
     "L3-S04"
    ],
    "weak": "甲種・乙種・丙種の取扱い範囲と立会い",
-   "area": "L3"
+   "area": "L3",
+   "calls": [
+    "C3-mushikaku"
+   ]
   },
   "furumenjo": {
    "name": "フルメンジョ・ミイラ",
@@ -1230,7 +1264,10 @@
     "L3-S12"
    ],
    "weak": "保安講習の受講時期",
-   "area": "L3"
+   "area": "L3",
+   "calls": [
+    "C3-saborin"
+   ]
   },
   "hottarakashi": {
    "name": "ホッタラカシ・ロボ",
@@ -1249,7 +1286,10 @@
     "L3-S16"
    ],
    "weak": "定期点検（1年に1回以上・記録3年・実施者）",
-   "area": "L3"
+   "area": "L3",
+   "calls": [
+    "C3-hottarakashi"
+   ]
   },
   "haribote": {
    "name": "ニセ監督官ハリボテ",
@@ -1271,7 +1311,12 @@
    ],
    "weak": "危険物保安監督者の要件、保安体制",
    "area": "L3",
-   "boss": true
+   "boss": true,
+   "calls": [
+    "C3-mushikaku",
+    "C3-saborin",
+    "C3-hottarakashi"
+   ]
   }
  },
  "skills": {

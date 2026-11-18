@@ -12,9 +12,9 @@ export class Battle {
   async run(enemyId, opt = {}) {
     const g = this.g, E = g.world.enemies[enemyId];
     this.e = { id: enemyId, ...E, mhp: E.hp, hp: E.hp, regen: E.regen,
-      teleRate: E.tele, identified: false, broken: 0, tele: null, turn: 0, used: new Set(), askedBoss: false };
+      teleRate: E.tele, identified: false, broken: 0, tele: null, allies: [], calls: E.calls || [], turn: 0, used: new Set(), askedBoss: false };
     this.opt = opt; this.review = []; this.fled = false;
-    this.party = g.state.party.map(id => g.state.members[id]);
+    this.party = g.state.party.map(id => g.state.members[id]); window.__battle = this; // 開発・テスト用
     this.mount();
     try {
       const prefix = opt.revived ? `倒したはずの${E.name}が復活した！` : `${E.name}があらわれた！`;
@@ -50,11 +50,14 @@ export class Battle {
       c.save(); if (this.shake > 0) { c.translate(rand(-6, 6), 0); this.shake--; }
       if (this.flash > 0) { c.globalAlpha = this.flash % 2 ? .3 : 1; this.flash--; }
       if (STYLE.dot) drawEnemyDot(c, e.id, W / 2, H * .52, H * .34, this.t, drawEnemy); else drawEnemyHQ(c, e.id, W / 2, H * .52, H * .34, this.t, drawEnemy); c.restore();
+      e.allies.forEach((a, i) => { const x = W * (i % 2 ? .84 : .16), y = H * (.62 + Math.floor(i / 2) * .1); if (STYLE.dot) drawEnemyDot(c, a.id, x, y, H * .15, this.t + i * 7, drawEnemy); else drawEnemyHQ(c, a.id, x, y, H * .15, this.t, drawEnemy); });
     }
     c.fillStyle = 'rgba(0,0,0,.5)'; c.fillRect(W * .1, H * .04, W * .8, H * .12);
     c.fillStyle = '#fff'; c.font = `${Math.round(H * .07)}px sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
-    const tags = [e.identified ? '見抜いた' : (e.regen ? '再生中' : ''), e.broken ? 'くずれた' : '', e.tele ? '予告中！' : ''].filter(Boolean).join('・');
-    c.fillText(`${e.name}${tags ? '（' + tags + '）' : ''}`, W / 2, H * .1);
+    const tags = [e.identified ? '見抜いた' : (e.regen ? '再生中' : ''), e.broken ? 'くずれた' : '', e.tele ? (e.tele.call ? '仲間呼び！' : '予告中！') : '', e.allies.length ? `仲間${e.allies.length}` : ''].filter(Boolean).join('・');
+    const label = `${e.name}${tags ? '（' + tags + '）' : ''}`; let fs = Math.round(H * .07); c.font = `${fs}px sans-serif`;
+    const tw = c.measureText(label).width; if (tw > W * .78) { fs = Math.floor(fs * W * .78 / tw); c.font = `${fs}px sans-serif`; }
+    c.fillText(label, W / 2, H * .1);
     c.fillStyle = '#555'; c.fillRect(W * .2, H * .17, W * .6, H * .03); c.fillStyle = '#e64a3a'; c.fillRect(W * .2, H * .17, W * .6 * Math.max(0, e.hp) / e.mhp, H * .03);
   }
   refresh() {
@@ -86,6 +89,7 @@ export class Battle {
       if (this.e.hp <= 0) return 'win';
       if (this.e.boss && !this.e.askedBoss && this.e.hp < this.e.mhp / 2) { await this.bossQuestion(); if (this.e.hp <= 0) return 'win'; }
       await this.enemyTurn();
+      if (this.e.hp > 0) await this.allyTurn();
       if (!this.alive().length) return 'lose';
       if (this.e.hp <= 0) return 'win';
     }
@@ -229,6 +233,13 @@ export class Battle {
     if (e.regen && !e.identified && e.hp < e.mhp) { const h = Math.min(e.regen, e.mhp - e.hp); e.hp += h; await this.msg(`${e.name}は再生した！ HPが${h}回復。`, 700); }
     if (e.tele) { // 予告していた大技
       const T = e.tele; e.tele = null;
+      if (T.call) { // 仲間呼びの解決
+        if (T.answered && T.ok) { await this.msg(`呼ばれた仲間は、正体を見破られて帰っていった！`, 1000); return; }
+        if (!T.answered) this.review.push(T.q);
+        const A = this.g.world.enemies[T.ally] || { name: '仲間' }; e.allies.push({ id: T.ally, name: A.name }); this.shake = 6;
+        await this.msg(`${A.name}が仲間に加わった！ ${e.name}の攻撃が激しくなる……。`, 1000);
+        await this.msg(`（正しい判断：${T.q.choices[T.q.answer]}）`, 1400); return;
+      }
       if (T.answered && T.ok) { e.broken = 1; this.shake = 10; await this.msg(`${e.name}の大技を防いだ！ ${e.name}はくずれた！（次の味方の攻撃はダメージ2倍）`, 1100); return; }
       if (!T.answered) this.review.push(T.q);
       this.shake = 14;
@@ -239,6 +250,12 @@ export class Battle {
       const right = T.q.choices[T.q.answer];
       await this.msg(`（正しい対策：${right}）`, 1400);
       return;
+    }
+    // 仲間呼び（通常は4ターン目、ボスは7ターン目にも）
+    if (e.calls.length && (e.turn === 4 || (e.boss && e.turn === 7))) {
+      const qs = e.calls.map(id => this.g.qById[id]).filter(Boolean); let cand = qs.filter(q => !e.used.has(q.id)); if (!cand.length) cand = qs;
+      const q = pick(cand); if (q) { e.used.add(q.id); e.tele = { q, answered: false, ok: false, guard: false, call: true, ally: q.ally };
+        await say([[e.name + 'の仲間呼び', q.question]]); this.log.textContent = `${e.name}が仲間を呼んでいる！「★たいさく」で見破れば仲間は帰る。`; return; }
     }
     // 予告するか
     const willTele = e.pool && e.pool.length && (e.teleRate >= 1 ? e.turn % 3 === 2 : Math.random() < e.teleRate) || (this.opt.tutorial && e.turn === 1);
@@ -255,6 +272,15 @@ export class Battle {
     tgt.hp -= d; this.shake = 6;
     await this.msg(`${e.name}のこうげき！ ${tgt.name}は${d}のダメージを受けた。`, 800);
     if (tgt.hp <= 0) await this.msg(`${tgt.name}はたおれた……。`, 700);
+  }
+
+  async allyTurn() { // 加わった仲間の攻撃（主の半分の強さ）
+    for (const a of this.e.allies) {
+      if (!this.alive().length) return;
+      const tgt = pick(this.alive()); let d = Math.max(1, Math.round(this.e.atk * .5 * rand(.85, 1.15) - tgt.def / 3)); if (tgt.guard) d = Math.ceil(d / 2);
+      tgt.hp -= d; this.shake = 4; await this.msg(`${a.name}のこうげき！ ${tgt.name}は${d}のダメージを受けた。`, 700);
+      if (tgt.hp <= 0) await this.msg(`${tgt.name}はたおれた……。`, 700);
+    }
   }
 
   async after(result) {
