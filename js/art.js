@@ -24,6 +24,7 @@ export function drawCharacter(ctx, W, H, lookKey, dir = 'down', useAsset = true,
   const L = LOOKS[lookKey] || LOOKS.villager; const u = W / 100; const big = L.big ? 1.15 : 1, sm = L.small ? .85 : 1;
   ctx.save(); ctx.translate(W / 2, H); ctx.scale(sm, sm);
   const back = dir === 'up';
+  if (dir === 'left' || dir === 'right') { drawCharacterSide(ctx, u, L, dir === 'left' ? -1 : 1, big, fr); ctx.restore(); return; }
   // 脚（歩くときは左右の足を交互に上げる）
   [-1, 1].forEach(s => { const lift = fr === 0 ? 0 : ((fr === 1) === (s < 0) ? 7 * u : 0);
     ctx.save(); ctx.translate(0, -lift); ctx.fillStyle = lin(ctx, s * 12 * u, 0, s * 12 * u + 10 * u, 0, [shade(L.cloth2, -.2), shade(L.cloth2, -.45)]); rr(ctx, s * 13 * u - 7 * u, -40 * u, 14 * u, 36 * u, 6 * u); ctx.fill();
@@ -68,6 +69,51 @@ export function drawCharacter(ctx, W, H, lookKey, dir = 'down', useAsset = true,
   else if (st === 'helmet') { ctx.fillStyle = lin(ctx, 0, hy - 44 * u, 0, hy - 4 * u, [shade(L.cloth, .3), shade(L.cloth, -.3)]); ctx.beginPath(); ctx.ellipse(0, hy - 10 * u, 36 * u, 30 * u, 0, Math.PI, 0); ctx.fill(); ctx.fillRect(-40 * u, hy - 12 * u, 80 * u, 6 * u); ctx.fillStyle = L.accent; ctx.fillRect(-4 * u, hy - 40 * u, 8 * u, 28 * u); }
   if (back && st !== 'bald' && st !== 'hood') { ctx.fillStyle = hair; ctx.beginPath(); ctx.ellipse(0, hy, hr * .97, hr, 0, 0, 7); ctx.fill(); }
   ctx.restore();
+}
+
+// 横向きの人物（右向きに描き、左向きは左右反転）
+function drawCharacterSide(ctx, u, L, side, big, fr) {
+  ctx.scale(side, 1);
+  const sw = fr === 0 ? 0 : (fr === 1 ? 1 : -1); // 歩くときは足と腕を前後に振る
+  [[-1, '#3a2414'], [1, '#6a4428']].forEach(([s, shoe]) => { const off = s * sw * 9 * u;
+    ctx.fillStyle = lin(ctx, -8 * u, 0, 8 * u, 0, [shade(L.cloth2, s < 0 ? -.45 : -.2), shade(L.cloth2, s < 0 ? -.6 : -.4)]); rr(ctx, off - 7 * u, -40 * u, 14 * u, 36 * u, 6 * u); ctx.fill();
+    ctx.fillStyle = shoe; rr(ctx, off - 7 * u, -10 * u, 22 * u, 10 * u, 4 * u); ctx.fill(); });
+  if (fr) ctx.translate(0, -2 * u);
+  const bw = 32 * u * big;
+  if (L.big) { ctx.fillStyle = lin(ctx, 0, -120 * u, 0, -60 * u, ['#b07a40', '#6a4420']); rr(ctx, -bw / 2 - 18 * u, -100 * u, 22 * u, 50 * u, 6 * u); ctx.fill(); }
+  // 奥の腕
+  ctx.save(); ctx.translate(0, -86 * u); ctx.rotate(-sw * .35); ctx.fillStyle = shade(L.cloth, -.45); rr(ctx, -6 * u, 0, 12 * u, 38 * u, 6 * u); ctx.fill(); ctx.restore();
+  ctx.fillStyle = lin(ctx, -bw / 2, 0, bw / 2, 0, [shade(L.cloth, -.3), L.cloth, shade(L.cloth, .12)]); rr(ctx, -bw / 2, -92 * u, bw, 56 * u, 13 * u); ctx.fill();
+  ctx.fillStyle = lin(ctx, 0, -50 * u, 0, -42 * u, [L.accent, shade(L.accent, -.3)]); ctx.fillRect(-bw / 2, -50 * u, bw, 7 * u);
+  // 手前の腕
+  ctx.save(); ctx.translate(0, -86 * u); ctx.rotate(sw * .35); ctx.fillStyle = lin(ctx, -6 * u, 0, 6 * u, 0, [shade(L.cloth, .05), shade(L.cloth, -.25)]); rr(ctx, -6 * u, 0, 12 * u, 38 * u, 6 * u); ctx.fill();
+  ctx.fillStyle = L.skin; ctx.beginPath(); ctx.arc(0, 40 * u, 7 * u, 0, 7); ctx.fill(); ctx.restore();
+  if (L.scroll) { ctx.fillStyle = lin(ctx, 0, -70 * u, 0, -50 * u, ['#fbf1d0', '#d9c58c']); rr(ctx, 4 * u, -58 * u, 22 * u, 14 * u, 4 * u); ctx.fill(); }
+  // 頭
+  const hy = -122 * u, hr = 30 * u;
+  const sk = ctx.createRadialGradient(8 * u, hy - 8 * u, 4 * u, 0, hy, hr * 1.1); sk.addColorStop(0, shade(L.skin, .25)); sk.addColorStop(1, shade(L.skin, -.18));
+  ctx.fillStyle = sk; ctx.beginPath(); ctx.ellipse(0, hy, hr * .92, hr, 0, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(hr * .85, hy + 6 * u, 5 * u, 6 * u, 0, 0, 7); ctx.fill(); // 鼻
+  const ex = 14 * u, ey = hy + 4 * u;
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(ex, ey, 5 * u, 7.5 * u, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#1b1b2a'; ctx.beginPath(); ctx.ellipse(ex + 1.5 * u, ey + 1 * u, 3.6 * u, 6 * u, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(ex, ey - 2.5 * u, 1.5 * u, 0, 7); ctx.fill();
+  ctx.fillStyle = 'rgba(255,120,120,.25)'; ctx.beginPath(); ctx.ellipse(10 * u, hy + 14 * u, 5 * u, 3 * u, 0, 0, 7); ctx.fill();
+  ctx.strokeStyle = shade(L.skin, -.5); ctx.lineWidth = 1.8 * u; ctx.beginPath(); ctx.moveTo(18 * u, hy + 16 * u); ctx.lineTo(24 * u, hy + 15 * u); ctx.stroke();
+  if (L.glasses) { ctx.strokeStyle = '#334'; ctx.lineWidth = 2 * u; rr(ctx, ex - 8 * u, hy - 3 * u, 16 * u, 14 * u, 4 * u); ctx.stroke(); ctx.beginPath(); ctx.moveTo(ex - 8 * u, hy + 2 * u); ctx.lineTo(-10 * u, hy); ctx.stroke(); }
+  if (L.beard) { ctx.fillStyle = lin(ctx, 0, hy + 10 * u, 0, hy + 50 * u, ['#ffffff', '#cfcfd6']); ctx.beginPath(); ctx.moveTo(-6 * u, hy + 10 * u); ctx.quadraticCurveTo(0, hy + 50 * u, 16 * u, hy + 52 * u); ctx.quadraticCurveTo(30 * u, hy + 30 * u, 26 * u, hy + 10 * u); ctx.fill(); }
+  // 髪（後ろ側を広くおおう）
+  const hair = lin(ctx, 0, hy - hr, 0, hy + hr * .3, [shade(L.hair, .25), L.hair, shade(L.hair, -.35)]);
+  const st = L.style;
+  if (st === 'helmet') { ctx.fillStyle = lin(ctx, 0, hy - 44 * u, 0, hy - 4 * u, [shade(L.cloth, .3), shade(L.cloth, -.3)]); ctx.beginPath(); ctx.ellipse(0, hy - 10 * u, 34 * u, 30 * u, 0, Math.PI, 0); ctx.fill(); ctx.fillRect(-36 * u, hy - 12 * u, 76 * u, 6 * u); ctx.fillStyle = L.accent; ctx.fillRect(-4 * u, hy - 40 * u, 8 * u, 28 * u); return; }
+  if (st === 'hood') { ctx.fillStyle = lin(ctx, 0, hy - 40 * u, 0, hy + 30 * u, [shade(L.cloth2, .2), L.cloth2]); ctx.beginPath(); ctx.moveTo(-34 * u, hy + 30 * u); ctx.quadraticCurveTo(-40 * u, hy - 42 * u, 6 * u, hy - 40 * u); ctx.quadraticCurveTo(30 * u, hy - 36 * u, 22 * u, hy - 14 * u); ctx.quadraticCurveTo(0, hy - 20 * u, -4 * u, hy + 30 * u); ctx.fill(); return; }
+  ctx.fillStyle = hair;
+  if (st === 'bald') { ctx.beginPath(); ctx.ellipse(-20 * u, hy + 4 * u, 8 * u, 12 * u, 0, 0, 7); ctx.fill(); return; }
+  ctx.beginPath(); ctx.moveTo(26 * u, hy - 12 * u);
+  if (st === 'spiky') { for (let i = 0; i <= 6; i++) { const a = -Math.PI * .15 - i / 6 * Math.PI * .95; ctx.lineTo(Math.cos(a) * hr * 1.25, hy - 6 * u + Math.sin(a) * hr * 1.25); ctx.lineTo(Math.cos(a - .12) * hr * .95, hy - 4 * u + Math.sin(a - .12) * hr * .95); } }
+  else ctx.quadraticCurveTo(10 * u, hy - 40 * u, -24 * u, hy - 24 * u);
+  ctx.quadraticCurveTo(-36 * u, hy, -26 * u, hy + 20 * u); ctx.quadraticCurveTo(-8 * u, hy + 10 * u, -4 * u, hy - 6 * u); ctx.quadraticCurveTo(10 * u, hy - 14 * u, 26 * u, hy - 12 * u); ctx.fill();
+  if (st === 'band') { ctx.fillStyle = lin(ctx, 0, hy - 16 * u, 0, hy - 8 * u, ['#e53935', '#a01818']); ctx.fillRect(-30 * u, hy - 16 * u, 58 * u, 8 * u); ctx.fillRect(-36 * u, hy - 14 * u, 10 * u, 18 * u); }
 }
 
 // ---- 魔物（なめらかな描き方）。画像があれば画像を使う ----

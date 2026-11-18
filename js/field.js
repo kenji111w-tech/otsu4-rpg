@@ -1,9 +1,10 @@
 // フィールド・町の表示と移動（Canvas）
 import { drawTile, drawPerson, drawStageMark } from './sprites.js';
 
-const VIEW = 11; // 表示するマス数（縦横）
+const VIEW = 13; // 表示するマス数（縦横）
 const BLOCK = new Set(['T', '~', '#', 'R', 'W', 'X']);
-const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0], ul: [-1, -1], ur: [1, -1], dl: [-1, 1], dr: [1, 1] };
+const FACE = { ul: 'left', dl: 'left', ur: 'right', dr: 'right' };
 
 export class Field {
   constructor(canvas, world, hooks) {
@@ -30,8 +31,8 @@ export class Field {
   }
   step(d) {
     if (this.busy || this.anim) return;
-    this.dir = d; const [dx, dy] = DIRS[d]; const nx = this.x + dx, ny = this.y + dy;
-    if (!this.canWalk(nx, ny)) return;
+    this.dir = FACE[d] || d; const [dx, dy] = DIRS[d]; const nx = this.x + dx, ny = this.y + dy;
+    if (!this.canWalk(nx, ny)) return; if (dx && dy && (!this.canWalk(this.x + dx, this.y) || !this.canWalk(this.x, this.y + dy))) return;
     this.anim = { fx: this.x, fy: this.y, t0: performance.now(), dur: 150 };
     this.x = nx; this.y = ny;
     setTimeout(() => { this.anim = null; this.arrive(); }, 150);

@@ -19,12 +19,7 @@
   <div id="trial" class="hide">お試し中：Safariで開いた画面のデータは、ホーム画面に追加した版と共有されません。共有ボタン→「ホーム画面に追加」から遊ぶのがおすすめです。<button id="trial-close" aria-label="閉じる">×</button></div>
   <div id="field-wrap" class="hide"><canvas id="field"></canvas><div id="mapname"></div></div>
   <div id="pad" class="hide">
-    <div class="dpad">
-      <button data-dir="up" class="u" aria-label="上">▲</button>
-      <button data-dir="left" class="l" aria-label="左">◀</button>
-      <button data-dir="right" class="r" aria-label="右">▶</button>
-      <button data-dir="down" class="d" aria-label="下">▼</button>
-    </div>
+    <div class="stick" id="stick" aria-label="移動スティック"><div class="stick-ring"></div><div class="knob" id="knob"></div></div>
     <div class="abtns">
       <button id="btnA">しらべる<br>はなす</button>
       <button id="btnM">メニュー</button>

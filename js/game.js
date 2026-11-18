@@ -3,7 +3,7 @@ import { $, el, store, studyDay, isStandalone, fmtMin, pick, APP_VERSION } from 
 import { initUI, say, choose, prompt, toast, ask } from './ui.js';
 import { Learn } from './learn.js';
 import { Field } from './field.js';
-import { Field3D } from './field3d.js';
+import { Field3D, dir8 } from './field3d.js';
 import { loadAssets } from './art.js';
 import { Battle } from './battle.js';
 
@@ -156,7 +156,11 @@ class Game {
       await say([
         ['ショウボウ老師', 'うむ、見事じゃ。知恵で大技を止める――それがこの世界の戦い方じゃ。'],
         ['ショウボウ老師', 'やくそうを3つ持っていけ。北の草原を抜けた先に、法令の国の「定義の町」がある。'],
-        ['ショウボウ老師', '道に迷ったら役場で「届出」をしておくのじゃぞ。旅の記録が残る。'],
+        ['ショウボウ老師', 'それから、旅の記録のつけ方を教えておこう。大事なことじゃ。'],
+        ['ショウボウ老師', '旅の記録（セーブ）は、村や町の「役場」で「届出」をすると残る。この村なら、右上の建物が役場じゃ。'],
+        ['ショウボウ老師', '役場の人に話しかけて「届出（旅の記録をつける）」を選ぶ。それだけじゃ。届出をしないまま旅をやめると、その前の届出から続きになるぞ。'],
+        ['ショウボウ老師', 'ダンジョンの中には役場がない。入る前に必ず届出をしておくのじゃ。'],
+        ['ショウボウ老師', 'ただし、問題を解いた「学びの記録」は、解くたびに自動で残る。届出を忘れても、覚えたことは消えん。安心せい。'],
         `${n}はやくそうを3つ受け取った。`,
       ]);
       return;
@@ -459,11 +463,20 @@ class Game {
   // ---------- 操作 ----------
   bindControls() {
     const f = this.field;
-    document.querySelectorAll('#pad [data-dir]').forEach(b => {
-      const d = b.dataset.dir;
-      b.addEventListener('pointerdown', e => { e.preventDefault(); f.held = d; f.step(d); });
-      ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => b.addEventListener(ev, () => { if (f.held === d) f.held = null; }));
-    });
+    // 移動スティック：指の向きで8方向に歩く。指を離すまで歩き続ける
+    const stick = $('#stick'), knob = $('#knob'); let pid = null;
+    const move = e => {
+      const r = stick.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      let dx = e.clientX - cx, dy = e.clientY - cy; const dist = Math.hypot(dx, dy), max = r.width / 2 - 30;
+      if (dist > max) { dx = dx / dist * max; dy = dy / dist * max; }
+      knob.style.transform = `translate(${dx}px, ${dy}px)`;
+      if (dist < 16) { f.held = null; return; }
+      const d = dir8(dx, dy); if (f.held !== d) { f.held = d; if (!f.anim) f.step(d); }
+    };
+    stick.addEventListener('pointerdown', e => { e.preventDefault(); pid = e.pointerId; try { stick.setPointerCapture(pid); } catch (er) {} stick.classList.add('on'); move(e); });
+    stick.addEventListener('pointermove', e => { if (e.pointerId === pid) move(e); });
+    const up = e => { if (e.pointerId !== pid) return; pid = null; stick.classList.remove('on'); knob.style.transform = ''; f.held = null; };
+    stick.addEventListener('pointerup', up); stick.addEventListener('pointercancel', up);
     $('#btnA').addEventListener('click', () => f.action());
     $('#btnM').addEventListener('click', () => this.menu());
     addEventListener('keydown', e => {

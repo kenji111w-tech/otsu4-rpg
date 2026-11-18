@@ -3,7 +3,9 @@ import * as THREE from '../vendor/three.module.min.js';
 import { drawCharacter, Assets, STYLE, characterDot } from './art.js';
 
 const BLOCK = new Set(['T', '~', '#', 'R', 'W', 'X']);
-const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0], ul: [-1, -1], ur: [1, -1], dl: [-1, 1], dr: [1, 1] };
+export function dir8(dx, dy) { const a = Math.atan2(dy, dx), k = ((Math.round(a / (Math.PI / 4)) % 8) + 8) % 8; return ['right', 'dr', 'down', 'dl', 'left', 'ul', 'up', 'ur'][k]; }
+const FACE = { ul: 'left', dl: 'left', ur: 'right', dr: 'right' };
 const STEP_MS = 150;
 
 function charTexture(look, dir, fr = 0) {
@@ -51,10 +53,10 @@ export class Field3D {
     this.mapId = mapId; this.map = this.world.maps[mapId]; this.x = x; this.y = y; this.prev = { x, y: y + 1 }; this.anim = null;
     const scene = this.scene = new THREE.Scene();
     const town = mapId !== 'field' && !this.map.encounter && mapId !== 'village' ? true : false;
-    scene.background = new THREE.Color(0x9ccfff); scene.fog = new THREE.Fog(0x9ccfff, 14, 34);
+    scene.background = new THREE.Color(0x9ccfff); scene.fog = new THREE.Fog(0x9ccfff, 19, 44);
     this.hemi = new THREE.HemisphereLight(0xdfefff, 0x5a7a3a, 1.1); scene.add(this.hemi);
     const sun = this.sun = new THREE.DirectionalLight(0xfff2d8, 2.2); sun.position.set(-6, 12, 6); sun.castShadow = !this.lowPower;
-    sun.shadow.mapSize.set(1024, 1024); Object.assign(sun.shadow.camera, { left: -12, right: 12, top: 12, bottom: -12, near: 1, far: 40 }); sun.shadow.bias = -0.0008;
+    sun.shadow.mapSize.set(1024, 1024); Object.assign(sun.shadow.camera, { left: -16, right: 16, top: 16, bottom: -16, near: 1, far: 50 }); sun.shadow.bias = -0.0008;
     scene.add(sun); scene.add(sun.target);
     const H = this.map.tiles.length, W = this.map.tiles[0].length, M = 6; // 周りに余白（森・壁）
     const geoTile = new THREE.BoxGeometry(1, .2, 1);
@@ -148,7 +150,7 @@ export class Field3D {
   openChests() { (this.chests || []).forEach(c => { const o = this.hooks.chestOpen && this.hooks.chestOpen(c.e.id); c.lid.rotation.x = o ? -1.1 : 0; c.lid.position.z = o ? -.2 : 0; c.lid.position.y = o ? .6 : .47; }); }
   applyNight() {
     const night = this.hooks.isNight && this.hooks.isNight(); this.night = night;
-    if (this.map.dungeon && this.map.theme !== 'pass') { this.hemi.intensity = .8; this.sun.intensity = 1.3; this.sun.color.set(0xd8d0ff); this.scene.background.set(0x14121a); this.scene.fog.color.set(0x14121a); this.scene.fog.near = 8; this.scene.fog.far = 22; return; }
+    if (this.map.dungeon && this.map.theme !== 'pass') { this.hemi.intensity = .8; this.sun.intensity = 1.3; this.sun.color.set(0xd8d0ff); this.scene.background.set(0x14121a); this.scene.fog.color.set(0x14121a); this.scene.fog.near = 15; this.scene.fog.far = 30; return; }
     this.hemi.intensity = night ? .35 : 1.1; this.sun.intensity = night ? .25 : 2.2; this.sun.color.set(night ? 0x8aa0ff : 0xfff2d8);
     this.scene.background.set(night ? 0x0c1430 : 0x9ccfff); this.scene.fog.color.set(night ? 0x0c1430 : 0x9ccfff);
     (this.windows || []).forEach(w => w.material.emissive.set(night ? 0xffb04a : 0x000000));
@@ -158,16 +160,20 @@ export class Field3D {
   // ---------- 移動 ----------
   step(d) {
     if (this.busy || this.anim || !this.map) return;
-    this.dir = d; const [dx, dy] = DIRS[d]; const nx = this.x + dx, ny = this.y + dy;
+    this.dir = FACE[d] || d; const [dx, dy] = DIRS[d]; const nx = this.x + dx, ny = this.y + dy;
     this.setDirTex();
-    if (!this.canWalk(nx, ny)) return;
+    if (!this.canWalk(nx, ny)) { // 斜めで進めないときは、進める方の縦横に歩く
+      if (dx && dy) { if (this.canWalk(this.x + dx, this.y)) return this.step(dx < 0 ? 'left' : 'right'); if (this.canWalk(this.x, this.y + dy)) return this.step(dy < 0 ? 'up' : 'down'); }
+      return;
+    }
+    if (dx && dy && (!this.canWalk(this.x + dx, this.y) || !this.canWalk(this.x, this.y + dy))) return; // 角はすり抜けない
     this.anim = { fx: this.x, fy: this.y, px: this.prev.x, py: this.prev.y, t0: performance.now() };
     this.prev = { x: this.x, y: this.y }; this.x = nx; this.y = ny;
   }
   setDirTex() { this.setWalkFrame(this.walkFrame || 0, true); }
   setWalkFrame(fr, force) {
     if (!force && fr === this.walkFrame && this.lastDir === this.dir) return; this.walkFrame = fr; this.lastDir = this.dir;
-    const d = this.dir === 'up' ? 'up' : 'down';
+    const d = this.dir;
     const set = (obj, look, f) => { if (!obj) return; const m = obj.userData.s.material; const tx = this.tex(look, d, f); if (m.map !== tx) { m.map = tx; m.needsUpdate = true; } };
     set(this.heroObj, 'hero', fr); set(this.mateObj, this.party[1], fr ? 3 - fr : 0);
   }
@@ -192,7 +198,7 @@ export class Field3D {
     cv.addEventListener('pointerdown', e => { id = e.pointerId; sx = e.clientX; sy = e.clientY; moved = false; try { cv.setPointerCapture(id); } catch (er) {} });
     cv.addEventListener('pointermove', e => {
       if (e.pointerId !== id) return; const dx = e.clientX - sx, dy = e.clientY - sy; if (Math.hypot(dx, dy) < 18) return;
-      moved = true; const d = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+      moved = true; const d = dir8(dx, dy);
       if (this.held !== d) { this.held = d; if (!this.anim) this.step(d); }
     });
     const end = e => { if (e.pointerId !== id) return; id = null; this.held = null; if (!moved) this.action(); };
@@ -226,7 +232,7 @@ export class Field3D {
     // カメラ：斜め上から主人公を追う
     if (!this.cam || this.cam.map !== this.mapId) this.cam = { x: hx, z: hy, map: this.mapId };
     const a = 1 - Math.exp(-dt * 9); this.cam.x += (hx - this.cam.x) * a; this.cam.z += (hy - this.cam.z) * a;
-    const cx = this.cam.x, cz = this.cam.z; this.camera.position.set(cx, 10.5, cz + 5.6); this.camera.lookAt(cx, .2, cz - .6);
+    const cx = this.cam.x, cz = this.cam.z; this.camera.position.set(cx, 14.5, cz + 7.6); this.camera.lookAt(cx, .2, cz - .8);
     this.sun.position.set(cx - 6, 12, cz + 6); this.sun.target.position.set(cx, 0, cz);
     this.renderer.render(this.scene, this.camera);
   }
