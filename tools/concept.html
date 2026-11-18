@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="utf-8"><title>設定画</title>
+<style>*{box-sizing:border-box}
+body{margin:0;background:#141428;color:#fff;font-family:"Noto Sans CJK JP","Hiragino Sans",sans-serif}
+h1{font-size:26px;margin:18px 22px 4px;color:#ffd76a} .note{margin:0 22px 10px;color:#aab;font-size:13px}
+.grid{display:grid;gap:12px;padding:10px 22px 22px}
+.card{background:#1d1d38;border:2px solid #3a3a66;border-radius:10px;padding:8px;text-align:center}
+.card canvas{display:block;margin:0 auto;background:#262648;border-radius:6px}
+.nm{font-weight:bold;margin-top:6px;font-size:15px}.ds{font-size:11px;color:#bbc;margin-top:2px;line-height:1.4}
+</style></head><body>
+<div id="sheet1"><h1>乙4 RPG 設定画 v2（大まかな案）― 人物と魔物</h1><div class="note">コードで描いた仮の絵です（ドット絵をやめ、なめらかな陰影に変更）。正式な絵はこの案をもとに作ります。すべてオリジナルのデザイン。</div>
+<div class="grid" id="people" style="grid-template-columns:repeat(6,1fr)"></div>
+<div class="grid" id="enemies" style="grid-template-columns:repeat(5,1fr)"></div></div>
+<div id="sheet2"><h1>乙4 RPG 設定画（大まかな案）― 町とダンジョン</h1><div class="note">町14・ダンジョン7のうち、代表的な場所。上段は試作品の画面と同じ描き方、下段は今後の章のイメージ。</div>
+<div class="grid" id="places" style="grid-template-columns:repeat(3,1fr)"></div></div>
+<script type="module">
+import { drawPerson, drawEnemy, drawTile, drawStageMark } from '../js/sprites.js';
+import { drawCharacter, drawEnemyHQ, drawBattleBg } from '../js/art.js';
+const W = await fetch('../data/world.json').then(r => r.json());
+const card = (host, w, h, name, desc, fn) => { const c = document.createElement('div'); c.className = 'card'; const cv = document.createElement('canvas'); cv.width = w * 2; cv.height = h * 2; cv.style.width = w + 'px'; cv.style.height = h + 'px'; c.appendChild(cv); c.insertAdjacentHTML('beforeend', `<div class="nm">${name}</div><div class="ds">${desc}</div>`); host.appendChild(c); const ctx = cv.getContext('2d'); ctx.scale(2, 2); fn(ctx, w, h); };
+const P = [
+ ['hero', '主人公', '危険物取扱者を目指す見習い。教わる立場'],
+ ['roshi', 'ショウボウ老師', '元火消しの長老。助言とヒント役'],
+ ['hoan', 'ホアン', '法令の先生。役場の書記官'],
+ ['kemi', 'ケミ', '物理・化学の先生。錬金術師の少女'],
+ ['sekiyu', 'セキユ', '危険物の先生。油問屋の跡取り'],
+ ['captain', '消防署の隊長', '隠し仲間（後日追加）'],
+];
+P.forEach(([k, n, d]) => card(document.getElementById('people'), 150, 250, n, d, (c, w, h) => { drawCharacter(c, w, h - 6, k, 'down'); }));
+const E = [
+ ['kemurin', 'ケムリン', '序章。危険物の定義'], ['hibana', 'ヒバナ', '序章。試験の合格基準'],
+ ['nazono', 'ナゾノエキタイ', '定義の町。類ごとの性質'], ['niselabel', 'ニセラベル・スライム', '定義の町。引火点と品名'],
+ ['hakarin', 'ハカリン', '定義の町。指定数量'], ['mimic', 'バイスウ・ミミック', '定義の町。倍数'],
+ ['ogre', 'カリチョゾウ・オーガ', '定義の町の主。仮貯蔵'], ['mutodoke', '無届の大臣ムトドケ', '法令の国のボス'],
+ ['trialde', '炎魔トリアーデ', '物理・化学の国のボス。燃焼の3要素'], ['salamander', 'ガソリン・サラマンダー', '第1石油類。水は不向き'],
+ ['wisp', 'メタノール・ウィスプ', 'アルコール類。炎が見えにくい'], ['steamdragon', '低きを這う蒸気竜', '蒸気は空気より重く低所にたまる'],
+ ['enjou', '大火災の王エンジョウ', '最終ボス（3段階）'],
+];
+E.forEach(([k, n, d]) => card(document.getElementById('enemies'), 180, 150, n, d, (c, w, h) => { drawBattleBg(c, w, h, 'grass', 0); drawEnemyHQ(c, k, w / 2, h * .55, h * .34, 40, drawEnemy); }));
+// 町（タイルで描く）
+const mapCard = (mapId, x0, y0, cols, rows, name, desc, extra) => card(document.getElementById('places'), 300, 220, name, desc, (c, w, h) => {
+  const m = W.maps[mapId]; const ts = Math.min(w / cols, h / rows);
+  for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) { const ch = (m.tiles[y0 + j] || '')[x0 + i] || 'T'; drawTile(c, ch, i * ts, j * ts, ts + .5, 0, extra || {}); const ev = m.events.find(e => e.x === x0 + i && e.y === y0 + j); if (ev && ev.type === 'stage' && ev.id !== 'L1-boss') drawStageMark(c, i * ts, j * ts, ts, 0, false); }
+  (m.npcs || []).forEach(n => { if (n.x >= x0 && n.x < x0 + cols && n.y >= y0 && n.y < y0 + rows) drawPerson(c, (n.x - x0) * ts, (n.y - y0) * ts, ts, n.look); });
+});
+mapCard('village', 0, 0, 16, 14, '始まりの村（序章）', '消防署・役場・宿屋・道具屋。右下は焼けた倉庫');
+mapCard('town1', 0, 0, 18, 16, '定義の町（法令の国・町1）', '4つの事件の現場（！）と町はずれの空き地');
+mapCard('field', 0, 0, 20, 18, '南の草原（フィールド）', '村と町を結ぶ道。草むらで魔物に出会う');
+// ダンジョン（イメージ）
+const scene = (name, desc, fn) => card(document.getElementById('places'), 300, 220, name, desc, fn);
+scene('D3 法令の城', '無届の大臣ムトドケが待つ', (c, w, h) => { const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#2a2050'); g.addColorStop(1, '#5a4a7a'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+  c.fillStyle = '#6a6a8a'; c.fillRect(70, 80, 160, 120); [70, 130, 190].forEach(x => { c.fillRect(x, 50, 40, 40); for (let i = 0; i < 4; i++) c.fillRect(x + i * 11, 42, 7, 8); });
+  c.fillStyle = '#2a1a3a'; c.beginPath(); c.arc(150, 170, 26, Math.PI, 0); c.fill(); c.fillRect(124, 170, 52, 30); c.fillStyle = '#e0b030'; c.fillRect(140, 30, 20, 14); c.fillStyle = '#3a8a3a'; c.fillRect(0, 196, w, 24);
+  c.fillStyle = '#f7f1dc'; for (let i = 0; i < 6; i++) { c.save(); c.translate(30 + i * 45, 20 + (i % 2) * 18); c.rotate(.3 * (i % 3 - 1)); c.fillRect(-8, -10, 16, 20); c.restore(); } });
+scene('D6 炎魔の火山', '炎魔トリアーデのすみか', (c, w, h) => { c.fillStyle = '#2a0a0a'; c.fillRect(0, 0, w, h); c.fillStyle = '#5a2a1a'; c.beginPath(); c.moveTo(20, h); c.lineTo(120, 60); c.lineTo(180, 60); c.lineTo(280, h); c.fill();
+  c.fillStyle = '#ff6a1e'; c.beginPath(); c.moveTo(120, 60); c.quadraticCurveTo(150, 10, 180, 60); c.fill(); c.strokeStyle = '#ffb02e'; c.lineWidth = 6; c.beginPath(); c.moveTo(150, 62); c.quadraticCurveTo(130, 130, 160, 210); c.stroke(); drawEnemy(c, 'trialde', 240, 70, 40, 10); });
+scene('D7 試練の塔', '終章。4人で最終ボスに挑む', (c, w, h) => { const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#0a0a20'); g.addColorStop(1, '#3a1a2a'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+  for (let i = 0; i < 30; i++) { c.fillStyle = '#fff'; c.fillRect((i * 97) % w, (i * 53) % 120, 1.5, 1.5); }
+  c.fillStyle = '#4a4a5a'; c.beginPath(); c.moveTo(120, h); c.lineTo(132, 30); c.lineTo(168, 30); c.lineTo(180, h); c.fill(); c.fillStyle = '#ffb02e'; for (let i = 0; i < 6; i++) c.fillRect(146, 50 + i * 26, 8, 10);
+  c.fillStyle = '#ff6a1e'; c.beginPath(); c.moveTo(130, 30); c.quadraticCurveTo(150, -10, 170, 30); c.fill(); ['hero', 'hoan', 'kemi', 'sekiyu'].forEach((k, i) => drawPerson(c, 20 + i * 24 + (i > 1 ? 160 : 0), 180, 28, k, 'up')); });
+window.__ready = true;
+</script></body></html>

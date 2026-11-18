@@ -1,0 +1,17 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><title>ドット絵設定画</title>
+<style>*{box-sizing:border-box}body{margin:0;background:#141428;color:#fff;font-family:"Noto Sans CJK JP",sans-serif}
+h1{font-size:26px;margin:18px 22px 4px;color:#ffd76a}.note{margin:0 22px 10px;color:#aab;font-size:13px}
+.grid{display:grid;gap:12px;padding:10px 22px 22px}.card{background:#1d1d38;border:2px solid #3a3a66;border-radius:10px;padding:8px;text-align:center}
+.card canvas{display:block;margin:0 auto;border-radius:6px;image-rendering:pixelated}.nm{font-weight:bold;margin-top:6px;font-size:15px}.ds{font-size:11px;color:#bbc}</style></head><body>
+<div id="sheet"><h1>乙4 RPG 設定画 v3 ― 細かいドット絵（案）</h1><div class="note">人物は40×60点（前回は16×16点）、魔物は110×110点。主人公はGeminiの絵をドットにしたもの。ほかは仮の絵をドットにしたもの。</div>
+<div class="grid" id="people" style="grid-template-columns:repeat(6,1fr)"></div>
+<div class="grid" id="enemies" style="grid-template-columns:repeat(5,1fr)"></div></div>
+<script type="module">
+import { drawEnemy } from '../js/sprites.js';
+import { loadAssets, characterDot, drawEnemyDot, drawBattleBgDot } from '../js/art.js';
+await loadAssets('../');
+const card = (host, w, h, name, desc, fn) => { const c = document.createElement('div'); c.className = 'card'; const cv = document.createElement('canvas'); cv.width = w; cv.height = h; c.appendChild(cv); c.insertAdjacentHTML('beforeend', `<div class="nm">${name}</div><div class="ds">${desc}</div>`); host.appendChild(c); const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false; fn(ctx, w, h); };
+[['hero','主人公','Geminiの絵をドット化'],['roshi','ショウボウ老師',''],['hoan','ホアン',''],['kemi','ケミ',''],['sekiyu','セキユ',''],['captain','消防署の隊長','']].forEach(([k,n,d]) => card(document.getElementById('people'), 160, 240, n, d, (c, w, h) => { c.fillStyle = '#2a3a2a'; c.fillRect(0, 0, w, h); c.drawImage(characterDot(k), 0, 0, 160, 240); }));
+[['kemurin','ケムリン'],['hibana','ヒバナ'],['nazono','ナゾノエキタイ'],['niselabel','ニセラベル・スライム'],['hakarin','ハカリン'],['mimic','バイスウ・ミミック'],['ogre','カリチョゾウ・オーガ'],['mutodoke','無届の大臣ムトドケ'],['trialde','炎魔トリアーデ'],['salamander','ガソリン・サラマンダー'],['wisp','メタノール・ウィスプ'],['steamdragon','低きを這う蒸気竜'],['enjou','大火災の王エンジョウ']].forEach(([k,n]) => card(document.getElementById('enemies'), 180, 150, n, '', (c, w, h) => { drawBattleBgDot(c, w, h, 'grass', 0); drawEnemyDot(c, k, w / 2, h * .55, h * .34, 40, drawEnemy); }));
+window.__ready = true;
+</script></body></html>
