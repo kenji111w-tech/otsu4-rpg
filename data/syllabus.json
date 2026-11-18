@@ -294,7 +294,9 @@
    "subject": "法令",
    "area": "位置・構造・設備の基準",
    "item": "屋内貯蔵所の基準",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "K8-OKUNAI-"
+   ]
   },
   {
    "id": "L-32",
@@ -311,7 +313,9 @@
    "subject": "法令",
    "area": "位置・構造・設備の基準",
    "item": "屋内タンク貯蔵所の基準",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "K8-OKUNAITANK"
+   ]
   },
   {
    "id": "L-34",
@@ -327,7 +331,9 @@
    "subject": "法令",
    "area": "位置・構造・設備の基準",
    "item": "簡易タンク貯蔵所の基準",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "K8-KANI"
+   ]
   },
   {
    "id": "L-36",
@@ -343,7 +349,9 @@
    "subject": "法令",
    "area": "位置・構造・設備の基準",
    "item": "屋外貯蔵所の基準",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "K8-OKUGAI"
+   ]
   },
   {
    "id": "L-38",
@@ -359,7 +367,9 @@
    "subject": "法令",
    "area": "位置・構造・設備の基準",
    "item": "販売取扱所の基準",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "K8-HANBAI"
+   ]
   },
   {
    "id": "L-40",
@@ -405,7 +415,9 @@
    "subject": "法令",
    "area": "貯蔵・取扱い・運搬・移送",
    "item": "取扱いの基準（詰替え・廃棄など）",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "K8-KYUYU-ENGINE"
+   ]
   },
   {
    "id": "L-45",

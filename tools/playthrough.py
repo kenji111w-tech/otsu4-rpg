@@ -60,6 +60,12 @@ SCEN = """
       window.__log.push(st + ':' + !!g.state.cleared[st]);
     }
     window.__log.push('q1reward:' + !!g.state.flags.q1reward);
+    g.field.load('field2', 9, 4);
+    for (const st of ['Q2-1','Q2-2','Q2-3','Q2-4']) {
+      for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'spring'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('field2', 9, 4); }
+      window.__log.push(st + ':' + !!g.state.cleared[st]);
+    }
+    window.__log.push('q2reward:' + !!g.state.flags.q2reward);
     for (let i=0;i<2;i++) await g.encounter();
     await g.menu();
   } catch (e) { window.__log.push('ERR ' + e.message + e.stack); }
@@ -116,7 +122,7 @@ async def main():
             await pg.wait_for_timeout(30)
         await pg.evaluate(SCEN)
         counts = {}
-        for i in range(12500):
+        for i in range(14000):
             if await pg.evaluate("window.__done"): break
             r = await bot_step(pg, None); counts[r.split(':')[0]] = counts.get(r.split(':')[0], 0) + 1
             await pg.wait_for_timeout(15)
