@@ -74,7 +74,7 @@ export class Field3D {
     inst(geoTile, mats.grass, lists.grass, (d, [i, j], k, m) => { d.position.set(i, -.1, j); col.setHSL(.29 + ((i * 7 + j * 13) % 5) * .006, .5, .38 + ((i * 3 + j * 5) % 4) * .02); m.setColorAt(k, col); });
     inst(geoTile, mats.road, lists.road, (d, [i, j]) => d.position.set(i, -.08, j));
     inst(geoTile, mats.stone, lists.stone, (d, [i, j], k, m) => { d.position.set(i, -.08, j); col.setHSL(.09, .12, .62 + ((i + j) % 2) * .05); m.setColorAt(k, col); });
-    inst(geoTile, mats.stone, lists.floor, (d, [i, j], k, m) => { d.position.set(i, -.08, j); col.setHSL(.09, this.map.theme === 'pass' ? .35 : .1, (this.map.theme === 'pass' ? .55 : .42) + ((i * 3 + j * 7) % 3) * .03); m.setColorAt(k, col); });
+    inst(geoTile, mats.stone, lists.floor, (d, [i, j], k, m) => { d.position.set(i, -.08, j); if (this.map.theme === 'castle') col.setHSL(.98, .45, .34 + ((i * 3 + j * 7) % 3) * .02); else col.setHSL(.09, this.map.theme === 'pass' ? .35 : .1, (this.map.theme === 'pass' ? .55 : .42) + ((i * 3 + j * 7) % 3) * .03); m.setColorAt(k, col); });
     this.water = inst(new THREE.BoxGeometry(1, .1, 1), mats.water, lists.water, (d, [i, j]) => d.position.set(i, -.25, j));
     inst(geoTile, mats.dark, lists.dark, (d, [i, j]) => d.position.set(i, -.06, j));
     // 木

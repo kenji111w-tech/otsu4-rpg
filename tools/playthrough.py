@@ -49,6 +49,11 @@ SCEN = """
       for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'spring'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('pass2', 9, 14); }
       window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv);
     }
+    await ev({type:'exit', to:'castle3', tx:9, ty:14, need:'D2-boss'});
+    for (const st of ['D3-1','D3-2','D3-3','D3-4','D3-boss']) {
+      for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'spring'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('castle3', 9, 14); }
+      window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv);
+    }
     for (let i=0;i<2;i++) await g.encounter();
     await g.menu();
   } catch (e) { window.__log.push('ERR ' + e.message + e.stack); }
@@ -105,7 +110,7 @@ async def main():
             await pg.wait_for_timeout(30)
         await pg.evaluate(SCEN)
         counts = {}
-        for i in range(8500):
+        for i in range(11000):
             if await pg.evaluate("window.__done"): break
             r = await bot_step(pg, None); counts[r.split(':')[0]] = counts.get(r.split(':')[0], 0) + 1
             await pg.wait_for_timeout(15)

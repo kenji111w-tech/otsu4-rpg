@@ -180,6 +180,7 @@ export class Battle {
     if (id === 'suuryoukeisan') return this.hit(m, ['mimic', 'ogre'].includes(this.e.id) ? 3 : 2, '倍数を突いた！');
     if (id === 'kijunsokutei') return this.hit(m, this.e.area === 'D1' ? 2.5 : 1.5, '基準の数字で、守りのすきを突いた！');
     if (id === 'unpantenken') return this.hit(m, this.e.area === 'D2' ? 2.5 : 1.5, 'ホアンが運び方の違反を指摘した！');
+    if (id === 'joubunkanpa') return this.hit(m, this.e.area === 'D3' ? 2.5 : 1.5, '条文を突きつけた！');
     if (id === 'tetsuzuki') return this.hit(m, this.e.area === 'L2' ? 2.5 : 1.5, 'ホアンが手続きの違反を見抜いた！');
   }
   async identify() {

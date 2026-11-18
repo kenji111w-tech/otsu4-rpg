@@ -131,7 +131,11 @@
    "subject": "法令",
    "area": "製造所等と手続き",
    "item": "廃止の届出、保安監督者の選任・解任の届出",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "K6-HAISHI",
+    "K6-SENNIN",
+    "K6-TOUKATSU"
+   ]
   },
   {
    "id": "L-15",
@@ -148,7 +152,10 @@
    "subject": "法令",
    "area": "製造所等と手続き",
    "item": "その他の措置命令（緊急使用停止など）",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "K6-OUKYU-MEIREI",
+    "K6-KAININ"
+   ]
   },
   {
    "id": "L-17",
@@ -234,7 +241,9 @@
    "subject": "法令",
    "area": "危険物取扱者と保安体制",
    "item": "予防規程",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "K6-YOBO"
+   ]
   },
   {
    "id": "L-26",
@@ -367,7 +376,13 @@
    "subject": "法令",
    "area": "貯蔵・取扱い・運搬・移送",
    "item": "貯蔵・取扱いの共通基準",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "K6-HINMEI",
+    "K6-KAKI",
+    "K6-KUZU",
+    "K6-KUMIAGE",
+    "K6-HIBANA"
+   ]
   },
   {
    "id": "L-43",
@@ -423,7 +438,11 @@
    "subject": "法令",
    "area": "貯蔵・取扱い・運搬・移送",
    "item": "事故時の措置",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "K6-OUKYU",
+    "K6-TSUHO",
+    "K6-CHOSA"
+   ]
   },
   {
    "id": "P-01",

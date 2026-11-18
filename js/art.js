@@ -407,6 +407,72 @@ export const ENEMY_HQ = {
     ctx.fillStyle = '#5a3a1e'; [-1, 1].forEach(k => ctx.fillRect(k * R * .25 - R * .12, -R * .4, R * .24, R * .4));
     ctx.restore();
   },
+  // ナイショハイシ・ネズミ：閉めた施設の鍵をくわえて逃げ回る
+  naishohaishi(ctx, cx, cy, R, t) {
+    const run = Math.sin(t / 5) * R * .05;
+    ctx.strokeStyle = '#c88a9a'; ctx.lineWidth = R * .06; ctx.beginPath(); ctx.moveTo(cx - R * .55, cy + R * .3); ctx.quadraticCurveTo(cx - R * 1.0, cy + R * .1 + run, cx - R * .9, cy - R * .3); ctx.stroke();
+    ctx.fillStyle = lin(ctx, 0, cy - R * .4, 0, cy + R * .6, ['#a8a0b0', '#68607a']); ctx.beginPath(); ctx.ellipse(cx, cy + R * .2, R * .62, R * .45, 0, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cx + R * .5, cy - R * .05, R * .32, R * .28, -.3, 0, 7); ctx.fill();
+    ctx.fillStyle = '#e8b0c0'; [[.32, -.32], [.62, -.32]].forEach(([x, y]) => { ctx.beginPath(); ctx.arc(cx + R * x, cy + R * y, R * .14, 0, 7); ctx.fill(); });
+    ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(cx + R * .58, cy - R * .08, R * .05, 0, 7); ctx.fill(); ctx.fillStyle = '#e88aa0'; ctx.beginPath(); ctx.arc(cx + R * .82, cy + R * .02, R * .05, 0, 7); ctx.fill();
+    // 口にくわえた鍵
+    ctx.fillStyle = '#f0c030'; ctx.beginPath(); ctx.arc(cx + R * .9, cy + R * .18, R * .09, 0, 7); ctx.fill(); ctx.fillRect(cx + R * .9, cy + R * .15, R * .3, R * .06); ctx.fillRect(cx + R * 1.1, cy + R * .2, R * .04, R * .08);
+    // 背中の「閉鎖」の札
+    ctx.fillStyle = '#fffbea'; ctx.fillRect(cx - R * .35, cy - R * .2, R * .5, R * .3); ctx.fillStyle = '#c02020'; ctx.font = `bold ${R * .17}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('閉鎖', cx - R * .1, cy - R * .05);
+    ctx.fillStyle = '#5a5070'; [-.35, .25].forEach(x => ctx.fillRect(cx + R * x, cy + R * .55 + (x < 0 ? run : -run), R * .12, R * .2));
+  },
+  // キテイナシ・ゴースト：白紙の予防規程の巻物を持つ亡霊
+  kiteinashi(ctx, cx, cy, R, t) {
+    const fl = Math.sin(t / 15) * R * .06;
+    ctx.fillStyle = 'rgba(220,230,255,.85)'; ctx.beginPath(); ctx.moveTo(cx - R * .5, cy + R * .6 + fl); ctx.quadraticCurveTo(cx - R * .6, cy - R * .8 + fl, cx, cy - R * .85 + fl); ctx.quadraticCurveTo(cx + R * .6, cy - R * .8 + fl, cx + R * .5, cy + R * .6 + fl);
+    for (let i = 0; i < 4; i++) ctx.quadraticCurveTo(cx + R * (.375 - i * .25), cy + R * (.85 + (i % 2) * .1) + fl, cx + R * (.25 - i * .25), cy + R * .6 + fl); ctx.fill();
+    ctx.fillStyle = '#2a2a50'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.ellipse(cx + k * R * .17, cy - R * .35 + fl, R * .08, R * .12, 0, 0, 7); ctx.fill(); });
+    ctx.beginPath(); ctx.ellipse(cx, cy - R * .08 + fl, R * .08, R * .1, 0, 0, 7); ctx.fill();
+    // 白紙の巻物
+    ctx.fillStyle = '#c8a060'; ctx.fillRect(cx + R * .35, cy - R * .1 + fl, R * .08, R * .65); ctx.fillRect(cx + R * .87, cy - R * .1 + fl, R * .08, R * .65);
+    ctx.fillStyle = '#fffbea'; ctx.fillRect(cx + R * .43, cy - R * .05 + fl, R * .44, R * .55);
+    ctx.fillStyle = '#8a7a5a'; ctx.font = `bold ${R * .11}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('予防規程', cx + R * .65, cy + R * .05 + fl); ctx.fillStyle = '#ccc'; ctx.fillText('（白紙）', cx + R * .65, cy + R * .3 + fl);
+  },
+  // チラカシ・ゴブリン：くずやぼろ布を散らかす小鬼
+  chirakashi(ctx, cx, cy, R, t) {
+    const hop = Math.abs(Math.sin(t / 8)) * R * .06;
+    ctx.fillStyle = '#6a5a3a'; [[-.7, .75], [-.4, .82], [.5, .8], [.78, .72], [0, .9]].forEach(([x, y], i) => { ctx.save(); ctx.translate(cx + R * x, cy + R * y); ctx.rotate(i); ctx.fillRect(-R * .12, -R * .05, R * .24, R * .1); ctx.restore(); });
+    ctx.fillStyle = '#8ab04a'; ctx.beginPath(); ctx.ellipse(cx, cy + R * .15 - hop, R * .42, R * .45, 0, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy - R * .45 - hop, R * .32, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx - R * .28, cy - R * .5 - hop); ctx.lineTo(cx - R * .6, cy - R * .7 - hop); ctx.lineTo(cx - R * .25, cy - R * .38 - hop); ctx.fill(); ctx.beginPath(); ctx.moveTo(cx + R * .28, cy - R * .5 - hop); ctx.lineTo(cx + R * .6, cy - R * .7 - hop); ctx.lineTo(cx + R * .25, cy - R * .38 - hop); ctx.fill();
+    eyes(ctx, cx, cy - R * .47 - hop, R * .12, R * .07);
+    ctx.fillStyle = '#3a2a10'; ctx.beginPath(); ctx.arc(cx, cy - R * .3 - hop, R * .12, 0, 3.1); ctx.fill();
+    // 油じみたぼろ布を振り回す
+    ctx.save(); ctx.translate(cx + R * .45, cy - hop); ctx.rotate(Math.sin(t / 6) * .6); ctx.fillStyle = '#c8a878'; ctx.fillRect(0, -R * .1, R * .45, R * .25); ctx.fillStyle = '#6a4a20'; ctx.beginPath(); ctx.arc(R * .2, R * .03, R * .07, 0, 7); ctx.fill(); ctx.restore();
+    ctx.fillStyle = '#5a7a2a'; [-1, 1].forEach(k => ctx.fillRect(cx + k * R * .18 - R * .07, cy + R * .52 - hop, R * .14, R * .22));
+  },
+  // ナガレッパナシ・スライム：漏れた油を流しっぱなしにする黒いスライム
+  nagareppanashi(ctx, cx, cy, R, t) {
+    const sp = (t % 60) / 60;
+    ctx.fillStyle = 'rgba(30,25,20,.55)'; ctx.beginPath(); ctx.ellipse(cx, cy + R * .75, R * (.9 + sp * .25), R * (.16 + sp * .05), 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,0,180,.35)'; ctx.lineWidth = R * .03; ctx.beginPath(); ctx.ellipse(cx, cy + R * .75, R * .7, R * .1, 0, 0, 7); ctx.stroke(); ctx.strokeStyle = 'rgba(0,220,255,.35)'; ctx.beginPath(); ctx.ellipse(cx, cy + R * .75, R * .5, R * .07, 0, 0, 7); ctx.stroke();
+    ctx.fillStyle = lin(ctx, 0, cy - R * .6, 0, cy + R * .7, ['#5a5048', '#1a1612']); ctx.beginPath(); ctx.moveTo(cx - R * .65, cy + R * .7); ctx.quadraticCurveTo(cx - R * .7, cy - R * .4, cx, cy - R * .65); ctx.quadraticCurveTo(cx + R * .7, cy - R * .4, cx + R * .65, cy + R * .7); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.ellipse(cx - R * .3, cy - R * .3, R * .08, R * .16, -.5, 0, 7); ctx.fill();
+    ctx.fillStyle = '#fff'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + k * R * .17, cy - R * .15, R * .1, 0, 7); ctx.fill(); }); ctx.fillStyle = '#111'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + k * R * .17, cy - R * .12, R * .05, 0, 7); ctx.fill(); });
+    ctx.strokeStyle = '#ddd'; ctx.lineWidth = R * .03; ctx.beginPath(); ctx.arc(cx, cy + R * .08, R * .15, .3, 2.8); ctx.stroke();
+    ctx.fillStyle = '#1a1612'; for (let i = 0; i < 3; i++) { const y = ((t / 3 + i * 20) % 60) / 60; ctx.beginPath(); ctx.ellipse(cx + R * (.5 + i * .12), cy + R * (.1 + y * .6), R * .05, R * .08, 0, 0, 7); ctx.fill(); }
+  },
+  // ムトドケ：届出書をすべて破り捨てる、法令の城の主
+  mutodoke(ctx, cx, cy, R, t) {
+    const br = Math.sin(t / 20) * R * .02;
+    ctx.fillStyle = '#4a1a5a'; ctx.beginPath(); ctx.moveTo(cx - R * .55, cy - R * .45); ctx.lineTo(cx - R * .85, cy + R * .95); ctx.lineTo(cx + R * .85, cy + R * .95); ctx.lineTo(cx + R * .55, cy - R * .45); ctx.fill();
+    ctx.fillStyle = lin(ctx, cx - R * .5, 0, cx + R * .5, 0, ['#7a2a8a', '#4a1a5a']); rr(ctx, cx - R * .45, cy - R * .5 + br, R * .9, R * 1.3, R * .15); ctx.fill();
+    ctx.fillStyle = '#f0c030'; ctx.fillRect(cx - R * .05, cy - R * .45 + br, R * .1, R * 1.2);
+    ctx.fillStyle = '#d8b8a0'; ctx.beginPath(); ctx.arc(cx, cy - R * .72 + br, R * .28, 0, 7); ctx.fill();
+    ctx.fillStyle = '#f0c030'; ctx.beginPath(); ctx.moveTo(cx - R * .3, cy - R * .9 + br); for (let i = 0; i < 5; i++) { ctx.lineTo(cx - R * .3 + i * R * .15, cy - R * (1.2 - (i % 2) * .15) + br); } ctx.lineTo(cx + R * .3, cy - R * .9 + br); ctx.fill();
+    ctx.fillStyle = '#c02020'; ctx.beginPath(); ctx.arc(cx, cy - R * 1.05 + br, R * .05, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#2a1a1a'; ctx.lineWidth = R * .04; [-1, 1].forEach(k => { ctx.beginPath(); ctx.moveTo(cx + k * R * .2, cy - R * .82 + br); ctx.lineTo(cx + k * R * .06, cy - R * .76 + br); ctx.stroke(); });
+    ctx.fillStyle = '#2a1a1a'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + k * R * .12, cy - R * .72 + br, R * .035, 0, 7); ctx.fill(); });
+    ctx.beginPath(); ctx.arc(cx, cy - R * .56 + br, R * .1, 3.4, 6); ctx.stroke();
+    // 破れた届出書が舞う
+    for (let i = 0; i < 4; i++) { const a = t / 25 + i * 1.6, x = cx + Math.cos(a) * R * .85, y = cy + Math.sin(a * 1.3) * R * .4; ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.fillStyle = '#fffbea'; ctx.fillRect(-R * .12, -R * .08, R * .2, R * .16); ctx.fillStyle = '#c02020'; ctx.fillRect(-R * .1, -R * .02, R * .16, R * .02); ctx.restore(); }
+    ctx.save(); ctx.translate(cx - R * .6, cy + R * .1 + br); ctx.rotate(-.2); ctx.fillStyle = '#fffbea'; ctx.fillRect(-R * .2, -R * .25, R * .4, R * .5); ctx.strokeStyle = '#c02020'; ctx.lineWidth = R * .05; ctx.beginPath(); ctx.moveTo(-R * .15, -R * .2); ctx.lineTo(R * .15, R * .2); ctx.moveTo(R * .15, -R * .2); ctx.lineTo(-R * .15, R * .2); ctx.stroke(); ctx.fillStyle = '#333'; ctx.font = `bold ${R * .1}px sans-serif`; ctx.textAlign = 'center'; ctx.fillText('届出', 0, -R * .28); ctx.restore();
+  },
 };
 function hslToHex(h, s, l) { const a = s * Math.min(l, 1 - l); const f = n => { const k = (n + h / 30) % 12; const c = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); return Math.round(255 * c).toString(16).padStart(2, '0'); }; return `#${f(0)}${f(8)}${f(4)}`; }
 
