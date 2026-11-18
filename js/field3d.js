@@ -4,12 +4,12 @@ import { drawCharacter, Assets, STYLE, characterDot } from './art.js';
 
 const BLOCK = new Set(['T', '~', '#', 'R', 'W', 'X']);
 const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
-const STEP_MS = 170;
+const STEP_MS = 150;
 
-function charTexture(look, dir) {
+function charTexture(look, dir, fr = 0) {
   let c;
-  if (STYLE.dot) c = characterDot(look, dir);
-  else { c = document.createElement('canvas'); c.width = 256; c.height = 384; drawCharacter(c.getContext('2d'), 256, 384, look, dir); }
+  if (STYLE.dot) c = characterDot(look, dir, 40, 60, fr);
+  else { c = document.createElement('canvas'); c.width = 256; c.height = 384; drawCharacter(c.getContext('2d'), 256, 384, look, dir, true, fr); }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
   if (STYLE.dot) { t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter; t.generateMipmaps = false; } else t.anisotropy = 4;
   return t;
@@ -33,13 +33,14 @@ export class Field3D {
     this.texCache = {};
     this.resize(); addEventListener('resize', () => this.resize());
     const loop = () => { this.frame(); requestAnimationFrame(loop); }; requestAnimationFrame(loop);
-    setInterval(() => { if (this.held && !this.anim && !this.busy) this.step(this.held); }, 40);
+    this.cam = null; this.lastT = performance.now(); this.slow = 0; this.frames = 0; this.perfChecked = false;
+    this.bindSwipe();
   }
   resize() {
     const w = Math.min(this.cv.parentElement.clientWidth || 390, 480), h = Math.round(w * 1.0);
     this.renderer.setSize(w, h); this.camera.aspect = w / h; this.camera.updateProjectionMatrix();
   }
-  tex(look, dir) { const k = look + ':' + dir; return this.texCache[k] || (this.texCache[k] = charTexture(look, dir)); }
+  tex(look, dir, fr = 0) { const k = look + ':' + dir + ':' + fr; return this.texCache[k] || (this.texCache[k] = charTexture(look, dir, fr)); }
   tile(x, y) { const r = this.map.tiles[y]; return r ? (r[x] || '#') : '#'; }
   npcAt(x, y) { return (this.map.npcs || []).find(n => n.x === x && n.y === y); }
   eventAt(x, y) { return (this.map.events || []).find(e => e.x === x && e.y === y); }
@@ -52,7 +53,7 @@ export class Field3D {
     const town = mapId !== 'field' && !this.map.encounter && mapId !== 'village' ? true : false;
     scene.background = new THREE.Color(0x9ccfff); scene.fog = new THREE.Fog(0x9ccfff, 14, 34);
     this.hemi = new THREE.HemisphereLight(0xdfefff, 0x5a7a3a, 1.1); scene.add(this.hemi);
-    const sun = this.sun = new THREE.DirectionalLight(0xfff2d8, 2.2); sun.position.set(-6, 12, 6); sun.castShadow = true;
+    const sun = this.sun = new THREE.DirectionalLight(0xfff2d8, 2.2); sun.position.set(-6, 12, 6); sun.castShadow = !this.lowPower;
     sun.shadow.mapSize.set(1024, 1024); Object.assign(sun.shadow.camera, { left: -12, right: 12, top: 12, bottom: -12, near: 1, far: 40 }); sun.shadow.bias = -0.0008;
     scene.add(sun); scene.add(sun.target);
     const H = this.map.tiles.length, W = this.map.tiles[0].length, M = 6; // 周りに余白（森・壁）
@@ -148,16 +149,40 @@ export class Field3D {
     if (!this.canWalk(nx, ny)) return;
     this.anim = { fx: this.x, fy: this.y, px: this.prev.x, py: this.prev.y, t0: performance.now() };
     this.prev = { x: this.x, y: this.y }; this.x = nx; this.y = ny;
-    setTimeout(() => { this.anim = null; this.arrive(); }, STEP_MS);
   }
-  setDirTex() { const d = this.dir === 'up' ? 'up' : 'down'; this.heroObj.userData.s.material.map = this.tex('hero', d); if (this.mateObj) this.mateObj.userData.s.material.map = this.tex(this.party[1], d); }
+  setDirTex() { this.setWalkFrame(this.walkFrame || 0, true); }
+  setWalkFrame(fr, force) {
+    if (!force && fr === this.walkFrame && this.lastDir === this.dir) return; this.walkFrame = fr; this.lastDir = this.dir;
+    const d = this.dir === 'up' ? 'up' : 'down';
+    const set = (obj, look, f) => { if (!obj) return; const m = obj.userData.s.material; const tx = this.tex(look, d, f); if (m.map !== tx) { m.map = tx; m.needsUpdate = true; } };
+    set(this.heroObj, 'hero', fr); set(this.mateObj, this.party[1], fr ? 3 - fr : 0);
+  }
+  // 重い端末では影と画質を自動で下げる（最初の2秒ほどの速さで判断）
+  perf(dt) {
+    if (this.perfChecked) return; this.frames++; if (dt > .028) this.slow++;
+    if (this.frames >= 90) { this.perfChecked = true; if (this.slow > 35) { this.renderer.setPixelRatio(1); this.renderer.shadowMap.enabled = false; if (this.sun) this.sun.castShadow = false; this.lowPower = true; } }
+  }
   async arrive() {
     const ev = this.eventAt(this.x, this.y);
     if (ev && (ev.type !== 'stage' || this.hooks.stageVisible(ev.id))) { this.held = null; this.busy = true; await this.hooks.onEvent(ev); this.busy = false; return; }
     if (this.map.encounter) {
       const c = this.tile(this.x, this.y); const rate = c === '.' ? 1 / 12 : c === '=' ? 1 / 40 : 0;
-      if (Math.random() < rate) { this.held = null; this.busy = true; await this.hooks.onEncounter(); this.busy = false; }
+      if (Math.random() < rate) { this.held = null; this.busy = true; await this.hooks.onEncounter(); this.busy = false; return; }
     }
+    if (this.held && !this.busy) this.step(this.held); // 押している間は止まらずに歩き続ける
+  }
+  // 画面を指でなぞった方向に歩く（なぞらずに軽くたたくと「しらべる」）
+  bindSwipe() {
+    const cv = this.cv; let sx = 0, sy = 0, moved = false, id = null;
+    cv.style.touchAction = 'none';
+    cv.addEventListener('pointerdown', e => { id = e.pointerId; sx = e.clientX; sy = e.clientY; moved = false; try { cv.setPointerCapture(id); } catch (er) {} });
+    cv.addEventListener('pointermove', e => {
+      if (e.pointerId !== id) return; const dx = e.clientX - sx, dy = e.clientY - sy; if (Math.hypot(dx, dy) < 18) return;
+      moved = true; const d = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+      if (this.held !== d) { this.held = d; if (!this.anim) this.step(d); }
+    });
+    const end = e => { if (e.pointerId !== id) return; id = null; this.held = null; if (!moved) this.action(); };
+    cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
   }
   async action() {
     if (this.busy || this.anim) return;
@@ -170,18 +195,24 @@ export class Field3D {
   // ---------- 描画 ----------
   frame() {
     if (!this.scene) return;
-    const now = performance.now(), t = now / 1000;
+    const now = performance.now(), t = now / 1000, dt = Math.min(.05, (now - this.lastT) / 1000); this.lastT = now;
+    this.perf(dt);
+    if (this.anim && now - this.anim.t0 >= STEP_MS) { this.anim = null; this.arrive(); }
     let hx = this.x, hy = this.y, mx = this.prev.x, my = this.prev.y, walking = 0;
     if (this.anim) { const k = Math.min(1, (now - this.anim.t0) / STEP_MS); hx = this.anim.fx + (this.x - this.anim.fx) * k; hy = this.anim.fy + (this.y - this.anim.fy) * k; mx = this.anim.px + (this.prev.x - this.anim.px) * k; my = this.anim.py + (this.prev.y - this.anim.py) * k; walking = 1; }
     this.placeParty(hx, hy, mx, my);
-    const bob = walking ? Math.abs(Math.sin(t * 18)) * .06 : Math.sin(t * 2) * .01;
+    const walkingNow = walking || (this.held && !this.busy); const fr = walkingNow ? (Math.floor(now / 140) % 2) + 1 : 0;
+    this.setWalkFrame(fr);
+    const bob = walkingNow ? Math.abs(Math.sin(t * 14)) * .04 : Math.sin(t * 2) * .01;
     this.heroObj.userData.s.position.y = this.heroObj.userData.y0 + bob; if (this.mateObj) this.mateObj.userData.s.position.y = this.mateObj.userData.y0 + (walking ? Math.abs(Math.cos(t * 18)) * .06 : 0);
     this.npcs.forEach((g, i) => g.userData.s.position.y = g.userData.y0 + Math.abs(Math.sin(t * 1.5 + i)) * .03);
     this.marks.forEach(m => { const vis = this.hooks.stageVisible(m.e.id), done = this.hooks.stageCleared(m.e.id); m.g.visible = vis; m.gem.rotation.y = t * 2; m.gem.position.y = 1.1 + Math.sin(t * 3) * .08; m.gem.material.color.set(done ? 0x9a9a9a : 0xff3a2a); m.gem.material.emissive.set(done ? 0x202020 : 0x801010); m.ring.material.color.set(done ? 0x888888 : 0xff5a3a); });
     if (this.water) this.water.position.y = Math.sin(t * 1.5) * .015;
     if (this.night !== (this.hooks.isNight && this.hooks.isNight())) this.applyNight();
     // カメラ：斜め上から主人公を追う
-    const cx = hx, cz = hy; this.camera.position.set(cx, 10.5, cz + 5.6); this.camera.lookAt(cx, .2, cz - .6);
+    if (!this.cam || this.cam.map !== this.mapId) this.cam = { x: hx, z: hy, map: this.mapId };
+    const a = 1 - Math.exp(-dt * 9); this.cam.x += (hx - this.cam.x) * a; this.cam.z += (hy - this.cam.z) * a;
+    const cx = this.cam.x, cz = this.cam.z; this.camera.position.set(cx, 10.5, cz + 5.6); this.camera.lookAt(cx, .2, cz - .6);
     this.sun.position.set(cx - 6, 12, cz + 6); this.sun.target.position.set(cx, 0, cz);
     this.renderer.render(this.scene, this.camera);
   }

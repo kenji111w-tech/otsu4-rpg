@@ -18,15 +18,17 @@ function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arc
 function lin(ctx, x0, y0, x1, y1, c) { const g = ctx.createLinearGradient(x0, y0, x1, y1); c.forEach((col, i) => g.addColorStop(i / (c.length - 1), col)); return g; }
 
 // 人物（W×H、足元が下端）。3/4ビュー風のなめらかな絵
-export function drawCharacter(ctx, W, H, lookKey, dir = 'down', useAsset = true) {
+export function drawCharacter(ctx, W, H, lookKey, dir = 'down', useAsset = true, fr = 0) {
   const im = useAsset && Assets.chars[lookKey];
   if (im) { const s = Math.min(W / im.width, H / im.height); ctx.drawImage(im, (W - im.width * s) / 2, H - im.height * s, im.width * s, im.height * s); return; }
   const L = LOOKS[lookKey] || LOOKS.villager; const u = W / 100; const big = L.big ? 1.15 : 1, sm = L.small ? .85 : 1;
   ctx.save(); ctx.translate(W / 2, H); ctx.scale(sm, sm);
   const back = dir === 'up';
-  // 脚
-  [-1, 1].forEach(s => { ctx.fillStyle = lin(ctx, s * 12 * u, 0, s * 12 * u + 10 * u, 0, [shade(L.cloth2, -.2), shade(L.cloth2, -.45)]); rr(ctx, s * 13 * u - 7 * u, -40 * u, 14 * u, 36 * u, 6 * u); ctx.fill();
-    ctx.fillStyle = lin(ctx, 0, -8 * u, 0, 0, ['#6a4428', '#3a2414']); rr(ctx, s * 13 * u - 9 * u, -10 * u, 18 * u, 10 * u, 4 * u); ctx.fill(); });
+  // 脚（歩くときは左右の足を交互に上げる）
+  [-1, 1].forEach(s => { const lift = fr === 0 ? 0 : ((fr === 1) === (s < 0) ? 7 * u : 0);
+    ctx.save(); ctx.translate(0, -lift); ctx.fillStyle = lin(ctx, s * 12 * u, 0, s * 12 * u + 10 * u, 0, [shade(L.cloth2, -.2), shade(L.cloth2, -.45)]); rr(ctx, s * 13 * u - 7 * u, -40 * u, 14 * u, 36 * u, 6 * u); ctx.fill();
+    ctx.fillStyle = lin(ctx, 0, -8 * u, 0, 0, ['#6a4428', '#3a2414']); rr(ctx, s * 13 * u - 9 * u, -10 * u, 18 * u, 10 * u, 4 * u); ctx.fill(); ctx.restore(); });
+  if (fr) ctx.translate(0, -2 * u); // 歩くときは体が少し上下する
   // 胴
   const bw = 46 * u * big; ctx.fillStyle = lin(ctx, -bw / 2, 0, bw / 2, 0, [shade(L.cloth, .18), L.cloth, shade(L.cloth, -.35)]);
   rr(ctx, -bw / 2, -92 * u, bw, 56 * u, 14 * u); ctx.fill();
@@ -258,10 +260,10 @@ export function pixelate(src, pw, ph, { levels = 10, outline = true, cut = 110 }
   const out = document.createElement('canvas'); out.width = pw; out.height = ph; out.getContext('2d').putImageData(img, 0, 0); return out;
 }
 // 人物のドット絵（幅40×高さ60点）
-export function characterDot(look, dir = 'down', pw = 40, ph = 60) {
+export function characterDot(look, dir = 'down', pw = 40, ph = 60, fr = 0) {
   const big = document.createElement('canvas'); big.width = 256; big.height = 384;
   // リアルな頭身の画像はドットにすると潰れるため、ドット絵ではドット用に描いた絵（assets/dots/）がなければ仮の絵を使う
-  drawCharacter(big.getContext('2d'), 256, 384, look, dir, false);
+  drawCharacter(big.getContext('2d'), 256, 384, look, dir, false, fr);
   return pixelate(big, pw, ph, { levels: 9 });
 }
 // 魔物のドット絵（毎フレーム、小さく描いてから拡大）
