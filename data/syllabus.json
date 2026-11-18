@@ -301,7 +301,10 @@
    "subject": "法令",
    "area": "位置・構造・設備の基準",
    "item": "屋外タンク貯蔵所の基準",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "K7-BOYU",
+    "K7-OKUGAI"
+   ]
   },
   {
    "id": "L-33",
@@ -315,7 +318,9 @@
    "subject": "法令",
    "area": "位置・構造・設備の基準",
    "item": "地下タンク貯蔵所の基準",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "K7-CHIKA"
+   ]
   },
   {
    "id": "L-35",
@@ -329,7 +334,9 @@
    "subject": "法令",
    "area": "位置・構造・設備の基準",
    "item": "移動タンク貯蔵所の基準",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "K7-IDO"
+   ]
   },
   {
    "id": "L-37",
@@ -343,7 +350,9 @@
    "subject": "法令",
    "area": "位置・構造・設備の基準",
    "item": "給油取扱所の基準",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "K7-KYUYU"
+   ]
   },
   {
    "id": "L-39",

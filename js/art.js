@@ -519,6 +519,54 @@ export const ENEMY_HQ = {
     for (let i = 0; i < 4; i++) { const a = t / 25 + i * 1.6, x = cx + Math.cos(a) * R * .85, y = cy + Math.sin(a * 1.3) * R * .4; ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.fillStyle = '#fffbea'; ctx.fillRect(-R * .12, -R * .08, R * .2, R * .16); ctx.fillStyle = '#c02020'; ctx.fillRect(-R * .1, -R * .02, R * .16, R * .02); ctx.restore(); }
     ctx.save(); ctx.translate(cx - R * .6, cy + R * .1 + br); ctx.rotate(-.2); ctx.fillStyle = '#fffbea'; ctx.fillRect(-R * .2, -R * .25, R * .4, R * .5); ctx.strokeStyle = '#c02020'; ctx.lineWidth = R * .05; ctx.beginPath(); ctx.moveTo(-R * .15, -R * .2); ctx.lineTo(R * .15, R * .2); ctx.moveTo(R * .15, -R * .2); ctx.lineTo(-R * .15, R * .2); ctx.stroke(); ctx.fillStyle = '#333'; ctx.font = `bold ${R * .1}px sans-serif`; ctx.textAlign = 'center'; ctx.fillText('届出', 0, -R * .28); ctx.restore();
   },
+  // アサボリ・モグラ：地下タンクを浅く埋めるモグラ
+  asabori(ctx, cx, cy, R, t) {
+    const dig = Math.sin(t / 6) * .3;
+    ctx.fillStyle = '#7a5a3a'; ctx.beginPath(); ctx.ellipse(cx, cy + R * .78, R * .95, R * .16, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = lin(ctx, 0, 0, 0, 1, ['#c8c8d0', '#8a8a98']); ctx.fillStyle = '#9aa0ac'; rr(ctx, cx + R * .15, cy + R * .45, R * .75, R * .32, R * .15); ctx.fill(); ctx.fillStyle = '#6a7080'; ctx.fillRect(cx + R * .15, cy + R * .58, R * .75, R * .04);
+    ctx.fillStyle = lin(ctx, 0, cy - R * .5, 0, cy + R * .7, ['#6a5a5a', '#3a2e2e']); ctx.beginPath(); ctx.ellipse(cx - R * .2, cy + R * .2, R * .48, R * .55, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#e8a0a0'; ctx.beginPath(); ctx.ellipse(cx - R * .2, cy - R * .02, R * .12, R * .08, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#111'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx - R * .2 + k * R * .13, cy - R * .16, R * .035, 0, 7); ctx.fill(); });
+    ctx.fillStyle = '#f0c020'; ctx.beginPath(); ctx.ellipse(cx - R * .2, cy - R * .32, R * .36, R * .2, 0, Math.PI, 0); ctx.fill(); ctx.fillRect(cx - R * .6, cy - R * .34, R * .8, R * .05);
+    ctx.save(); ctx.translate(cx - R * .6, cy + R * .2); ctx.rotate(-.6 + dig); ctx.fillStyle = '#8a6a3a'; ctx.fillRect(-R * .03, -R * .6, R * .06, R * .6); ctx.fillStyle = '#aaa'; ctx.beginPath(); ctx.moveTo(-R * .12, -R * .6); ctx.lineTo(R * .12, -R * .6); ctx.lineTo(0, -R * .82); ctx.fill(); ctx.restore();
+    ctx.fillStyle = '#e8b0b0'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.ellipse(cx - R * .2 + k * R * .35, cy + R * .3, R * .12, R * .08, 0, 0, 7); ctx.fill(); });
+  },
+  // ツツミヤブリ・ガエル：防油堤をけずるカエル
+  tsutsumiyaburi(ctx, cx, cy, R, t) {
+    const hop = Math.abs(Math.sin(t / 9)) * R * .08;
+    ctx.fillStyle = '#9a9aa8'; ctx.fillRect(cx - R * .95, cy + R * .45, R * .35, R * .35); ctx.fillRect(cx + R * .6, cy + R * .6, R * .35, R * .2);
+    ctx.fillStyle = '#6a6a78'; ctx.fillRect(cx + R * .62, cy + R * .45, R * .1, R * .15); ctx.fillRect(cx + R * .78, cy + R * .5, R * .08, R * .1);
+    ctx.fillStyle = 'rgba(40,30,20,.6)'; ctx.beginPath(); ctx.ellipse(cx + R * .85, cy + R * .86, R * .25, R * .06, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = lin(ctx, 0, cy - R * .4, 0, cy + R * .7, ['#7ac850', '#3a8a2a']); ctx.beginPath(); ctx.ellipse(cx, cy + R * .25 - hop, R * .55, R * .42, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#e8f0b0'; ctx.beginPath(); ctx.ellipse(cx, cy + R * .38 - hop, R * .35, R * .25, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#7ac850'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + k * R * .27, cy - R * .2 - hop, R * .17, 0, 7); ctx.fill(); });
+    ctx.fillStyle = '#fff'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + k * R * .27, cy - R * .22 - hop, R * .11, 0, 7); ctx.fill(); }); ctx.fillStyle = '#111'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + k * R * .27, cy - R * .2 - hop, R * .055, 0, 7); ctx.fill(); });
+    ctx.strokeStyle = '#2a5a1a'; ctx.lineWidth = R * .04; ctx.beginPath(); ctx.arc(cx, cy + R * .02 - hop, R * .28, .3, 2.8); ctx.stroke();
+    ctx.fillStyle = '#5aa83a'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.ellipse(cx + k * R * .55, cy + R * .62, R * .22, R * .1, 0, 0, 7); ctx.fill(); });
+  },
+  // シキリナシ・タンク：仕切り板を放り出したふくれたタンク
+  shikirinashi(ctx, cx, cy, R, t) {
+    const pu = Math.sin(t / 10) * R * .04;
+    ctx.fillStyle = lin(ctx, 0, cy - R * .5, 0, cy + R * .4, ['#f4f4f8', '#a8acb8']); ctx.beginPath(); ctx.ellipse(cx, cy, R * (.78 + pu / R), R * (.48 + pu / R), 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#d83a2a'; ctx.lineWidth = R * .06; ctx.beginPath(); ctx.ellipse(cx, cy, R * .7, R * .1, 0, 0, Math.PI); ctx.stroke();
+    eyes(ctx, cx, cy - R * .12, R * .25, R * .1);
+    ctx.strokeStyle = '#333'; ctx.lineWidth = R * .04; ctx.beginPath(); ctx.arc(cx, cy + R * .12, R * .14, .2, 2.9); ctx.stroke();
+    ctx.fillStyle = '#1a1a1a'; [-.5, .45].forEach(x => { ctx.beginPath(); ctx.arc(cx + R * x, cy + R * .55, R * .14, 0, 7); ctx.fill(); });
+    for (let i = 0; i < 3; i++) { const a = t / 18 + i * 2.1; ctx.save(); ctx.translate(cx + Math.cos(a) * R * .9, cy - R * .55 + Math.sin(a) * R * .2); ctx.rotate(a); ctx.fillStyle = '#7a8090'; ctx.fillRect(-R * .04, -R * .2, R * .08, R * .4); ctx.restore(); }
+    ctx.fillStyle = '#111'; ctx.fillRect(cx + R * .55, cy - R * .4, R * .18, R * .18); ctx.fillStyle = '#f0d020'; ctx.font = `bold ${R * .14}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('危', cx + R * .64, cy - R * .31);
+  },
+  // セマスギ・スタンド：入口をせまくする給油機
+  semasugi(ctx, cx, cy, R, t) {
+    const sw = Math.sin(t / 12) * .08;
+    ctx.fillStyle = '#d8d8e0'; rr(ctx, cx - R * .35, cy - R * .6, R * .7, R * 1.3, R * .1); ctx.fill();
+    ctx.fillStyle = '#d83a2a'; ctx.fillRect(cx - R * .35, cy - R * .6, R * .7, R * .25);
+    ctx.fillStyle = '#1a2a3a'; ctx.fillRect(cx - R * .24, cy - R * .25, R * .48, R * .3);
+    ctx.fillStyle = '#ff5a3a'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + k * R * .1, cy - R * .1, R * .045, 0, 7); ctx.fill(); });
+    ctx.save(); ctx.translate(cx + R * .35, cy - R * .1); ctx.rotate(sw); ctx.strokeStyle = '#222'; ctx.lineWidth = R * .06; ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(R * .4, R * .3, R * .3, R * .6); ctx.stroke(); ctx.fillStyle = '#444'; ctx.fillRect(R * .22, R * .55, R * .16, R * .1); ctx.restore();
+    // 入口をふさぐ看板
+    [-.8, .8].forEach(x => { ctx.fillStyle = '#e8c030'; ctx.beginPath(); ctx.moveTo(cx + R * x - R * .15, cy + R * .75); ctx.lineTo(cx + R * x, cy + R * .25); ctx.lineTo(cx + R * x + R * .15, cy + R * .75); ctx.fill(); ctx.fillStyle = '#222'; ctx.fillRect(cx + R * x - R * .02, cy + R * .4, R * .04, R * .15); });
+    ctx.strokeStyle = '#ff3a2a'; ctx.lineWidth = R * .04; ctx.setLineDash([R * .06, R * .05]); ctx.beginPath(); ctx.moveTo(cx - R * .95, cy + R * .85); ctx.lineTo(cx - R * .6, cy + R * .85); ctx.moveTo(cx + R * .6, cy + R * .85); ctx.lineTo(cx + R * .95, cy + R * .85); ctx.stroke(); ctx.setLineDash([]);
+  },
 };
 function hslToHex(h, s, l) { const a = s * Math.min(l, 1 - l); const f = n => { const k = (n + h / 30) % 12; const c = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); return Math.round(255 * c).toString(16).padStart(2, '0'); }; return `#${f(0)}${f(8)}${f(4)}`; }
 

@@ -350,7 +350,8 @@ class Game {
     const hero = s.members.hero, again = [];
     for (const q of qs) { const a = await ask(q, { title: 'ホアンの確認', mode: 'stage', hint: { cost: 1, use: () => { if (hero.mp < 1) return false; hero.mp -= 1; return true; } } }); if (!a.correct || a.unsure || a.hint) again.push(q); }
     if (again.length) { await say([['ホアン', 'まちがえた・迷ったところを、もう一度確かめましょう。']]); for (const q of again) await ask(q, { title: 'ふりかえり', mode: 'furikaeri' }); }
-    await say([['ホアン', sn === '4' ? (town[0] === 'D' ? '道をふさぐ魔物は片づきました。……奥の広間から、重い足音が聞こえます！' : 'これで町の4つの事件はすべて解決……いや、町はずれに、大きな影が！') : 'つぎの現場へ行きましょう。宿屋で休むのも忘れずに。']]);
+    await say([['ホアン', sn === '4' ? (town[0] === 'Q' ? 'タンク職人の依頼は、これで全部片づきました！ ゲンさんに知らせましょう。' : town[0] === 'D' ? '道をふさぐ魔物は片づきました。……奥の広間から、重い足音が聞こえます！' : 'これで町の4つの事件はすべて解決……いや、町はずれに、大きな影が！') : 'つぎの現場へ行きましょう。宿屋で休むのも忘れずに。']]);
+    if (id === 'Q1-4' && !s.flags.q1reward) { s.flags.q1reward = true; s.items.yakusou = Math.min(9, (s.items.yakusou || 0) + 5); s.items.mizu = Math.min(9, (s.items.mizu || 0) + 3); s.gold += 300; const I = this.world.items; await say(['（ゲンさんから、お礼が届いた）', `${I.yakusou.name}5個、${I.mizu.name}3個、300ゴールドを手に入れた！`]); }
   }
   async retreat() {
     this.healAll(); const L = this.state.lastInn; this.field.load(L.map, L.x, L.y);
