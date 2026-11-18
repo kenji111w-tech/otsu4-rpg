@@ -68,7 +68,7 @@ export function makeOrder(q) {
 
 // 問題を出す。opts: {title, hint: {available, use()}, mode}
 // 戻り値: {correct, unsure, hint, order, ms, chosen}
-export function ask(q, { title = '', hint = null, showDraft = true, mode = null } = {}) {
+export function ask(q, { title = '', hint = null, showDraft = true, mode = null, hintText = null, hintLabel = 'ヒント' } = {}) {
   return new Promise(res => {
     const p = panel('quiz ' + (q.kind === 'situation' ? 'sit' : 'mcq'));
     const order = makeOrder(q);
@@ -91,9 +91,10 @@ export function ask(q, { title = '', hint = null, showDraft = true, mode = null 
     const confirm = el('div', 'confirm hide');
     const ok = el('button', 'ok', 'これで決定'), uns = el('button', 'uns', '迷ったけど決定');
     confirm.append(ok, uns); p.appendChild(confirm);
-    if (hint && q.hint) {
-      const hb = el('button', 'hintbtn', `ヒント（MP${hint.cost || 1}）`);
-      hb.onclick = () => { if (usedHint) return; if (!hint.use()) { hb.textContent = 'MPが足りない'; return; } usedHint = true; hintBox.textContent = '💡 ' + q.hint; hintBox.classList.remove('hide'); hb.remove(); };
+    const htxt = hintText || q.hint;
+    if (hint && htxt) {
+      const hb = el('button', 'hintbtn', `${hintLabel}（MP${hint.cost || 1}）`);
+      hb.onclick = () => { if (usedHint) return; if (!hint.use()) { hb.textContent = 'MPが足りない'; return; } usedHint = true; hintBox.textContent = '💡 ' + htxt; hintBox.classList.remove('hide'); hb.remove(); };
       head.appendChild(hb);
     }
     const finish = unsure => {

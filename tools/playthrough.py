@@ -28,6 +28,13 @@ SCEN = """
       window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv);
     }
     window.__log.push('docs:' + (g.state.docs||[]).join('>'));
+    await ev({type:'exit', to:'field3', tx:1, ty:8, need:'L2-boss'});
+    await ev({type:'exit', to:'town3', tx:8, ty:14});
+    await ev({type:'building', id:'koshujo', x:13, y:8});
+    for (const st of ['L3-1','L3-2','L3-3','L3-4','L3-boss']) {
+      for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn', x:3, y:3}); await ev({type:'stage', id:st}); }
+      window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv);
+    }
     await g.menu();
   } catch (e) { window.__log.push('ERR ' + e.message + e.stack); }
   window.__done = true;
@@ -83,7 +90,7 @@ async def main():
             await pg.wait_for_timeout(30)
         await pg.evaluate(SCEN)
         counts = {}
-        for i in range(3000):
+        for i in range(4500):
             if await pg.evaluate("window.__done"): break
             r = await bot_step(pg, None); counts[r.split(':')[0]] = counts.get(r.split(':')[0], 0) + 1
             await pg.wait_for_timeout(15)

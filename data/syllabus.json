@@ -1,0 +1,637 @@
+{
+ "note": "出題範囲を細かい項目に分けたプロジェクト独自のチェックリスト（公式の項目表ではない）。kid_prefixes に一致する knowledge_id の問題があれば網羅済みとみなす。",
+ "items": [
+  {
+   "id": "L-01",
+   "subject": "法令",
+   "area": "定義・指定数量",
+   "item": "危険物の定義（消防法別表第一）",
+   "kid_prefixes": [
+    "K-DEF-01"
+   ]
+  },
+  {
+   "id": "L-02",
+   "subject": "法令",
+   "area": "定義・指定数量",
+   "item": "類ごとの性質（第1〜第6類）",
+   "kid_prefixes": [
+    "K-CLS-"
+   ]
+  },
+  {
+   "id": "L-03",
+   "subject": "法令",
+   "area": "定義・指定数量",
+   "item": "第4類の品名と引火点による区分",
+   "kid_prefixes": [
+    "K-PN-"
+   ]
+  },
+  {
+   "id": "L-04",
+   "subject": "法令",
+   "area": "定義・指定数量",
+   "item": "指定数量",
+   "kid_prefixes": [
+    "K-SQ-"
+   ]
+  },
+  {
+   "id": "L-05",
+   "subject": "法令",
+   "area": "定義・指定数量",
+   "item": "指定数量の倍数の計算",
+   "kid_prefixes": [
+    "K-MUL-"
+   ]
+  },
+  {
+   "id": "L-06",
+   "subject": "法令",
+   "area": "定義・指定数量",
+   "item": "指定数量未満の危険物（市町村条例）",
+   "kid_prefixes": [
+    "K-LOW"
+   ]
+  },
+  {
+   "id": "L-07",
+   "subject": "法令",
+   "area": "定義・指定数量",
+   "item": "仮貯蔵・仮取扱い",
+   "kid_prefixes": [
+    "K-KARI"
+   ]
+  },
+  {
+   "id": "L-08",
+   "subject": "法令",
+   "area": "定義・指定数量",
+   "item": "指定数量以上の貯蔵・取扱いの場所",
+   "kid_prefixes": [
+    "K-STORE"
+   ]
+  },
+  {
+   "id": "L-09",
+   "subject": "法令",
+   "area": "製造所等と手続き",
+   "item": "製造所等の区分（製造所・貯蔵所7・取扱所4）",
+   "kid_prefixes": [
+    "K2-KUBUN",
+    "K2-MOBILE",
+    "K2-UNDER",
+    "K2-SEIZO"
+   ]
+  },
+  {
+   "id": "L-10",
+   "subject": "法令",
+   "area": "製造所等と手続き",
+   "item": "設置・変更の許可と許可権者",
+   "kid_prefixes": [
+    "K2-PERMIT",
+    "K2-CHANGE",
+    "K2-WHO",
+    "K2-EACH"
+   ]
+  },
+  {
+   "id": "L-11",
+   "subject": "法令",
+   "area": "製造所等と手続き",
+   "item": "完成検査・完成検査前検査",
+   "kid_prefixes": [
+    "K2-KANSEI",
+    "K2-ZENKENSA"
+   ]
+  },
+  {
+   "id": "L-12",
+   "subject": "法令",
+   "area": "製造所等と手続き",
+   "item": "仮使用",
+   "kid_prefixes": [
+    "K2-KARISHIYO"
+   ]
+  },
+  {
+   "id": "L-13",
+   "subject": "法令",
+   "area": "製造所等と手続き",
+   "item": "品名・数量・倍数の変更の届出、譲渡・引渡しの届出",
+   "kid_prefixes": [
+    "K2-TODOKE10",
+    "K2-JOTO"
+   ]
+  },
+  {
+   "id": "L-14",
+   "subject": "法令",
+   "area": "製造所等と手続き",
+   "item": "廃止の届出、保安監督者の選任・解任の届出",
+   "kid_prefixes": []
+  },
+  {
+   "id": "L-15",
+   "subject": "法令",
+   "area": "製造所等と手続き",
+   "item": "許可の取消し・使用停止命令、基準遵守命令",
+   "kid_prefixes": [
+    "K2-STOP",
+    "K2-KIJUN-MEIREI"
+   ]
+  },
+  {
+   "id": "L-16",
+   "subject": "法令",
+   "area": "製造所等と手続き",
+   "item": "その他の措置命令（緊急使用停止など）",
+   "kid_prefixes": []
+  },
+  {
+   "id": "L-17",
+   "subject": "法令",
+   "area": "製造所等と手続き",
+   "item": "許可・承認・届出の区別",
+   "kid_prefixes": [
+    "K2-KYOKA3",
+    "K2-TEN"
+   ]
+  },
+  {
+   "id": "L-18",
+   "subject": "法令",
+   "area": "危険物取扱者と保安体制",
+   "item": "甲種・乙種・丙種の取扱い範囲",
+   "kid_prefixes": [
+    "K3-OTSU",
+    "K3-HEI"
+   ]
+  },
+  {
+   "id": "L-19",
+   "subject": "法令",
+   "area": "危険物取扱者と保安体制",
+   "item": "立会い",
+   "kid_prefixes": [
+    "K3-TACHIAI",
+    "K3-HEITACHI"
+   ]
+  },
+  {
+   "id": "L-20",
+   "subject": "法令",
+   "area": "危険物取扱者と保安体制",
+   "item": "免状の交付・書換え・再交付・全国有効",
+   "kid_prefixes": [
+    "K3-KOFU",
+    "K3-KAKIKAE",
+    "K3-PHOTO",
+    "K3-SAIKOFU",
+    "K3-ZENKOKU"
+   ]
+  },
+  {
+   "id": "L-21",
+   "subject": "法令",
+   "area": "危険物取扱者と保安体制",
+   "item": "免状の不交付・返納命令",
+   "kid_prefixes": [
+    "K3-KOSHU-HENNO"
+   ]
+  },
+  {
+   "id": "L-22",
+   "subject": "法令",
+   "area": "危険物取扱者と保安体制",
+   "item": "保安講習",
+   "kid_prefixes": [
+    "K3-KOSHU"
+   ]
+  },
+  {
+   "id": "L-23",
+   "subject": "法令",
+   "area": "危険物取扱者と保安体制",
+   "item": "危険物保安監督者（要件・業務）",
+   "kid_prefixes": [
+    "K3-KANTOKU"
+   ]
+  },
+  {
+   "id": "L-24",
+   "subject": "法令",
+   "area": "危険物取扱者と保安体制",
+   "item": "危険物保安統括管理者・危険物施設保安員",
+   "kid_prefixes": [
+    "K3-HOANIN"
+   ]
+  },
+  {
+   "id": "L-25",
+   "subject": "法令",
+   "area": "危険物取扱者と保安体制",
+   "item": "予防規程",
+   "kid_prefixes": []
+  },
+  {
+   "id": "L-26",
+   "subject": "法令",
+   "area": "危険物取扱者と保安体制",
+   "item": "定期点検（時期・記録・実施者・対象施設）",
+   "kid_prefixes": [
+    "K3-TENKEN",
+    "K3-HEI-TENKEN"
+   ]
+  },
+  {
+   "id": "L-27",
+   "subject": "法令",
+   "area": "危険物取扱者と保安体制",
+   "item": "自衛消防組織",
+   "kid_prefixes": []
+  },
+  {
+   "id": "L-28",
+   "subject": "法令",
+   "area": "位置・構造・設備の基準",
+   "item": "保安距離",
+   "kid_prefixes": []
+  },
+  {
+   "id": "L-29",
+   "subject": "法令",
+   "area": "位置・構造・設備の基準",
+   "item": "保有空地",
+   "kid_prefixes": []
+  },
+  {
+   "id": "L-30",
+   "subject": "法令",
+   "area": "位置・構造・設備の基準",
+   "item": "製造所の基準",
+   "kid_prefixes": []
+  },
+  {
+   "id": "L-31",
+   "subject": "法令",
+   "area": "位置・構造・設備の基準",
+   "item": "屋内貯蔵所の基準",
+   "kid_prefixes": []
+  },
+  {
+   "id": "L-32",
+   "subject": "法令",
+   "area": "位置・構造・設備の基準",
+   "item": "屋外タンク貯蔵所の基準",
+   "kid_prefixes": []
+  },
+  {
+   "id": "L-33",
+   "subject": "法令",
+   "area": "位置・構造・設備の基準",
+   "item": "屋内タンク貯蔵所の基準",
+   "kid_prefixes": []
+  },
+  {
+   "id": "L-34",
+   "subject": "法令",
+   "area": "位置・構造・設備の基準",
+   "item": "地下タンク貯蔵所の基準",
+   "kid_prefixes": []
+  },
+  {
+   "id": "L-35",
+   "subject": "法令",
+   "area": "位置・構造・設備の基準",
+   "item": "簡易タンク貯蔵所の基準",
+   "kid_prefixes": []
+  },
+  {
+   "id": "L-36",
+   "subject": "法令",
+   "area": "位置・構造・設備の基準",
+   "item": "移動タンク貯蔵所の基準",
+   "kid_prefixes": []
+  },
+  {
+   "id": "L-37",
+   "subject": "法令",
+   "area": "位置・構造・設備の基準",
+   "item": "屋外貯蔵所の基準",
+   "kid_prefixes": []
+  },
+  {
+   "id": "L-38",
+   "subject": "法令",
+   "area": "位置・構造・設備の基準",
+   "item": "給油取扱所の基準",
+   "kid_prefixes": []
+  },
+  {
+   "id": "L-39",
+   "subject": "法令",
+   "area": "位置・構造・設備の基準",
+   "item": "販売取扱所の基準",
+   "kid_prefixes": []
+  },
+  {
+   "id": "L-40",
+   "subject": "法令",
+   "area": "位置・構造・設備の基準",
+   "item": "標識・掲示板",
+   "kid_prefixes": []
+  },
+  {
+   "id": "L-41",
+   "subject": "法令",
+   "area": "位置・構造・設備の基準",
+   "item": "消火設備（第1種〜第5種）・警報設備",
+   "kid_prefixes": []
+  },
+  {
+   "id": "L-42",
+   "subject": "法令",
+   "area": "貯蔵・取扱い・運搬・移送",
+   "item": "貯蔵・取扱いの共通基準",
+   "kid_prefixes": []
+  },
+  {
+   "id": "L-43",
+   "subject": "法令",
+   "area": "貯蔵・取扱い・運搬・移送",
+   "item": "貯蔵の基準",
+   "kid_prefixes": []
+  },
+  {
+   "id": "L-44",
+   "subject": "法令",
+   "area": "貯蔵・取扱い・運搬・移送",
+   "item": "取扱いの基準（詰替え・廃棄など）",
+   "kid_prefixes": []
+  },
+  {
+   "id": "L-45",
+   "subject": "法令",
+   "area": "貯蔵・取扱い・運搬・移送",
+   "item": "運搬の基準（容器・積載・混載・表示）",
+   "kid_prefixes": []
+  },
+  {
+   "id": "L-46",
+   "subject": "法令",
+   "area": "貯蔵・取扱い・運搬・移送",
+   "item": "移送の基準（移動タンク貯蔵所）",
+   "kid_prefixes": []
+  },
+  {
+   "id": "L-47",
+   "subject": "法令",
+   "area": "貯蔵・取扱い・運搬・移送",
+   "item": "事故時の措置",
+   "kid_prefixes": []
+  },
+  {
+   "id": "P-01",
+   "subject": "物理・化学",
+   "area": "物理",
+   "item": "物質の三態と状態変化",
+   "kid_prefixes": []
+  },
+  {
+   "id": "P-02",
+   "subject": "物理・化学",
+   "area": "物理",
+   "item": "密度・比重",
+   "kid_prefixes": []
+  },
+  {
+   "id": "P-03",
+   "subject": "物理・化学",
+   "area": "物理",
+   "item": "沸点・蒸気圧",
+   "kid_prefixes": []
+  },
+  {
+   "id": "P-04",
+   "subject": "物理・化学",
+   "area": "物理",
+   "item": "熱量・比熱・熱容量",
+   "kid_prefixes": []
+  },
+  {
+   "id": "P-05",
+   "subject": "物理・化学",
+   "area": "物理",
+   "item": "熱の移動（伝導・対流・放射）",
+   "kid_prefixes": []
+  },
+  {
+   "id": "P-06",
+   "subject": "物理・化学",
+   "area": "物理",
+   "item": "熱膨張",
+   "kid_prefixes": []
+  },
+  {
+   "id": "P-07",
+   "subject": "物理・化学",
+   "area": "物理",
+   "item": "静電気",
+   "kid_prefixes": []
+  },
+  {
+   "id": "P-08",
+   "subject": "物理・化学",
+   "area": "化学",
+   "item": "物理変化と化学変化",
+   "kid_prefixes": []
+  },
+  {
+   "id": "P-09",
+   "subject": "物理・化学",
+   "area": "化学",
+   "item": "単体・化合物・混合物",
+   "kid_prefixes": []
+  },
+  {
+   "id": "P-10",
+   "subject": "物理・化学",
+   "area": "化学",
+   "item": "原子・分子・物質量・化学反応式",
+   "kid_prefixes": []
+  },
+  {
+   "id": "P-11",
+   "subject": "物理・化学",
+   "area": "化学",
+   "item": "酸化と還元",
+   "kid_prefixes": []
+  },
+  {
+   "id": "P-12",
+   "subject": "物理・化学",
+   "area": "化学",
+   "item": "酸・塩基・pH・中和",
+   "kid_prefixes": []
+  },
+  {
+   "id": "P-13",
+   "subject": "物理・化学",
+   "area": "化学",
+   "item": "金属のイオン化傾向と腐食",
+   "kid_prefixes": []
+  },
+  {
+   "id": "P-14",
+   "subject": "物理・化学",
+   "area": "化学",
+   "item": "有機化合物の基礎",
+   "kid_prefixes": []
+  },
+  {
+   "id": "P-15",
+   "subject": "物理・化学",
+   "area": "燃焼と消火",
+   "item": "燃焼の三要素",
+   "kid_prefixes": []
+  },
+  {
+   "id": "P-16",
+   "subject": "物理・化学",
+   "area": "燃焼と消火",
+   "item": "燃焼の種類（蒸発・分解・表面・自己燃焼）",
+   "kid_prefixes": []
+  },
+  {
+   "id": "P-17",
+   "subject": "物理・化学",
+   "area": "燃焼と消火",
+   "item": "引火点・発火点・燃焼範囲",
+   "kid_prefixes": []
+  },
+  {
+   "id": "P-18",
+   "subject": "物理・化学",
+   "area": "燃焼と消火",
+   "item": "自然発火",
+   "kid_prefixes": []
+  },
+  {
+   "id": "P-19",
+   "subject": "物理・化学",
+   "area": "燃焼と消火",
+   "item": "粉じん爆発",
+   "kid_prefixes": []
+  },
+  {
+   "id": "P-20",
+   "subject": "物理・化学",
+   "area": "燃焼と消火",
+   "item": "消火の原理（除去・窒息・冷却・負触媒）",
+   "kid_prefixes": []
+  },
+  {
+   "id": "P-21",
+   "subject": "物理・化学",
+   "area": "燃焼と消火",
+   "item": "消火剤の種類と適応",
+   "kid_prefixes": []
+  },
+  {
+   "id": "P-22",
+   "subject": "物理・化学",
+   "area": "燃焼と消火",
+   "item": "火災の区分（普通・油・電気）",
+   "kid_prefixes": []
+  },
+  {
+   "id": "H-01",
+   "subject": "性質・消火",
+   "area": "第4類と他の類",
+   "item": "第1類〜第6類の性状の概要",
+   "kid_prefixes": [
+    "K-CLS-"
+   ]
+  },
+  {
+   "id": "H-02",
+   "subject": "性質・消火",
+   "area": "第4類と他の類",
+   "item": "第4類に共通する性質",
+   "kid_prefixes": []
+  },
+  {
+   "id": "H-03",
+   "subject": "性質・消火",
+   "area": "第4類と他の類",
+   "item": "第4類の火災予防",
+   "kid_prefixes": []
+  },
+  {
+   "id": "H-04",
+   "subject": "性質・消火",
+   "area": "第4類と他の類",
+   "item": "第4類の消火方法",
+   "kid_prefixes": []
+  },
+  {
+   "id": "H-05",
+   "subject": "性質・消火",
+   "area": "品名別",
+   "item": "特殊引火物",
+   "kid_prefixes": []
+  },
+  {
+   "id": "H-06",
+   "subject": "性質・消火",
+   "area": "品名別",
+   "item": "第1石油類",
+   "kid_prefixes": []
+  },
+  {
+   "id": "H-07",
+   "subject": "性質・消火",
+   "area": "品名別",
+   "item": "アルコール類",
+   "kid_prefixes": []
+  },
+  {
+   "id": "H-08",
+   "subject": "性質・消火",
+   "area": "品名別",
+   "item": "第2石油類",
+   "kid_prefixes": []
+  },
+  {
+   "id": "H-09",
+   "subject": "性質・消火",
+   "area": "品名別",
+   "item": "第3石油類",
+   "kid_prefixes": []
+  },
+  {
+   "id": "H-10",
+   "subject": "性質・消火",
+   "area": "品名別",
+   "item": "第4石油類",
+   "kid_prefixes": []
+  },
+  {
+   "id": "H-11",
+   "subject": "性質・消火",
+   "area": "品名別",
+   "item": "動植物油類",
+   "kid_prefixes": []
+  },
+  {
+   "id": "H-12",
+   "subject": "性質・消火",
+   "area": "品名別",
+   "item": "事故事例と対策",
+   "kid_prefixes": []
+  }
+ ]
+}

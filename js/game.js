@@ -193,9 +193,20 @@ class Game {
       'カッテカイゾウ・トロールは、作り変えた建物を残して逃げ去った。',
       ['ホアン', '許可、完成検査、仮使用は承認、変更は10日前までに届出……。手続きの順番どおりに進めれば、施設は安全に使えるんですね。'],
       ['ホアン', `${n}さん、次は「保安の町」です。危険物取扱者や免状、保安の体制を学びましょう。`],
-      '――今の版はここまでです。保安の町は次の版で追加します。',
+      ['ホアン', '保安の町へは、この町の東の出口から北の街道を進みます。'],
     ]);
     this.state.flags.l2clear = true;
+  }
+
+  async ending3() {
+    const n = this.state.name;
+    await say([
+      'ニセ監督官ハリボテの張りぼては崩れ、中から小さな魔物が逃げていった。',
+      ['ホアン', '取扱者、免状、講習、点検……。資格と手続きは、人を縛るためじゃなく、人を守るためにあるんですね。'],
+      ['ホアン', `${n}さん。法令の国の3つの町を回りました。この先には、基準の砦、運搬の峠、そして法令の城が待っています。`],
+      '――今の版はここまでです。ダンジョン（基準の砦・運搬の峠・法令の城）は次の版で追加します。',
+    ]);
+    this.state.flags.l3clear = true;
     await this.recordScreen();
   }
 
@@ -206,6 +217,7 @@ class Game {
       if (this.field.mapId === 'village' && !s.flags.tutorial) { await say(s.flags.night ? '夜の外は危ない。夜が明けたら消防署へ行こう。' : '老師に会ってから旅立とう。消防署は村の左上だ。'); this.field.y += 1; return; }
       if (ev.need && !s.cleared[ev.need]) { await say(ev.needmsg || 'まだ先へは進めない。'); this.field.x -= 1; return; }
       this.field.load(ev.to, ev.tx, ev.ty); s.map = ev.to;
+      if (ev.to === 'town3' && !s.flags.town3) { s.flags.town3 = true; await say(['保安の町に着いた。', '町の中央に、大きな講習所が建っている。', ['ホアン', 'ここは危険物取扱者の町。免状や講習、保安の体制を学びましょう。']]); }
       if (ev.to === 'town2' && !s.flags.town2) { s.flags.town2 = true; await say(['許可の町に着いた。', 'あちこちで工事の音がする。真新しいタンク、建てかけの倉庫……。', ['ホアン', 'ここは「製造所等」をつくる手続きを学ぶ町です。許可、承認、届出。順番に見ていきましょう。']]); }
       if (ev.to === 'town1' && !s.flags.town1) { s.flags.town1 = true; await say(['定義の町に着いた。', '町の人たちが、樽の前で困り果てている……。', '（役場で話を聞いてみよう）']); }
       return;
@@ -221,6 +233,7 @@ class Game {
   async building(ev) {
     const s = this.state;
     if (ev.id === 'firehouse') return this.roshi();
+    if (ev.id === 'koshujo') return say([['講習所の係員', 'ここでは都道府県知事等が行う保安講習を開いています。'], ['講習所の係員', '製造所等で危険物の仕事をしている危険物取扱者は、決まった時期に受講してくださいね。受講しないと、免状の返納を命じられることがありますよ。']]);
     if (ev.id === 'inn') {
       const v = await choose('宿屋「旅人のやすらぎ」', [{ label: '泊まる（無料）', value: 'stay' }]);
       if (v) { this.healAll(); s.lastInn = { map: this.field.mapId, x: ev.x, y: ev.y + 1 }; await say('ぐっすり眠った。HPとMPが回復した！'); }
@@ -254,6 +267,13 @@ class Game {
     if (s.cleared[id]) { await say(`${S.name}の事件は解決した。`); return; }
     if (S.need && !s.cleared[S.need]) { await say([['ホアン', `ここはあとにしましょう。先に「${this.world.stages[S.need].name}」の事件を。`]]); return; }
     const go = await choose(`${S.name}`, [{ label: '事件の現場に入る', value: 1 }]); if (!go) return;
+    if (S.boss) { // ボス戦の前の作戦会議：この町で学んだ要点とボスの弱点の手がかり
+      const town = id.split('-')[0];
+      const pts = Object.entries(this.world.stages).filter(([k, X]) => k.startsWith(town + '-') && !X.boss).map(([, X]) => X.lesson[X.lesson.length - 1][1]);
+      const E = this.world.enemies[S.enemy];
+      const c = await choose('ホアン「ボスに挑む前に、作戦会議をしますか？」', [{ label: '作戦会議をする', value: 1 }, { label: 'すぐに挑む', value: 2 }], { cancel: false });
+      if (c === 1) await say([['ホアン', 'この町で学んだことを振り返りましょう。']].concat(pts.map(p => ['ホアン', p])).concat([['ホアン', `${E.name}の弱点は「${E.weak}」に関わる知識のはずです。予告が出たら、落ち着いて思い出しましょう。`]]));
+    }
     Learn.subject = '法令';
     await say(S.lesson);
     if (S.skill && !s.skills.includes(S.skill)) {
@@ -265,7 +285,7 @@ class Game {
     if (r !== 'win') { await say([['ホアン', 'いったん引きましょう。準備ができたら、また来てください。']]); return; }
     s.cleared[id] = true;
     if (S.doc && !(s.docs || (s.docs = [])).includes(S.doc)) { s.docs.push(S.doc); await say([`大事なもの「${S.doc}」を手に入れた！`, ['ホアン', S.doc === '許可書' ? '設置の許可を受けた証です。次は工事、そして完成検査。手続きには順番があります。' : '完成検査で基準に適合していると認められた証です。これでようやく使い始められます。']]); }
-    if (S.boss) return id === 'L1-boss' ? this.ending() : this.ending2();
+    if (S.boss) return id === 'L1-boss' ? this.ending() : id === 'L2-boss' ? this.ending2() : this.ending3();
     // ホアンの確認：そのステージの五肢択一から2問（未出題を優先）
     const done = new Set(Learn.d.answers.map(a => a.qid));
     const [town, sn] = id.split('-');

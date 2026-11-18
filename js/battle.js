@@ -189,14 +189,15 @@ export class Battle {
 
   async taisaku(m) {
     const T = this.e.tele; T.answered = true;
-    const r = await this.askQ(T.q, 'battle', `${m.name}のたいさく`);
+    const r = await this.askQ(T.q, 'battle', `${m.name}のたいさく`, `この敵の弱点は「${this.e.weak}」に関わる知識。` + (this.g.state.party.includes('hoan') ? '（ホアンの助言）' : ''));
     T.ok = r.correct;
     this.log.textContent = r.correct ? '正しい対策をとった！' : '対策をまちがえた……！';
   }
 
-  async askQ(q, mode, title) {
+  async askQ(q, mode, title, hintText) {
     const hero = this.g.state.members.hero;
-    const r = await ask(q, { title, mode, hint: q.kind === 'mcq5' ? { cost: 1, use: () => { if (hero.mp < 1) return false; hero.mp -= 1; this.refresh(); return true; } } : null });
+    const text = q.hint || hintText;
+    const r = await ask(q, { title, mode, hintText: text, hintLabel: q.kind === 'mcq5' ? 'ヒント' : 'ホアンに相談', hint: text ? { cost: 1, use: () => { if (hero.mp < 1) return false; hero.mp -= 1; this.refresh(); return true; } } : null });
     if (!r.correct || r.unsure || r.hint) this.review.push(q);
     this.g.combo(r.correct && !r.hint, q.topic);
     this.refresh(); return r;
