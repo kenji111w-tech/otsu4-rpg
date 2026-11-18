@@ -35,6 +35,15 @@ SCEN = """
       for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn', x:3, y:3}); await ev({type:'stage', id:st}); }
       window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv);
     }
+    await ev({type:'exit', to:'field3', tx:9, ty:2});
+    await ev({type:'exit', to:'dungeon1', tx:9, ty:14, need:'L3-boss'});
+    await ev({type:'chest', id:'d1c1', item:'yakusou', n:3}); await ev({type:'chest', id:'d1c1', item:'yakusou', n:3});
+    for (let i=0;i<2;i++) await g.encounter();
+    for (const st of ['D1-1','D1-2','D1-3','D1-4','D1-boss']) {
+      for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'spring'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('dungeon1', 9, 14); }
+      window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv);
+    }
+    for (let i=0;i<2;i++) await g.encounter();
     await g.menu();
   } catch (e) { window.__log.push('ERR ' + e.message + e.stack); }
   window.__done = true;
@@ -46,12 +55,12 @@ async def bot_step(pg, state):
       const g = window.__game; const ui = document.getElementById('ui');
       const res = ui.querySelector('.quiz.result'); if (res) { res.querySelector('.item').click(); return 'next'; }
       const qz = ui.querySelector('.quiz'); if (qz) {
-        const txt = qz.querySelector('.qtext').textContent; const q = g.questions.find(x => x.question === txt);
+        const txt = qz.querySelector('.qtext').textContent; const cts = [...qz.querySelectorAll('.choice .ct')].map(b => b.textContent); const q = g.questions.find(x => x.question === txt && cts.every(c => x.choices.includes(c)));
         const btns = [...qz.querySelectorAll('.choice')];
         let target = btns[0];
         if (q) { const right = btns.find(b => b.querySelector('.ct').textContent === q.choices[q.answer]); const wrong = btns.filter(b => b !== right);
           target = Math.random() < acc ? right : (wrong[Math.floor(Math.random()*wrong.length)] || right); }
-        target.click(); (Math.random() < .2 ? qz.querySelector('.uns') : qz.querySelector('.ok')).click(); return 'answer';
+        if (!target) target = btns[0]; target.click(); (Math.random() < .2 ? qz.querySelector('.uns') : qz.querySelector('.ok')).click(); return 'answer';
       }
       const msg = ui.querySelector('.msg'); if (msg) { msg.click(); return 'msg'; }
       const m = ui.querySelector('.menu'); if (m) {
@@ -90,7 +99,7 @@ async def main():
             await pg.wait_for_timeout(30)
         await pg.evaluate(SCEN)
         counts = {}
-        for i in range(4500):
+        for i in range(6500):
             if await pg.evaluate("window.__done"): break
             r = await bot_step(pg, None); counts[r.split(':')[0]] = counts.get(r.split(':')[0], 0) + 1
             await pg.wait_for_timeout(15)

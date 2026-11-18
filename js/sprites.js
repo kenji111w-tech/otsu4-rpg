@@ -72,6 +72,7 @@ export function drawTile(ctx, ch, x, y, s, t = 0, extra = {}) {
     case 'D': f('#d8c08a'); f('#5a3a1e', s * .2, s * .05, s * .6, s * .9); f('#f0c419', s * .65, s * .5, s * .08, s * .08); break;
     case 'X': f('#3a3530'); f('#20201c', s * .1, s * .2, s * .5, s * .2); f('#5a4a3a', s * .5, s * .6, s * .4, s * .15); f('#e06a2a', s * .3, s * .7, s * .06, s * .06); break;
     case 'S': f('#d8c08a'); break;
+    case ',': f('#6a645c'); f('#5a554e', s * .1, s * .45, s * .35, s * .06); f('#5a554e', s * .55, s * .15, s * .3, s * .06); break;
     default: f('#000');
   }
   if (night) { ctx.fillStyle = 'rgba(10,20,60,.45)'; ctx.fillRect(x, y, s, s); }

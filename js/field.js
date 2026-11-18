@@ -40,7 +40,7 @@ export class Field {
     const ev = this.eventAt(this.x, this.y);
     if (ev && (ev.type !== 'stage' || this.hooks.stageVisible(ev.id))) { this.held = null; this.busy = true; await this.hooks.onEvent(ev); this.busy = false; return; }
     if (this.map.encounter) {
-      const c = this.tile(this.x, this.y); const rate = c === '.' ? 1 / 12 : c === '=' ? 1 / 40 : 0;
+      const c = this.tile(this.x, this.y); const rate = c === '.' ? 1 / 12 : c === ',' ? 1 / 10 : c === '=' ? 1 / 40 : 0;
       if (Math.random() < rate) { this.held = null; this.busy = true; await this.hooks.onEncounter(); this.busy = false; }
     }
   }

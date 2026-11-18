@@ -258,21 +258,27 @@
    "subject": "法令",
    "area": "位置・構造・設備の基準",
    "item": "保安距離",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "K4-HOAN"
+   ]
   },
   {
    "id": "L-29",
    "subject": "法令",
    "area": "位置・構造・設備の基準",
    "item": "保有空地",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "K4-KUCHI"
+   ]
   },
   {
    "id": "L-30",
    "subject": "法令",
    "area": "位置・構造・設備の基準",
    "item": "製造所の基準",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "K4-SEIZO"
+   ]
   },
   {
    "id": "L-31",
@@ -342,14 +348,19 @@
    "subject": "法令",
    "area": "位置・構造・設備の基準",
    "item": "標識・掲示板",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "K4-HYO",
+    "K4-KEIJI"
+   ]
   },
   {
    "id": "L-41",
    "subject": "法令",
    "area": "位置・構造・設備の基準",
    "item": "消火設備（第1種〜第5種）・警報設備",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "K4-SHO"
+   ]
   },
   {
    "id": "L-42",

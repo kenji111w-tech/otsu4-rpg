@@ -28,6 +28,7 @@ class Game {
       onEvent: ev => this.onEvent(ev), onEncounter: () => this.encounter(), onTalk: n => say(n.talk.map(t => ['村人', t])),
       stageVisible: id => this.stageVisible(id), stageCleared: id => !!(this.state && this.state.cleared[id]),
       isNight: () => this.state && this.state.flags.night,
+      chestOpen: id => !!(this.state && (this.state.chests || {})[id]),
     });
     this.bindControls();
     if (!isStandalone()) $('#trial').classList.remove('hide');
@@ -204,9 +205,23 @@ class Game {
       'ニセ監督官ハリボテの張りぼては崩れ、中から小さな魔物が逃げていった。',
       ['ホアン', '取扱者、免状、講習、点検……。資格と手続きは、人を縛るためじゃなく、人を守るためにあるんですね。'],
       ['ホアン', `${n}さん。法令の国の3つの町を回りました。この先には、基準の砦、運搬の峠、そして法令の城が待っています。`],
-      '――今の版はここまでです。ダンジョン（基準の砦・運搬の峠・法令の城）は次の版で追加します。',
+      ['ホアン', '北の街道の東に、石造りの砦がありました。あれが「基準の砦」。施設の位置や構造の基準を、魔物たちがねじ曲げているそうです。'],
+      ['ホアン', '砦の中には宿屋も役場もありません。届出（セーブ）をして、やくそうを持ってから向かいましょう。'],
     ]);
     this.state.flags.l3clear = true;
+    await this.recordScreen();
+  }
+
+  async ending4() {
+    const n = this.state.name;
+    await say([
+      'キジュンクズシ将軍のよろいは音を立てて崩れ、砦に静けさが戻った。',
+      ['ホアン', '保安距離、保有空地、標識と掲示板、消火設備……。数字には、火事を広げないための理由がありました。'],
+      ['ホアン', '10m、30m、50m。3mと5m。白地に黒、赤地に白。……覚え方より先に「なぜそうなのか」を思い出せば、迷いませんね。'],
+      ['ホアン', `${n}さん、砦の奥に峠へ続く道が見えます。次は「運搬の峠」。危険物を運ぶときのルールです。`],
+      '――今の版はここまでです。運搬の峠と法令の城は次の版で追加します。',
+    ]);
+    this.state.flags.d1clear = true;
     await this.recordScreen();
   }
 
@@ -217,6 +232,7 @@ class Game {
       if (this.field.mapId === 'village' && !s.flags.tutorial) { await say(s.flags.night ? '夜の外は危ない。夜が明けたら消防署へ行こう。' : '老師に会ってから旅立とう。消防署は村の左上だ。'); this.field.y += 1; return; }
       if (ev.need && !s.cleared[ev.need]) { await say(ev.needmsg || 'まだ先へは進めない。'); this.field.x -= 1; return; }
       this.field.load(ev.to, ev.tx, ev.ty); s.map = ev.to;
+      if (ev.to === 'dungeon1' && !s.flags.dungeon1) { s.flags.dungeon1 = true; await say(['基準の砦に入った。', '冷たい石の通路に、たいまつの火がゆれている。', ['ホアン', 'ここは施設の「位置・構造・設備の基準」を守るための砦でした。魔物たちが数字をねじ曲げています。'], ['ホアン', '砦の中は魔物が多い。青く光る泉で休めます。宝箱も探してみましょう。']]); }
       if (ev.to === 'town3' && !s.flags.town3) { s.flags.town3 = true; await say(['保安の町に着いた。', '町の中央に、大きな講習所が建っている。', ['ホアン', 'ここは危険物取扱者の町。免状や講習、保安の体制を学びましょう。']]); }
       if (ev.to === 'town2' && !s.flags.town2) { s.flags.town2 = true; await say(['許可の町に着いた。', 'あちこちで工事の音がする。真新しいタンク、建てかけの倉庫……。', ['ホアン', 'ここは「製造所等」をつくる手続きを学ぶ町です。許可、承認、届出。順番に見ていきましょう。']]); }
       if (ev.to === 'town1' && !s.flags.town1) { s.flags.town1 = true; await say(['定義の町に着いた。', '町の人たちが、樽の前で困り果てている……。', '（役場で話を聞いてみよう）']); }
@@ -224,6 +240,12 @@ class Game {
     }
     if (ev.type === 'building') return this.building(ev);
     if (ev.type === 'stage') return this.stage(ev.id);
+    if (ev.type === 'spring') { this.healAll(); return say(['青く光る泉の水を飲んだ。', 'HPとMPが回復した！']); }
+    if (ev.type === 'chest') {
+      s.chests = s.chests || {}; if (s.chests[ev.id]) return say('宝箱は空っぽだ。');
+      s.chests[ev.id] = true; s.items[ev.item] = (s.items[ev.item] || 0) + ev.n; if (this.field.openChests) this.field.openChests();
+      return say([`宝箱を開けた！`, `${this.world.items[ev.item].name}を${ev.n}個手に入れた！`].concat(ev.note ? [ev.note] : []));
+    }
   }
   stageVisible(id) {
     if (!this.state) return false; const S = this.world.stages[id];
@@ -285,7 +307,7 @@ class Game {
     if (r !== 'win') { await say([['ホアン', 'いったん引きましょう。準備ができたら、また来てください。']]); return; }
     s.cleared[id] = true;
     if (S.doc && !(s.docs || (s.docs = [])).includes(S.doc)) { s.docs.push(S.doc); await say([`大事なもの「${S.doc}」を手に入れた！`, ['ホアン', S.doc === '許可書' ? '設置の許可を受けた証です。次は工事、そして完成検査。手続きには順番があります。' : '完成検査で基準に適合していると認められた証です。これでようやく使い始められます。']]); }
-    if (S.boss) return id === 'L1-boss' ? this.ending() : id === 'L2-boss' ? this.ending2() : this.ending3();
+    if (S.boss) return ({ 'L1-boss': () => this.ending(), 'L2-boss': () => this.ending2(), 'L3-boss': () => this.ending3(), 'D1-boss': () => this.ending4() })[id]();
     // ホアンの確認：そのステージの五肢択一から2問（未出題を優先）
     const done = new Set(Learn.d.answers.map(a => a.qid));
     const [town, sn] = id.split('-');
@@ -295,7 +317,7 @@ class Game {
     const hero = s.members.hero, again = [];
     for (const q of qs) { const a = await ask(q, { title: 'ホアンの確認', mode: 'stage', hint: { cost: 1, use: () => { if (hero.mp < 1) return false; hero.mp -= 1; return true; } } }); if (!a.correct || a.unsure || a.hint) again.push(q); }
     if (again.length) { await say([['ホアン', 'まちがえた・迷ったところを、もう一度確かめましょう。']]); for (const q of again) await ask(q, { title: 'ふりかえり', mode: 'furikaeri' }); }
-    await say([['ホアン', sn === '4' ? 'これで町の4つの事件はすべて解決……いや、町はずれに、大きな影が！' : 'つぎの現場へ行きましょう。宿屋で休むのも忘れずに。']]);
+    await say([['ホアン', sn === '4' ? (town[0] === 'D' ? '道をふさぐ魔物は片づきました。……奥の広間から、重い足音が聞こえます！' : 'これで町の4つの事件はすべて解決……いや、町はずれに、大きな影が！') : 'つぎの現場へ行きましょう。宿屋で休むのも忘れずに。']]);
   }
   async retreat() {
     this.healAll(); const L = this.state.lastInn; this.field.load(L.map, L.x, L.y);
@@ -316,7 +338,8 @@ class Game {
       const q = pick(qs.filter(x => x.kind === 'mcq5').length ? qs.filter(x => x.kind === 'mcq5') : qs);
       return this.battle(en, { revived: true, reviveQ: q });
     }
-    return this.battle(pick(['kemurin', 'hibana']), {});
+    const wild = (this.field.map.wild || []).filter(id => (s.zukan[id] || {}).defeated); // 教える前に戦わせない：倒したことのある魔物だけ
+    return this.battle(pick(wild.length ? wild : this.field.map.wildPre || ['kemurin', 'hibana']), {});
   }
 
   // ---------- メニュー ----------
