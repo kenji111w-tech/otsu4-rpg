@@ -403,5 +403,18 @@ class Game {
   }
 }
 
+// オフライン対応と更新のお知らせ（claude.ai上の試作品ではService Workerが使えないので何もしない）
+function setupSW() {
+  if (!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    const show = w => { const b = document.getElementById('update'); b.classList.remove('hide');
+      b.onclick = () => { if (document.querySelector('.battle')) { b.textContent = '戦闘が終わってから更新してください'; return; } w.postMessage('skipWaiting'); }; };
+    if (reg.waiting && navigator.serviceWorker.controller) show(reg.waiting);
+    reg.addEventListener('updatefound', () => { const w = reg.installing; w && w.addEventListener('statechange', () => { if (w.state === 'installed' && navigator.serviceWorker.controller) show(w); }); });
+    let reloaded = false; navigator.serviceWorker.addEventListener('controllerchange', () => { if (!reloaded) { reloaded = true; location.reload(); } });
+  }).catch(() => {});
+}
+try { setupSW(); } catch (e) {}
+
 window.addEventListener('error', e => { const d = document.getElementById('err'); if (d) { d.textContent = 'エラー：' + e.message; d.classList.remove('hide'); } });
 new Game().start().catch(e => { const d = document.getElementById('err'); d.textContent = '読み込みに失敗しました：' + e.message; d.classList.remove('hide'); });
