@@ -730,7 +730,9 @@
    "subject": "性質・消火",
    "area": "品名別",
    "item": "特殊引火物",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "H-TOK"
+   ]
   },
   {
    "id": "H-06",

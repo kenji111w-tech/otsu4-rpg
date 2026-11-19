@@ -48,6 +48,12 @@ SCEN_CH2 = """(async () => {
       for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('town6', 8, 14); }
       window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.sekiyu.lv);
     }
+    g.field.load('town6', 16, 8);
+    await ev({type:'exit', to:'town7', tx:8, ty:14, need:'H1-boss'});
+    for (const st of ['H2-1','H2-2','H2-3','H2-4','H2-boss']) {
+      for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('town7', 8, 14); }
+      window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.sekiyu.lv);
+    }
     window.__log.push('skills:' + g.state.skills.slice(-4).join(','));
     await g.menu();
   } catch (e) { window.__log.push('EXC ' + e.message + ' ' + e.stack); }
@@ -146,6 +152,12 @@ SCEN = """
     window.__log.push('party3:' + g.state.party.join(','));
     for (const st of ['H1-1','H1-2','H1-3','H1-4','H1-boss']) {
       for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('town6', 8, 14); }
+      window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.sekiyu.lv);
+    }
+    g.field.load('town6', 16, 8);
+    await ev({type:'exit', to:'town7', tx:8, ty:14, need:'H1-boss'});
+    for (const st of ['H2-1','H2-2','H2-3','H2-4','H2-boss']) {
+      for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('town7', 8, 14); }
       window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.sekiyu.lv);
     }
     window.__log.push('skills:' + g.state.skills.slice(-4).join(','));
