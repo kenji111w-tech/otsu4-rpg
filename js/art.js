@@ -998,7 +998,7 @@ export function drawBattleBg(ctx, W, H, kind = 'grass', t = 0) {
 }
 
 // ---- ドット絵化：描いた絵（画像を含む）を細かい点に置き換え、全員の絵柄をそろえる ----
-export const STYLE = { dot: true };
+export const STYLE = { dot: false, soft: true };
 const _work = document.createElement('canvas');
 export function pixelate(src, pw, ph, { levels = 10, outline = true, cut = 110 } = {}) {
   _work.width = pw; _work.height = ph; const w = _work.getContext('2d', { willReadFrequently: true });
@@ -1043,4 +1043,38 @@ export function drawBattleBgDot(ctx, W, H, kind, t) {
   const bgc = document.createElement('canvas'); bgc.width = pw; bgc.height = ph; drawBattleBg(bgc.getContext('2d'), pw, ph, kind, t);
   const px = pixelate(bgc, pw, ph, { levels: 12, outline: false });
   ctx.save(); ctx.imageSmoothingEnabled = false; ctx.drawImage(px, 0, 0, W, H); ctx.restore();
+}
+
+// ---- なめらか版：点つぶしをせず、こげ茶の縁取りと足もとの影をつける ----
+const _sw = document.createElement('canvas'), _sil = document.createElement('canvas');
+export function outlined(src, w = 6, color = [90, 58, 42], cut = 150) {
+  const W = src.width, H = src.height; _sil.width = W; _sil.height = H;
+  const s = _sil.getContext('2d', { willReadFrequently: true }); s.clearRect(0, 0, W, H); s.drawImage(src, 0, 0);
+  const img = s.getImageData(0, 0, W, H), d = img.data;
+  for (let i = 0; i < d.length; i += 4) { if (d[i + 3] < cut) d[i + 3] = 0; else { d[i] = color[0]; d[i + 1] = color[1]; d[i + 2] = color[2]; d[i + 3] = 255; } }
+  s.putImageData(img, 0, 0);
+  const out = document.createElement('canvas'); out.width = W; out.height = H; const o = out.getContext('2d');
+  for (let a = 0; a < 16; a++) o.drawImage(_sil, Math.cos(a / 16 * 6.283) * w, Math.sin(a / 16 * 6.283) * w);
+  o.drawImage(src, 0, 0); return out;
+}
+const _soft = document.createElement('canvas');
+export function drawEnemySoft(ctx, id, cx, cy, R, t, fallback) {
+  const S = 360; _soft.width = _soft.height = S; const b = _soft.getContext('2d'); b.clearRect(0, 0, S, S);
+  if (!b.__num) { // 鎧の数字（指定数量など）は大きく、縁取りして読みやすく
+    const ft = b.fillText.bind(b); b.__num = true;
+    b.fillText = function (txt, x, y, mw) {
+      if (/^[0-9][0-9,]*$/.test(String(txt))) { const f = this.font, m = f.match(/([0-9.]+)px/); if (m) { this.save(); this.font = f.replace(m[0], (parseFloat(m[0]) * 1.4).toFixed(1) + 'px'); this.lineJoin = 'round'; this.lineWidth = parseFloat(m[1]) * .32; this.strokeStyle = 'rgba(40,20,10,.95)'; this.strokeText(txt, x, y); this.fillStyle = '#fff'; ft(txt, x, y); this.restore(); return; } }
+      return ft(txt, x, y, mw);
+    };
+  }
+  drawEnemyHQ(b, id, 180, 190, 125, t, fallback);
+  const k = R * 2.6 / S, cut = { hibana: 255, wisp: 255, kemurin: 200, steamdragon: 170 }[id] || 150;
+  ctx.save(); ctx.fillStyle = 'rgba(30,40,70,.22)'; ctx.beginPath(); ctx.ellipse(cx, cy + R * 1.08, R * .62, R * .11, 0, 0, 7); ctx.fill(); ctx.restore();
+  const img = cut >= 255 ? _soft : outlined(_soft, 8, [70, 44, 30], cut);
+  ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(img, cx - S * k / 2, cy - S * k / 2 - R * .05, S * k, S * k); ctx.restore();
+}
+export function characterSoft(look, dir = 'down', fr = 0) {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 384;
+  const x = c.getContext('2d'); x.save(); x.translate(128, 384); x.scale(.92, .92); x.translate(-128, -384 + 6); drawCharacter(x, 256, 384, look, dir, false, fr); x.restore();
+  return outlined(c, 7, [80, 52, 38], 140);
 }

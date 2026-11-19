@@ -4,7 +4,7 @@
 import { el, sleep, rand, pick, shuffle } from './util.js';
 import { say, choose, ask, toast } from './ui.js';
 import { drawEnemy } from './sprites.js';
-import { drawEnemyHQ, drawBattleBg, STYLE, drawEnemyDot, drawBattleBgDot } from './art.js';
+import { drawEnemyHQ, drawBattleBg, STYLE, drawEnemyDot, drawBattleBgDot, drawEnemySoft } from './art.js';
 import { Learn } from './learn.js';
 
 export class Battle {
@@ -54,8 +54,8 @@ export class Battle {
     if (e.hp > 0) {
       c.save(); if (this.shake > 0) { c.translate(rand(-6, 6), 0); this.shake--; }
       if (this.flash > 0) { c.globalAlpha = this.flash % 2 ? .3 : 1; this.flash--; }
-      if (STYLE.dot) drawEnemyDot(c, e.id, W / 2, H * .52, H * .34, this.t, drawEnemy); else drawEnemyHQ(c, e.id, W / 2, H * .52, H * .34, this.t, drawEnemy); c.restore();
-      e.allies.forEach((a, i) => { const x = W * (i % 2 ? .84 : .16), y = H * (.62 + Math.floor(i / 2) * .1); if (STYLE.dot) drawEnemyDot(c, a.id, x, y, H * .15, this.t + i * 7, drawEnemy); else drawEnemyHQ(c, a.id, x, y, H * .15, this.t, drawEnemy); });
+      if (STYLE.dot) drawEnemyDot(c, e.id, W / 2, H * .52, H * .34, this.t, drawEnemy); else if (STYLE.soft) drawEnemySoft(c, e.id, W / 2, H * .55, H * .41, this.t, drawEnemy); else drawEnemyHQ(c, e.id, W / 2, H * .52, H * .34, this.t, drawEnemy); c.restore();
+      e.allies.forEach((a, i) => { const x = W * (i % 2 ? .84 : .16), y = H * (.62 + Math.floor(i / 2) * .1); if (STYLE.dot) drawEnemyDot(c, a.id, x, y, H * .15, this.t + i * 7, drawEnemy); else if (STYLE.soft) drawEnemySoft(c, a.id, x, y, H * .15, this.t + i * 7, drawEnemy); else drawEnemyHQ(c, a.id, x, y, H * .15, this.t, drawEnemy); });
     }
     c.fillStyle = 'rgba(0,0,0,.5)'; c.fillRect(W * .1, H * .04, W * .8, H * .12);
     c.fillStyle = '#fff'; c.font = `${Math.round(H * .07)}px sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';

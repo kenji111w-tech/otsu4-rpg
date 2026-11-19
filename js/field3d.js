@@ -1,6 +1,6 @@
 // フィールド・町を3Dで表示する（three.js）。2D版 Field と同じ使い方
 import * as THREE from '../vendor/three.module.min.js';
-import { drawCharacter, Assets, STYLE, characterDot } from './art.js';
+import { drawCharacter, Assets, STYLE, characterDot, characterSoft } from './art.js';
 
 const BLOCK = new Set(['T', '~', '#', 'R', 'W', 'X']);
 const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0], ul: [-1, -1], ur: [1, -1], dl: [-1, 1], dr: [1, 1] };
@@ -11,6 +11,7 @@ const STEP_MS = 200;
 function charTexture(look, dir, fr = 0) {
   let c;
   if (STYLE.dot) c = characterDot(look, dir, 40, 60, fr);
+  else if (STYLE.soft) c = characterSoft(look, dir, fr);
   else { c = document.createElement('canvas'); c.width = 256; c.height = 384; drawCharacter(c.getContext('2d'), 256, 384, look, dir, true, fr); }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
   if (STYLE.dot) { t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter; t.generateMipmaps = false; } else t.anisotropy = 4;
@@ -140,7 +141,7 @@ export class Field3D {
     this.applyNight();
   }
   mkChar(look) {
-    const g = new THREE.Group(); const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.tex(look, 'down'), transparent: true, alphaTest: .1 })); const real = !STYLE.dot && !!Assets.chars[look]; s.scale.set(real ? 1.15 : 1.0, real ? 1.75 : 1.5, 1); s.position.y = real ? .85 : .72; g.add(s); g.userData.y0 = s.position.y;
+    const g = new THREE.Group(); const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.tex(look, 'down'), transparent: true, alphaTest: .1 })); const real = !STYLE.dot && !STYLE.soft && !!Assets.chars[look]; s.scale.set(real ? 1.15 : 1.0, real ? 1.75 : 1.5, 1); s.position.y = real ? .85 : .72; g.add(s); g.userData.y0 = s.position.y;
     const sh = new THREE.Mesh(new THREE.CircleGeometry(.28, 16), new THREE.MeshBasicMaterial({ color: 0, transparent: true, opacity: .28 })); sh.rotation.x = -Math.PI / 2; sh.position.y = .01; g.add(sh);
     g.userData = Object.assign(g.userData, { s, look }); this.scene.add(g); return g;
   }
