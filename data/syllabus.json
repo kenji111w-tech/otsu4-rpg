@@ -260,7 +260,9 @@
    "subject": "法令",
    "area": "危険物取扱者と保安体制",
    "item": "自衛消防組織",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "K6-JIEI"
+   ]
   },
   {
    "id": "L-28",
@@ -408,7 +410,9 @@
    "subject": "法令",
    "area": "貯蔵・取扱い・運搬・移送",
    "item": "貯蔵の基準",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "K6-RUIBETSU"
+   ]
   },
   {
    "id": "L-44",
