@@ -164,7 +164,8 @@ export class Battle {
     const e = this.e, all = this.g.questions.filter(q => kinds.includes(q.kind) && this.taught(q));
     let cand = all.filter(q => !e.used.has(q.id)); if (!cand.length) cand = all;
     const area = cand.filter(q => q.town === e.area), pref = prefer ? cand.filter(prefer) : [];
-    const q = pick(pref.length ? pref : area.length && Math.random() < .75 ? area : cand) || pick(this.g.questions.filter(x => x.town === 'V0'));
+    const due = cand.filter(q => Learn.isDue(q.knowledge_id)); // 復習の時期が来た知識を、半分くらいの確率で優先して出す
+    const q = pick(pref.length ? pref : due.length && Math.random() < .5 ? due : area.length && Math.random() < .75 ? area : cand) || pick(this.g.questions.filter(x => x.town === 'V0'));
     if (q) e.used.add(q.id); return q;
   }
   three(q) { // 5択を、正解＋まちがい2つの3択にする（たたかう・受け流し用）

@@ -292,7 +292,7 @@ class Game {
     if (ev.id === 'koshujo') return say([['講習所の係員', 'ここでは都道府県知事等が行う保安講習を開いています。'], ['講習所の係員', '製造所等で危険物の仕事をしている危険物取扱者は、決まった時期に受講してくださいね。受講しないと、免状の返納を命じられることがありますよ。']]);
     if (ev.id === 'inn') {
       const v = await choose('宿屋「旅人のやすらぎ」', [{ label: '泊まる（無料）', value: 'stay' }]);
-      if (v) { this.healAll(); s.lastInn = { map: this.field.mapId, x: ev.x, y: ev.y + 1 }; await say('ぐっすり眠った。HPとMPが回復した！'); }
+      if (v) { this.healAll(); s.lastInn = { map: this.field.mapId, x: ev.x, y: ev.y + 1 }; await say('ぐっすり眠った。HPとMPが回復した！'); await this.letter(); }
       return;
     }
     if (ev.id === 'shop') {
@@ -415,6 +415,19 @@ class Game {
       R[v].need.forEach(([m, n]) => { s.items[m] -= n; }); s.items[v] = (s.items[v] || 0) + 1;
       await say([`ぽんっ！ ${I[v].name}ができた！`, `${I[v].name}：${I[v].desc}`]);
     }
+  }
+  // 仲間の手紙：宿屋で泊まると、1日1回、復習の時期が来た知識を仲間が手紙で思い出させてくれる（答えは書かず、分野名だけ）
+  async letter() {
+    const s = this.state, today = studyDay();
+    if (s.flags.letterDay === today) return;
+    const due = Learn.dueKids(today); if (!due.length) return;
+    s.flags.letterDay = today;
+    const qs = due.map(k => this.questions.find(q => q.knowledge_id === k && q.kind === 'mcq5') || this.questions.find(q => q.knowledge_id === k)).filter(Boolean);
+    const topics = [...new Set(qs.map(q => q.topic))].slice(0, 4);
+    const from = s.party.includes('hoan') ? 'ホアン' : 'ショウボウ老師';
+    await say([`宿屋の主人「${from}さんから、お手紙が届いていますよ」`, [`${from}の手紙`, `${s.name}さんへ。そろそろ忘れかけているころかもしれない知識を書いておきます。`]]
+      .concat([[`${from}の手紙`, topics.map(t => `・「${t}」`).join('\n')]])
+      .concat([[`${from}の手紙`, `答えは書きません。目を閉じて、どんな決まりだったか思い出してみてください。今日あたり、戦いの中で問われるかもしれませんよ。`]]));
   }
   // 苦手の判定と練習
   async weakScreen() {
