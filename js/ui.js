@@ -68,7 +68,7 @@ export function makeOrder(q) {
 
 // 問題を出す。opts: {title, hint: {available, use()}, mode}
 // 戻り値: {correct, unsure, hint, order, ms, chosen}
-export function ask(q, { title = '', hint = null, showDraft = true, mode = null, hintText = null, hintLabel = 'ヒント' } = {}) {
+export function ask(q, { title = '', hint = null, showDraft = true, mode = null, hintText = null, hintLabel = 'ヒント', erase = null } = {}) {
   return new Promise(res => {
     const p = panel('quiz ' + (q.kind === 'situation' ? 'sit' : 'mcq'));
     const order = makeOrder(q);
@@ -96,6 +96,12 @@ export function ask(q, { title = '', hint = null, showDraft = true, mode = null,
       const hb = el('button', 'hintbtn', `${hintLabel}（MP${hint.cost || 1}）`);
       hb.onclick = () => { if (usedHint) return; if (!hint.use()) { hb.textContent = 'MPが足りない'; return; } usedHint = true; hintBox.textContent = '💡 ' + htxt; hintBox.classList.remove('hide'); hb.remove(); };
       head.appendChild(hb);
+    }
+    if (erase && erase.left() > 0) { // けしけし草：まちがいの選択肢を消す（ヒント扱い）
+      const eb = el('button', 'hintbtn', `けしけし草（残り${erase.left()}）`);
+      eb.onclick = () => { if (!erase.use()) return; usedHint = true; const wrong = btns.map((b, k) => [b, order[k]]).filter(([, oi]) => oi !== q.answer && oi !== sel);
+        wrong.sort(() => Math.random() - .5).slice(0, q.choices.length >= 5 ? 2 : 1).forEach(([b]) => { b.disabled = true; b.classList.add('erased'); b.onclick = null; }); eb.remove(); };
+      head.appendChild(eb);
     }
     const finish = unsure => {
       const correct = sel === q.answer; const dms = Date.now() - t0;

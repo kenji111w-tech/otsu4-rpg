@@ -91,3 +91,5 @@ textarea.inp { height: 160px; }
 .stick-ring { position: absolute; inset: 22px; border-radius: 50%; border: 2px dashed rgba(170,190,220,.35); pointer-events: none; }
 .knob { position: absolute; left: 50%; top: 50%; width: 70px; height: 70px; margin: -35px 0 0 -35px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #8ea2d8, #45507a 70%); border: 2px solid #cfe; box-shadow: 0 4px 10px rgba(0,0,0,.5); pointer-events: none; transition: transform .08s; }
 .stick.on .knob { transition: none; }
+
+.choice.erased { opacity: .25; text-decoration: line-through; pointer-events: none; }

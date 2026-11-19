@@ -111,7 +111,7 @@ export class Battle {
         if (s) return { type: 'skill', id: s }; continue;
       }
       if (v === 'item') {
-        const inv = this.g.state.items; const its = Object.keys(inv).filter(k => inv[k] > 0);
+        const inv = this.g.state.items; const its = Object.keys(inv).filter(k => inv[k] > 0 && k !== 'keshi');
         if (!its.length) { toast('どうぐを持っていない'); continue; }
         const it = await choose('どうぐ', its.map(k => ({ label: this.g.world.items[k].name, note: `×${inv[k]}`, value: k })));
         if (!it) continue;
@@ -146,6 +146,7 @@ export class Battle {
     if (a.type === 'item') {
       const t = this.g.state.members[a.tgt]; const I = a.id; this.g.state.items[I]--;
       if (I === 'yakusou') { const h = Math.min(15, t.mhp - t.hp); t.hp += h; return this.msg(`${m.name}はやくそうを使った。${t.name}のHPが${h}回復！`); }
+      if (I === 'jouyaku') { const h = Math.min(40, t.mhp - t.hp); t.hp += h; return this.msg(`${m.name}は上やくそうを使った。${t.name}のHPが${h}回復！`); }
       if (I === 'mizu') { const h = Math.min(5, t.mmp - t.mp); t.mp += h; return this.msg(`${m.name}はまほうのみずを使った。${t.name}のMPが${h}回復！`); }
     }
     if (a.type === 'skill') return this.skill(m, a.id);
@@ -261,7 +262,9 @@ export class Battle {
   async askQ(q, mode, title, hintText) {
     const hero = this.g.state.members.hero;
     const text = q.hint || hintText;
-    const r = await ask(q, { title, mode, hintText: text, hintLabel: q.kind === 'mcq5' ? 'ヒント' : 'ホアンに相談', hint: text ? { cost: 1, use: () => { if (hero.mp < 1) return false; hero.mp -= 1; this.refresh(); return true; } } : null });
+    const inv = this.g.state.items;
+    const r = await ask(q, { title, mode, hintText: text, hintLabel: q.kind === 'mcq5' ? 'ヒント' : 'ホアンに相談', hint: text ? { cost: 1, use: () => { if (hero.mp < 1) return false; hero.mp -= 1; this.refresh(); return true; } } : null,
+      erase: { left: () => inv.keshi || 0, use: () => { if (!(inv.keshi > 0)) return false; inv.keshi--; return true; } } });
     if (!r.correct || r.unsure || r.hint) this.review.push(q);
     this.g.combo(r.correct && !r.hint, q.topic);
     this.refresh(); return r;

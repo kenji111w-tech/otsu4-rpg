@@ -297,8 +297,10 @@ class Game {
     }
     if (ev.id === 'shop') {
       while (true) {
-        const its = Object.entries(this.world.items).map(([k, I]) => ({ label: I.name, note: `${I.price}G（持っている数 ${s.items[k] || 0}）`, value: k, disabled: s.gold < I.price || (s.items[k] || 0) >= 9 }));
+        const its = Object.entries(this.world.items).filter(([, I]) => I.price > 0).map(([k, I]) => ({ label: I.name, note: `${I.price}G（持っている数 ${s.items[k] || 0}）`, value: k, disabled: s.gold < I.price || (s.items[k] || 0) >= 9 }));
+        its.push({ label: '知恵の釜（調合する）', value: 'kama', note: '問題に正解すると完成' });
         const v = await choose(`道具屋（所持金 ${s.gold}G）`, its); if (!v) return;
+        if (v === 'kama') { await this.kama(); continue; }
         s.gold -= this.world.items[v].price; s.items[v] = (s.items[v] || 0) + 1; toast(`${this.world.items[v].name}を買った`);
       }
     }
@@ -385,16 +387,47 @@ class Game {
       while (true) {
         const v = await choose('メニュー', [
           { label: 'つよさ', value: 'st' }, { label: 'とくぎ', value: 'sk' }, { label: 'ふくろ', value: 'bag' },
-          { label: 'きろく（学習）', value: 'rec' }, { label: 'ずかん', value: 'zk' }, { label: 'せってい', value: 'set' }]);
+          { label: 'きろく（学習）', value: 'rec' }, { label: 'にがて', value: 'weak' }, { label: 'ずかん', value: 'zk' }, { label: 'せってい', value: 'set' }]);
         if (!v) break;
         if (v === 'st') await say(this.state.party.map(id => { const m = this.state.members[id]; return `${m.name}　Lv${m.lv}　HP ${m.hp}/${m.mhp}　MP ${m.mp}/${m.mmp}　こうげき ${m.atk}　まもり ${m.def}`; }).concat([`所持金 ${this.state.gold}G`]));
         if (v === 'sk') await say(this.state.skills.length ? this.state.skills.map(id => { const K = this.world.skills[id]; const rust = K.kids.some(k => Learn.isDue(k)); return `${K.name}（${K.user === 'hoan' ? 'ホアン' : this.state.name}・MP${K.mp}）${rust ? '【さび】' : ''}：${K.desc}`; }) : 'まだ技を覚えていない。');
         if (v === 'bag') await this.bag();
         if (v === 'rec') await this.recordScreen();
+        if (v === 'weak') await this.weakScreen();
         if (v === 'zk') { const z = this.state.zukan; const ks = Object.keys(z).filter(k => z[k].defeated); await say(ks.length ? ks.map(k => `${this.world.enemies[k].name}（倒した数 ${z[k].defeated}）弱点：${z[k].weak || '？（物質識別で見抜くと記録される）'}`) : 'まだ魔物を倒していない。'); }
         if (v === 'set') { const r = await this.settings(); if (r) { this.field.busy = false; return this.title(); } }
       }
     } finally { this.field.busy = false; }
+  }
+  // 知恵の釜（仕様書 第6章）：材料を入れ、問題に正解すると道具ができる。失敗しても材料は減らない
+  async kama() {
+    const s = this.state, I = this.world.items, R = this.world.recipes;
+    if (!s.flags.kama) { s.flags.kama = true; await say([['道具屋', 'それは「知恵の釜」。材料を入れて、釜の問いに正しく答えると、新しい道具ができるんだ。'], ['道具屋', 'まちがえても材料はなくならないよ。何度でもためしてごらん。']]); }
+    while (true) {
+      const v = await choose('知恵の釜', Object.entries(R).map(([k, r]) => ({ label: I[k].name, note: r.need.map(([m, n]) => `${I[m].name}×${n}`).join('＋') + `（持っている数 ${s.items[k] || 0}）`, value: k,
+        disabled: r.need.some(([m, n]) => (s.items[m] || 0) < n) || (s.items[k] || 0) >= 9 })));
+      if (!v) return;
+      const learned = this.questions.filter(q => q.kind === 'mcq5' && Learn.learned(q.knowledge_id) && !q.call && q.pool !== 'mock');
+      const q = pick(learned.length ? learned : this.questions.filter(x => x.town === 'V0'));
+      await say('材料を釜に入れた。釜がぐつぐつと問いかけてくる……！');
+      const r = await ask(q, { title: '知恵の釜の問い', mode: 'battle' });
+      if (!r.correct) { await say('釜はしゅうっと静かになった。調合は失敗……（材料はなくなっていない）'); continue; }
+      R[v].need.forEach(([m, n]) => { s.items[m] -= n; }); s.items[v] = (s.items[v] || 0) + 1;
+      await say([`ぽんっ！ ${I[v].name}ができた！`, `${I[v].name}：${I[v].desc}`]);
+    }
+  }
+  // 苦手の判定と練習
+  async weakScreen() {
+    const w = Learn.weakTopics();
+    if (!w.length) return say(['にがての分野は、まだ見つかっていない。', '（同じ分野の問題に3問以上答えると、最近の正答率から判定します。80%未満の分野が「にがて」です）']);
+    const v = await choose('にがての分野（最近の正答率）', w.map(x => ({ label: x.topic, note: `${x.rate}%（${x.n}問）`, value: x.topic })).concat([{ label: 'もどる', value: null }]));
+    if (!v) return;
+    const qs = this.questions.filter(q => q.topic === v && Learn.learned(q.knowledge_id) && !q.call && q.pool !== 'mock');
+    if (!qs.length) return say('練習できる問題がない。');
+    await say([['ショウボウ老師', `「${v}」の練習じゃな。5問いくぞ。まちがえたら解説をよく読むのじゃ。`]]);
+    let ok = 0; const set = qs.sort(() => Math.random() - .5).slice(0, 5);
+    for (const q of set) { const r = await ask(q, { title: `にがての練習：${v}`, mode: 'battle' }); if (r.correct) ok++; }
+    await say([['ショウボウ老師', `${set.length}問中${ok}問正解じゃ。` + (ok === set.length ? 'よく覚えておる！' : 'まちがえた問題は、また戦いの中で出てくるぞ。')]]);
   }
   async bag() {
     const v = await choose('ふくろ', [{ label: 'どうぐ', value: 'i' }, { label: '装備（見た目だけ）', value: 'e' }, { label: '知識', value: 'k' }, { label: '大事なもの', value: 'd' }]);

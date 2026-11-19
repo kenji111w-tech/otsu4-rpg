@@ -66,6 +66,10 @@ SCEN = """
       window.__log.push(st + ':' + !!g.state.cleared[st]);
     }
     window.__log.push('q2reward:' + !!g.state.flags.q2reward);
+    g.state.items.yakusou = 9; g.state.items.mizu = 3;
+    await ev({type:'building', id:'shop'});
+    window.__log.push('kama keshi:' + (g.state.items.keshi||0) + ' jouyaku:' + (g.state.items.jouyaku||0));
+    await g.weakScreen(); window.__log.push('weak-ok');
     for (let i=0;i<2;i++) await g.encounter();
     await g.menu();
   } catch (e) { window.__log.push('ERR ' + e.message + e.stack); }
@@ -90,7 +94,10 @@ async def bot_step(pg, state):
         const title = (m.querySelector('.title')||{}).textContent || '';
         const items = [...m.querySelectorAll('.item')]; const by = t => items.find(b => b.textContent.startsWith(t));
         const inp = m.querySelector('.inp'); if (inp) { by('決定').click(); return 'prompt'; }
-        if (title === 'メニュー') { window.__menuN = (window.__menuN||0)+1; const order=['つよさ','とくぎ','きろく（学習）','ずかん']; const t = order[window.__menuN-1]; (t? by(t): by('もどる')).click(); return 'menu'; }
+        if (title === 'メニュー') { window.__menuN = (window.__menuN||0)+1; const order=['つよさ','とくぎ','きろく（学習）','にがて','ずかん']; const t = order[window.__menuN-1]; (t? by(t): by('もどる')).click(); return 'menu'; }
+        if (title.startsWith('道具屋')) { window.__shopN = (window.__shopN||0)+1; const k = by('知恵の釜'); if (window.__shopN === 1 && k) { k.click(); return 'kama'; } (m.querySelector('.cancel') || by('もどる')).click(); return 'shopx'; }
+        if (title === '知恵の釜') { const f = items.find(b => !b.classList.contains('off') && !b.classList.contains('cancel')); (f || m.querySelector('.cancel')).click(); return 'kama2'; }
+        if (title.startsWith('にがて')) { const f = items.find(b => !b.classList.contains('off') && !b.classList.contains('cancel')); (f || m.querySelector('.cancel')).click(); return 'weak'; }
         if (title === 'ふくろ') { by('もどる').click(); return 'x'; }
         if (title === '役場') { window.__off = (window.__off||0)+1; (window.__off===1? by('届出') : by('もどる')).click(); return 'office'; }
         if (title.startsWith('宿屋')) { by('泊まる').click(); return 'inn'; }

@@ -79,6 +79,13 @@ export const Learn = {
     for (let i = 0; i < 7; i++) s += this.d.time.byDay[addDays(today, -i)] || 0;
     return s;
   },
+  // 苦手の判定：分野（topic）ごとに、最近の解答の正答率を出す（3問以上答えた分野だけ）
+  weakTopics(limit = 3) {
+    const by = {};
+    for (const a of this.d.answers) { if (a.held || a.mode === 'furikaeri') continue; const q = this.qById[a.qid]; if (!q || q.topic === 'identify') continue; (by[q.topic] = by[q.topic] || []).push(a); }
+    return Object.entries(by).map(([t, as]) => { const r = as.slice(-20); const c = r.filter(a => a.correct && !a.hint).length; return { topic: t, n: r.length, rate: Math.round(c / r.length * 100) }; })
+      .filter(x => x.n >= 3 && x.rate < 80).sort((a, b) => a.rate - b.rate).slice(0, limit);
+  },
   stats() {
     const live = this.d.answers.filter(a => !a.held && a.mode !== 'furikaeri');
     const c = live.filter(a => a.correct).length;
