@@ -34,7 +34,14 @@ SCEN_CH2 = """(async () => {
       for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'spring'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('dungeon4', 9, 14); }
       window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.kemi.lv);
     }
-    window.__log.push('skills:' + g.state.skills.slice(-2).join(','));
+    g.field.load('dungeon4', 15, 1);
+    await ev({type:'exit', to:'tower5', tx:9, ty:14, need:'P3-boss'});
+    for (let i=0;i<2;i++) await g.encounter();
+    for (const st of ['P4-1','P4-2','P4-3','P4-4','P4-boss']) {
+      for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'spring'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('tower5', 9, 14); }
+      window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.kemi.lv);
+    }
+    window.__log.push('skills:' + g.state.skills.slice(-3).join(','));
     await g.menu();
   } catch (e) { window.__log.push('EXC ' + e.message + ' ' + e.stack); }
   window.__done = true;
@@ -120,7 +127,14 @@ SCEN = """
       for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'spring'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('dungeon4', 9, 14); }
       window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.kemi.lv);
     }
-    window.__log.push('skills:' + g.state.skills.slice(-2).join(','));
+    g.field.load('dungeon4', 15, 1);
+    await ev({type:'exit', to:'tower5', tx:9, ty:14, need:'P3-boss'});
+    for (let i=0;i<2;i++) await g.encounter();
+    for (const st of ['P4-1','P4-2','P4-3','P4-4','P4-boss']) {
+      for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'spring'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('tower5', 9, 14); }
+      window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.kemi.lv);
+    }
+    window.__log.push('skills:' + g.state.skills.slice(-3).join(','));
     g.state.items.yakusou = 9; g.state.items.mizu = 3;
     await ev({type:'building', id:'shop'});
     window.__log.push('kama keshi:' + (g.state.items.keshi||0) + ' jouyaku:' + (g.state.items.jouyaku||0));

@@ -760,6 +760,60 @@ export const ENEMY_HQ = {
     ctx.fillStyle = '#c8301a'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.moveTo(cx + k * R * .35, cy - R * .55); ctx.lineTo(cx + k * R * .5, cy - R * .95); ctx.lineTo(cx + k * R * .2, cy - R * .62); ctx.fill(); });
     ctx.fillStyle = 'rgba(235,235,235,.55)'; for (let i = 0; i < 4; i++) { const p = ((t / 2 + i * 10) % 40) / 40; ctx.beginPath(); ctx.arc(cx + (i - 1.5) * R * .25 + Math.sin(p * 5) * R * .1, cy - R * .8 - p * R * .45, R * (.08 + p * .12), 0, 7); ctx.fill(); }
   },
+  // ゴチャマゼ・ツボ：いろいろな液や粉がまざったツボ
+  gochamaze(ctx, cx, cy, R, t) {
+    ctx.fillStyle = lin(ctx, cx - R * .6, 0, cx + R * .6, 0, ['#c88a4a', '#7a4a1a']); ctx.beginPath(); ctx.moveTo(cx - R * .3, cy - R * .55); ctx.quadraticCurveTo(cx - R * .85, cy - R * .1, cx - R * .5, cy + R * .8); ctx.lineTo(cx + R * .5, cy + R * .8); ctx.quadraticCurveTo(cx + R * .85, cy - R * .1, cx + R * .3, cy - R * .55); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#5a3a1a'; ctx.beginPath(); ctx.ellipse(cx, cy - R * .55, R * .34, R * .09, 0, 0, 7); ctx.fill();
+    const cols = ['#e84a8a', '#4ac8e8', '#f0d020', '#6ad04a'];
+    for (let i = 0; i < 4; i++) { const a = t / 10 + i * 1.57; ctx.fillStyle = cols[i]; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * R * .16, cy - R * .6 + Math.sin(a) * R * .04 - R * .05, R * .09, 0, 7); ctx.fill(); }
+    for (let i = 0; i < 5; i++) { const p = ((t / 2 + i * 9) % 45) / 45; ctx.fillStyle = cols[i % 4]; ctx.globalAlpha = 1 - p; ctx.beginPath(); ctx.arc(cx + Math.sin(i * 2.1 + p * 4) * R * .25, cy - R * .7 - p * R * .5, R * .05, 0, 7); ctx.fill(); } ctx.globalAlpha = 1;
+    eyes(ctx, cx, cy + R * .05, R * .18, R * .08); ctx.strokeStyle = '#3a1a0a'; ctx.lineWidth = R * .04; ctx.beginPath(); ctx.moveTo(cx - R * .15, cy + R * .35); for (let i = 1; i <= 6; i++) ctx.lineTo(cx - R * .15 + i * R * .05, cy + R * (.35 + (i % 2 ? .04 : 0))); ctx.stroke();
+  },
+  // カズアワズ・ハカセ：左右の数が合わない式を書く博士
+  kazuawazu(ctx, cx, cy, R, t) {
+    ctx.fillStyle = '#2a4a3a'; ctx.fillRect(cx - R * .95, cy - R * .95, R * 1.0, R * .6); ctx.strokeStyle = '#8a6a3a'; ctx.lineWidth = R * .04; ctx.strokeRect(cx - R * .95, cy - R * .95, R * 1.0, R * .6);
+    ctx.fillStyle = '#f0f0e0'; ctx.font = `bold ${R * .14}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('H₂+O₂', cx - R * .45, cy - R * .78); ctx.fillText('→H₂O ?', cx - R * .45, cy - R * .55);
+    ctx.fillStyle = '#f4f4f4'; rr(ctx, cx - R * .1, cy - R * .2, R * .7, R * 1.05, R * .15); ctx.fill(); ctx.strokeStyle = '#bbb'; ctx.lineWidth = R * .02; ctx.stroke();
+    ctx.fillStyle = '#e8c098'; ctx.beginPath(); ctx.arc(cx + R * .25, cy - R * .42, R * .24, 0, 7); ctx.fill();
+    ctx.fillStyle = '#e8e8e8'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + R * .25 + k * R * .22, cy - R * .5, R * .11, 0, 7); ctx.fill(); });
+    ctx.strokeStyle = '#333'; ctx.lineWidth = R * .03; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + R * .25 + k * R * .09, cy - R * .45, R * .07, 0, 7); ctx.stroke(); }); ctx.beginPath(); ctx.moveTo(cx + R * .23, cy - R * .45); ctx.lineTo(cx + R * .27, cy - R * .45); ctx.stroke();
+    ctx.fillStyle = '#333'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + R * .25 + k * R * .09, cy - R * .45, R * .025, 0, 7); ctx.fill(); });
+    ctx.strokeStyle = '#e8c098'; ctx.lineWidth = R * .08; ctx.lineCap = 'round'; const sw = Math.sin(t / 6) * R * .08; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx - R * .35, cy - R * .3 + sw); ctx.stroke(); ctx.lineCap = 'butt';
+    ctx.fillStyle = '#fff'; ctx.fillRect(cx - R * .42, cy - R * .36 + sw, R * .06, R * .1);
+  },
+  // サビツキ・ナイト：全身さびついた騎士
+  sabitsuki(ctx, cx, cy, R, t) {
+    const rust = (x, y, w, h) => { ctx.fillStyle = 'rgba(160,70,20,.75)'; ctx.beginPath(); ctx.ellipse(cx + x * R, cy + y * R, w * R, h * R, 0, 0, 7); ctx.fill(); };
+    ctx.fillStyle = lin(ctx, cx - R * .4, 0, cx + R * .4, 0, ['#9a8a7a', '#5a4a3a']); rr(ctx, cx - R * .38, cy - R * .3, R * .76, R * .8, R * .1); ctx.fill();
+    ctx.fillRect(cx - R * .3, cy + R * .5, R * .22, R * .4); ctx.fillRect(cx + R * .08, cy + R * .5, R * .22, R * .4);
+    ctx.beginPath(); ctx.arc(cx, cy - R * .5, R * .28, Math.PI, 0); ctx.lineTo(cx + R * .28, cy - R * .3); ctx.lineTo(cx - R * .28, cy - R * .3); ctx.fill();
+    ctx.fillStyle = '#1a1a1a'; ctx.fillRect(cx - R * .2, cy - R * .5, R * .4, R * .06); ctx.fillStyle = '#ff6a2a'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + k * R * .09, cy - R * .47, R * .025, 0, 7); ctx.fill(); });
+    rust(-.15, -.1, .12, .08); rust(.2, .2, .1, .12); rust(-.2, .65, .07, .1); rust(.15, -.6, .08, .05); rust(.2, .75, .06, .08);
+    ctx.save(); ctx.translate(cx + R * .55, cy); ctx.rotate(-.5 + Math.sin(t / 12) * .1); ctx.fillStyle = '#8a5a3a'; ctx.fillRect(-R * .04, -R * .8, R * .08, R * .75); ctx.fillStyle = 'rgba(170,80,20,.8)'; for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.arc((i % 2 ? 1 : -1) * R * .03, -R * (.2 + i * .15), R * .04, 0, 7); ctx.fill(); } ctx.fillStyle = '#4a3a2a'; ctx.fillRect(-R * .12, -R * .07, R * .24, R * .06); ctx.restore();
+    ctx.fillStyle = '#a04a1a'; for (let i = 0; i < 3; i++) { const p = ((t / 3 + i * 12) % 36) / 36; ctx.fillRect(cx - R * .2 + i * R * .2, cy + R * .4 + p * R * .5, R * .03, R * .03); }
+  },
+  // スッパニガ・ゼリー：半分すっぱい（黄）、半分にがい（青）のゼリー
+  suppaniga(ctx, cx, cy, R, t) {
+    const w = Math.sin(t / 8) * R * .03;
+    ctx.save(); ctx.beginPath(); ctx.moveTo(cx - R * .7, cy + R * .75); ctx.quadraticCurveTo(cx - R * .8 - w, cy - R * .3, cx, cy - R * .6); ctx.quadraticCurveTo(cx + R * .8 + w, cy - R * .3, cx + R * .7, cy + R * .75); ctx.closePath(); ctx.clip();
+    ctx.fillStyle = '#f0d83a'; ctx.fillRect(cx - R, cy - R, R, R * 2); ctx.fillStyle = '#4a7ad8'; ctx.fillRect(cx, cy - R, R, R * 2);
+    ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.beginPath(); ctx.ellipse(cx - R * .35, cy - R * .2, R * .1, R * .2, -.3, 0, 7); ctx.fill(); ctx.restore();
+    ctx.fillStyle = '#fff'; ctx.font = `bold ${R * .13}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('pH3', cx - R * .35, cy + R * .45); ctx.fillText('pH11', cx + R * .35, cy + R * .45);
+    ctx.fillStyle = '#222'; ctx.beginPath(); ctx.moveTo(cx - R * .32, cy - R * .12); ctx.lineTo(cx - R * .12, cy - R * .05); ctx.lineTo(cx - R * .32, cy + R * .02); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cx + R * .22, cy - R * .05, R * .07, R * .05, 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#222'; ctx.lineWidth = R * .04; ctx.beginPath(); ctx.moveTo(cx - R * .15, cy + R * .2); ctx.quadraticCurveTo(cx - R * .05, cy + R * .1, cx, cy + R * .2); ctx.quadraticCurveTo(cx + R * .08, cy + R * .3, cx + R * .15, cy + R * .2); ctx.stroke();
+  },
+  // タンソクサリ大王：炭素の玉の鎖を巻きつけた大王
+  tansokusari(ctx, cx, cy, R, t) {
+    ctx.fillStyle = lin(ctx, cx - R * .5, 0, cx + R * .5, 0, ['#4a4a5a', '#1a1a24']); rr(ctx, cx - R * .45, cy - R * .4, R * .9, R * 1.3, R * .15); ctx.fill();
+    ctx.fillStyle = '#d8b8a0'; ctx.beginPath(); ctx.arc(cx, cy - R * .6, R * .26, 0, 7); ctx.fill();
+    ctx.fillStyle = '#e8c030'; ctx.beginPath(); ctx.moveTo(cx - R * .28, cy - R * .78); for (let i = 0; i < 5; i++) ctx.lineTo(cx - R * .28 + i * R * .14, cy - R * (1.1 - (i % 2) * .15)); ctx.lineTo(cx + R * .28, cy - R * .78); ctx.fill();
+    ctx.fillStyle = '#222'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + k * R * .1, cy - R * .62, R * .035, 0, 7); ctx.fill(); }); ctx.fillStyle = '#5a2a1a'; ctx.fillRect(cx - R * .1, cy - R * .48, R * .2, R * .04);
+    const sw = t / 15;
+    for (let i = 0; i < 9; i++) { const u = i / 8, x = cx - R * .8 + u * R * 1.6, y = cy + R * (.1 + .25 * Math.sin(u * 3.14 + sw)); if (i) { ctx.strokeStyle = '#888'; ctx.lineWidth = R * .03; const pu = (i - 1) / 8; ctx.beginPath(); ctx.moveTo(cx - R * .8 + pu * R * 1.6, cy + R * (.1 + .25 * Math.sin(pu * 3.14 + sw))); ctx.lineTo(x, y); ctx.stroke(); }
+      ctx.fillStyle = '#2a2a2a'; ctx.beginPath(); ctx.arc(x, y, R * .09, 0, 7); ctx.fill(); ctx.fillStyle = '#fff'; ctx.font = `bold ${R * .09}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('C', x, y); }
+    ctx.fillStyle = '#1a1a24'; [-1, 1].forEach(k => ctx.fillRect(cx + k * R * .22 - R * .1, cy + R * .85, R * .2, R * .12));
+  },
 };
 function hslToHex(h, s, l) { const a = s * Math.min(l, 1 - l); const f = n => { const k = (n + h / 30) % 12; const c = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); return Math.round(255 * c).toString(16).padStart(2, '0'); }; return `#${f(0)}${f(8)}${f(4)}`; }
 

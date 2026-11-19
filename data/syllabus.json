@@ -537,49 +537,63 @@
    "subject": "物理・化学",
    "area": "化学",
    "item": "物理変化と化学変化",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "P-HEN"
+   ]
   },
   {
    "id": "P-09",
    "subject": "物理・化学",
    "area": "化学",
    "item": "単体・化合物・混合物",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "P-BUN"
+   ]
   },
   {
    "id": "P-10",
    "subject": "物理・化学",
    "area": "化学",
    "item": "原子・分子・物質量・化学反応式",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "P-GEN"
+   ]
   },
   {
    "id": "P-11",
    "subject": "物理・化学",
    "area": "化学",
    "item": "酸化と還元",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "P-SAN"
+   ]
   },
   {
    "id": "P-12",
    "subject": "物理・化学",
    "area": "化学",
    "item": "酸・塩基・pH・中和",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "P-PH"
+   ]
   },
   {
    "id": "P-13",
    "subject": "物理・化学",
    "area": "化学",
    "item": "金属のイオン化傾向と腐食",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "P-ION"
+   ]
   },
   {
    "id": "P-14",
    "subject": "物理・化学",
    "area": "化学",
    "item": "有機化合物の基礎",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "P-YUU"
+   ]
   },
   {
    "id": "P-15",
