@@ -6,7 +6,7 @@ const BLOCK = new Set(['T', '~', '#', 'R', 'W', 'X']);
 const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0], ul: [-1, -1], ur: [1, -1], dl: [-1, 1], dr: [1, 1] };
 export function dir8(dx, dy) { const a = Math.atan2(dy, dx), k = ((Math.round(a / (Math.PI / 4)) % 8) + 8) % 8; return ['right', 'dr', 'down', 'dl', 'left', 'ul', 'up', 'ur'][k]; }
 const FACE = { ul: 'left', dl: 'left', ur: 'right', dr: 'right' };
-const STEP_MS = 150;
+const STEP_MS = 200;
 
 function charTexture(look, dir, fr = 0) {
   let c;
@@ -53,10 +53,10 @@ export class Field3D {
     this.mapId = mapId; this.map = this.world.maps[mapId]; this.x = x; this.y = y; this.prev = { x, y: y + 1 }; this.anim = null;
     const scene = this.scene = new THREE.Scene();
     const town = mapId !== 'field' && !this.map.encounter && mapId !== 'village' ? true : false;
-    scene.background = new THREE.Color(0x9ccfff); scene.fog = new THREE.Fog(0x9ccfff, 19, 44);
+    scene.background = new THREE.Color(0x9ccfff); scene.fog = new THREE.Fog(0x9ccfff, 24, 56);
     this.hemi = new THREE.HemisphereLight(0xdfefff, 0x5a7a3a, 1.1); scene.add(this.hemi);
     const sun = this.sun = new THREE.DirectionalLight(0xfff2d8, 2.2); sun.position.set(-6, 12, 6); sun.castShadow = !this.lowPower;
-    sun.shadow.mapSize.set(1024, 1024); Object.assign(sun.shadow.camera, { left: -16, right: 16, top: 16, bottom: -16, near: 1, far: 50 }); sun.shadow.bias = -0.0008;
+    sun.shadow.mapSize.set(1024, 1024); Object.assign(sun.shadow.camera, { left: -20, right: 20, top: 20, bottom: -20, near: 1, far: 60 }); sun.shadow.bias = -0.0008;
     scene.add(sun); scene.add(sun.target);
     const H = this.map.tiles.length, W = this.map.tiles[0].length, M = 6; // 周りに余白（森・壁）
     const geoTile = new THREE.BoxGeometry(1, .2, 1);
@@ -102,6 +102,25 @@ export class Field3D {
         g.position.set(e.x, 0, e.y); scene.add(g); this.chests.push({ e, g, lid }); }
       if (e.type === 'spring') { const w = new THREE.Mesh(new THREE.CylinderGeometry(.42, .46, .12, 20), new THREE.MeshPhongMaterial({ color: 0x5ac8ff, emissive: 0x1a5a90, shininess: 90, transparent: true, opacity: .85 })); w.position.set(e.x, .03, e.y); scene.add(w);
         const ring = new THREE.Mesh(new THREE.TorusGeometry(.46, .07, 6, 20), new THREE.MeshLambertMaterial({ color: 0x8a8490 })); ring.rotation.x = Math.PI / 2; ring.position.set(e.x, .06, e.y); scene.add(ring); }
+    });
+    // 出口の目印（光る輪と矢印）と、看板
+    this.exitMarks = [];
+    (this.map.events || []).forEach(e => {
+      if (e.type === 'exit') {
+        const g = new THREE.Group(); const ring = new THREE.Mesh(new THREE.RingGeometry(.28, .42, 24), new THREE.MeshBasicMaterial({ color: 0xffe04a, transparent: true, opacity: .8, side: THREE.DoubleSide })); ring.rotation.x = -Math.PI / 2; ring.position.y = .03; g.add(ring);
+        const ar = new THREE.Mesh(new THREE.ConeGeometry(.16, .34, 4), new THREE.MeshBasicMaterial({ color: 0xffd02a })); ar.position.y = .9; ar.rotation.x = Math.PI; g.add(ar);
+        g.position.set(e.x, 0, e.y); scene.add(g); this.exitMarks.push({ ring, ar });
+      }
+      if (e.type === 'sign') {
+        const g = new THREE.Group(); const wood = new THREE.MeshLambertMaterial({ color: 0x8a5a2a });
+        const post = new THREE.Mesh(new THREE.BoxGeometry(.12, 1.2, .12), wood); post.position.y = .6; g.add(post);
+        const cv = document.createElement('canvas'); cv.width = 256; cv.height = 128; const c = cv.getContext('2d');
+        c.fillStyle = '#e8c890'; c.fillRect(0, 0, 256, 128); c.strokeStyle = '#6a4020'; c.lineWidth = 10; c.strokeRect(5, 5, 246, 118);
+        c.fillStyle = '#3a2410'; c.font = 'bold 44px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(e.label || '看板', 128, 66);
+        const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
+        const board = new THREE.Mesh(new THREE.BoxGeometry(1.6, .8, .08), [wood, wood, wood, wood, new THREE.MeshLambertMaterial({ map: tex }), wood]); board.position.y = 1.3; board.rotation.x = -.35; g.add(board);
+        g.position.set(e.x, 0, e.y + .3); scene.add(g);
+      }
     });
     if (this.map.dungeon && this.map.theme !== 'pass') (this.map.torches || []).forEach(([i, j]) => { const fl = new THREE.Mesh(new THREE.SphereGeometry(.09, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffb040 })); fl.position.set(i, 1.25, j + .5); scene.add(fl); const pl = new THREE.PointLight(0xff9a40, 1.6, 5, 1.5); pl.position.set(i, 1.3, j + .7); scene.add(pl); });
     this.openChests();
@@ -150,7 +169,7 @@ export class Field3D {
   openChests() { (this.chests || []).forEach(c => { const o = this.hooks.chestOpen && this.hooks.chestOpen(c.e.id); c.lid.rotation.x = o ? -1.1 : 0; c.lid.position.z = o ? -.2 : 0; c.lid.position.y = o ? .6 : .47; }); }
   applyNight() {
     const night = this.hooks.isNight && this.hooks.isNight(); this.night = night;
-    if (this.map.dungeon && this.map.theme !== 'pass') { this.hemi.intensity = .8; this.sun.intensity = 1.3; this.sun.color.set(0xd8d0ff); this.scene.background.set(0x14121a); this.scene.fog.color.set(0x14121a); this.scene.fog.near = 15; this.scene.fog.far = 30; return; }
+    if (this.map.dungeon && this.map.theme !== 'pass') { this.hemi.intensity = .8; this.sun.intensity = 1.3; this.sun.color.set(0xd8d0ff); this.scene.background.set(0x14121a); this.scene.fog.color.set(0x14121a); this.scene.fog.near = 20; this.scene.fog.far = 38; return; }
     this.hemi.intensity = night ? .35 : 1.1; this.sun.intensity = night ? .25 : 2.2; this.sun.color.set(night ? 0x8aa0ff : 0xfff2d8);
     this.scene.background.set(night ? 0x0c1430 : 0x9ccfff); this.scene.fog.color.set(night ? 0x0c1430 : 0x9ccfff);
     (this.windows || []).forEach(w => w.material.emissive.set(night ? 0xffb04a : 0x000000));
@@ -218,6 +237,7 @@ export class Field3D {
     const now = performance.now(), t = now / 1000, dt = Math.min(.05, (now - this.lastT) / 1000); this.lastT = now;
     this.perf(dt);
     if (this.anim && now - this.anim.t0 >= STEP_MS) { this.anim = null; this.arrive(); }
+    (this.exitMarks || []).forEach(m => { const k = Math.sin(now / 300); m.ar.position.y = .9 + k * .12; m.ring.material.opacity = .55 + k * .25; });
     let hx = this.x, hy = this.y, mx = this.prev.x, my = this.prev.y, walking = 0;
     if (this.anim) { const k = Math.min(1, (now - this.anim.t0) / STEP_MS); hx = this.anim.fx + (this.x - this.anim.fx) * k; hy = this.anim.fy + (this.y - this.anim.fy) * k; mx = this.anim.px + (this.prev.x - this.anim.px) * k; my = this.anim.py + (this.prev.y - this.anim.py) * k; walking = 1; }
     this.placeParty(hx, hy, mx, my);
@@ -232,7 +252,7 @@ export class Field3D {
     // カメラ：斜め上から主人公を追う
     if (!this.cam || this.cam.map !== this.mapId) this.cam = { x: hx, z: hy, map: this.mapId };
     const a = 1 - Math.exp(-dt * 9); this.cam.x += (hx - this.cam.x) * a; this.cam.z += (hy - this.cam.z) * a;
-    const cx = this.cam.x, cz = this.cam.z; this.camera.position.set(cx, 14.5, cz + 7.6); this.camera.lookAt(cx, .2, cz - .8);
+    const cx = this.cam.x, cz = this.cam.z; this.camera.position.set(cx, 19, cz + 10); this.camera.lookAt(cx, .2, cz - 1);
     this.sun.position.set(cx - 6, 12, cz + 6); this.sun.target.position.set(cx, 0, cz);
     this.renderer.render(this.scene, this.camera);
   }

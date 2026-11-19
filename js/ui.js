@@ -98,7 +98,7 @@ export function ask(q, { title = '', hint = null, showDraft = true, mode = null,
       head.appendChild(hb);
     }
     const finish = unsure => {
-      const correct = sel === q.answer;
+      const correct = sel === q.answer; const dms = Date.now() - t0;
       // 解説を見る前に記録する（解説画面で閉じても失われない）
       if (mode) Learn.record(q, { correct, unsure: !!unsure, hint: mode === 'furikaeri' ? false : usedHint, mode, order, ms: Date.now() - t0 });
       p.innerHTML = '';
@@ -116,7 +116,7 @@ export function ask(q, { title = '', hint = null, showDraft = true, mode = null,
       p.appendChild(det);
       if (q.source_title) p.appendChild(el('div', 'src', `根拠：${q.source_title}${q.legal_reference ? '（' + q.legal_reference + '）' : ''}`));
       const nx = el('button', 'item', '次へ'); p.appendChild(nx);
-      nx.onclick = () => { close(p); res({ correct, unsure: !!unsure, hint: usedHint, order, ms: Date.now() - t0, chosen: sel }); };
+      nx.onclick = () => { close(p); res({ correct, unsure: !!unsure, hint: usedHint, order, ms: Date.now() - t0, dms, chosen: sel }); };
       p.scrollTop = 0;
     };
     ok.onclick = () => sel != null && finish(false);

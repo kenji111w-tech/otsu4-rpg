@@ -95,10 +95,10 @@ async def bot_step(pg, state):
         if (title === '役場') { window.__off = (window.__off||0)+1; (window.__off===1? by('届出') : by('もどる')).click(); return 'office'; }
         if (title.startsWith('宿屋')) { by('泊まる').click(); return 'inn'; }
         if (title.includes('のこうどう')) {
-          const tai = by('★たいさく'); if (tai) { tai.click(); return 'taisaku'; }
+          const sp = by('じゅもん'); if (sp && !sp.classList.contains('off') && Math.random() < .25) { sp.click(); return 'spell'; }
           const sk = by('とくぎ'); if (sk && Math.random() < .45) { sk.click(); return 'skill'; }
           const it = by('どうぐ'); if (it && Math.random() < .06) { it.click(); return 'item'; }
-          by('こうげき').click(); return 'atk';
+          by('たたかう').click(); return 'atk';
         }
         const first = items.find(b => !b.classList.contains('off') && !b.classList.contains('cancel'));
         (first || by('もどる')).click(); return 'menu:' + title.slice(0,12);

@@ -1,6 +1,7 @@
-// 戦闘（仕様書 第4章）：コマンド選択式ターン制。毎回問題は出さない。
-// 強い敵は「再生」と「予告→大技」を持ち、知識（たいさく・技）がないと勝てない。
-import { el, sleep, rand, pick } from './util.js';
+// 戦闘（仕様書 第4章・0.8で変更）：クイズ形式のコマンドバトル。
+// こちらの行動（たたかう・じゅもん・とくぎ）も、敵の攻撃も、問題に答えて決まる。
+// 強い敵の「再生」、ボスの「くずれ」、予告→大技、仲間呼びはそのまま。
+import { el, sleep, rand, pick, shuffle } from './util.js';
 import { say, choose, ask, toast } from './ui.js';
 import { drawEnemy } from './sprites.js';
 import { drawEnemyHQ, drawBattleBg, STYLE, drawEnemyDot, drawBattleBgDot } from './art.js';
@@ -21,7 +22,7 @@ export class Battle {
       await this.msg(prefix);
       if (E.look && !opt.revived && !((this.g.state.zukan[this.e.id] || {}).defeated)) await say(E.look);
       if (opt.revived && opt.reviveQ) await this.revivalTrial(opt.reviveQ);
-      if (opt.tutorial) await say([['ショウボウ老師', '「こうげき」で戦うのじゃ。敵が大技の構えを見せたら「たいさく」で知恵を使え！']]);
+      if (opt.tutorial) await say([['ショウボウ老師', '戦いは「知恵くらべ」じゃ。「たたかう」を選ぶと問題が出る。正しく答えれば攻撃が当たる。'], ['ショウボウ老師', '敵が攻撃してくる時も問題が出る。正しく答えれば受け流せる。すばやく正しく答えれば、かわしてミスにできるぞ。'], ['ショウボウ老師', '敵が「力を溜めている」時は大技の前ぶれじゃ。次の問題に正しく答えれば、大技は不発に終わる！']]);
       const result = await this.loop();
       await this.after(result);
       return result;
@@ -77,10 +78,9 @@ export class Battle {
     while (true) {
       // 味方の行動を選ぶ
       const acts = [];
-      for (const m of this.alive()) {
-        const a = await this.command(m); if (a === 'flee-ok') return 'flee';
-        if (a) acts.push([m, a]);
-      }
+      this.party.forEach(p => { p.guard = false; });
+      const leader = this.alive().find(m => m.id === 'hero') || this.alive()[0]; // 問題に答えるのは主人公（倒れたら仲間）
+      { const a = await this.command(leader); if (a === 'flee-ok') return 'flee'; if (a) acts.push([leader, a]); }
       // 実行
       for (const [m, a] of acts) {
         if (m.hp <= 0 || this.e.hp <= 0) continue;
@@ -99,16 +99,15 @@ export class Battle {
   async command(m) {
     this.log.textContent = `${m.name}はどうする？`; this.refresh();
     while (true) {
-      const items = [{ label: 'こうげき', value: 'atk' }];
-      const sk = this.g.state.skills.filter(s => this.g.world.skills[s].user === m.id);
+      const items = [{ label: 'たたかう', value: 'atk', note: '3択' }, { label: 'じゅもん', value: 'spell', note: '5択・MP2', disabled: m.mp < 2 }];
+      const users = this.alive().map(p => p.id);
+      const sk = this.g.state.skills.filter(s => users.includes(this.g.world.skills[s].user));
       if (sk.length) items.push({ label: 'とくぎ', value: 'skill' });
-      if (this.e.tele && !this.e.tele.answered) items.push({ label: '★たいさく', value: 'taisaku', note: '予告への対策' });
-      items.push({ label: 'ぼうぎょ', value: 'def' });
-      if (m.id === 'hero') { items.push({ label: 'どうぐ', value: 'item' }); items.push({ label: 'にげる', value: 'flee' }); }
+      items.push({ label: 'ぼうぎょ', value: 'def', note: '問題なし' });
+      items.push({ label: 'どうぐ', value: 'item' }); items.push({ label: 'にげる', value: 'flee' });
       const v = await choose(`${m.name}のこうどう`, items, { cancel: false, cls: 'cmd' });
-      if (v === 'taisaku') { await this.taisaku(m); return null; }
       if (v === 'skill') {
-        const s = await choose('とくぎ', sk.map(id => { const S = this.g.world.skills[id]; return { label: S.name + (this.rustyFor(id) ? '（さび）' : ''), note: `MP${S.mp}`, value: id, disabled: m.mp < S.mp }; }));
+        const s = await choose('とくぎ', sk.map(id => { const S = this.g.world.skills[id]; const u = this.g.state.members[S.user]; return { label: S.name + (this.rustyFor(id) ? '（さび）' : ''), note: `${u.name} MP${S.mp}`, value: id, disabled: u.mp < S.mp }; }));
         if (s) return { type: 'skill', id: s }; continue;
       }
       if (v === 'item') {
@@ -141,9 +140,9 @@ export class Battle {
     else if (e.hp <= 0 && e.boss && !e.broken) { e.hp = 1; await this.msg(`${e.name}はふみとどまった！ とどめは、くずれた時しか通らない……。`, 1100); }
   }
   async exec(m, a) {
-    m.guard = false;
-    if (a.type === 'atk') return this.hit(m, 1);
-    if (a.type === 'def') { m.guard = true; return this.msg(`${m.name}は身を守っている。`, 500); }
+    if (a.type === 'atk') return this.quizAttack(m);
+    if (a.type === 'spell') return this.spell(m);
+    if (a.type === 'def') { this.party.forEach(p => { p.guard = true; }); return this.msg(`${m.name}たちは身を守っている。（次の受け流しは、正解すればかならずミスになる）`, 900); }
     if (a.type === 'item') {
       const t = this.g.state.members[a.tgt]; const I = a.id; this.g.state.items[I]--;
       if (I === 'yakusou') { const h = Math.min(15, t.mhp - t.hp); t.hp += h; return this.msg(`${m.name}はやくそうを使った。${t.name}のHPが${h}回復！`); }
@@ -152,12 +151,68 @@ export class Battle {
     if (a.type === 'skill') return this.skill(m, a.id);
   }
 
+  // ---------- 出題 ----------
+  // 教わったことだけを出す：クリア済みの事件・いま挑んでいる事件・導入の問題（仕様書 4-8）
+  taught(q) {
+    if (q.pool === 'mock' || q.call || q.topic === 'identify') return false;
+    if (q.town === 'V0') return true;
+    const cl = this.g.state.cleared, id = `${q.town}-${q.stage}`;
+    return !!(cl[id] || this.opt.stageId === id);
+  }
+  pickQ(kinds, prefer) {
+    const e = this.e, all = this.g.questions.filter(q => kinds.includes(q.kind) && this.taught(q));
+    let cand = all.filter(q => !e.used.has(q.id)); if (!cand.length) cand = all;
+    const area = cand.filter(q => q.town === e.area), pref = prefer ? cand.filter(prefer) : [];
+    const q = pick(pref.length ? pref : area.length && Math.random() < .75 ? area : cand) || pick(this.g.questions.filter(x => x.town === 'V0'));
+    if (q) e.used.add(q.id); return q;
+  }
+  three(q) { // 5択を、正解＋まちがい2つの3択にする（たたかう・受け流し用）
+    if (q.choices.length <= 3) return q;
+    const wrong = shuffle(q.choices.map((c, i) => i).filter(i => i !== q.answer)).slice(0, 2), idx = [q.answer, ...wrong];
+    return { ...q, kind: 'mcq3', choices: idx.map(i => q.choices[i]), choice_explanations: idx.map(i => (q.choice_explanations || [])[i] || ''), answer: 0, shuffle: 'all' };
+  }
+  fast(r, q) { return r.correct && !r.unsure && !r.hint && r.dms < (q.question.length > 60 ? 12000 : 8000); }
+
+  async quizAttack(m) {
+    const q = this.three(this.pickQ(['mcq5', 'situation']));
+    const r = await this.askQ(q, 'battle', `${m.name}のこうげき：正しいものは？`);
+    if (!r.correct) { this.combo = 0; return this.msg(`${m.name}のこうげき！ ……しかし、はずれた！`, 800); }
+    this.combo = (this.combo || 0) + 1;
+    const crit = this.fast(r, q), mult = (crit ? 1.6 : 1) * (1 + Math.min(3, this.combo - 1) * .15);
+    await this.hit(m, mult, crit ? `すばやい正解！ ${m.name}の会心の一撃！` : (this.combo > 1 ? `${this.combo}連続正解！ ${m.name}のこうげき！` : null));
+    return this.followUp(m);
+  }
+  async spell(m) {
+    if (m.mp < 2) return this.msg('MPが足りない！', 600);
+    m.mp -= 2; this.refresh();
+    await this.msg(`${m.name}は知恵の呪文をとなえた！`, 500);
+    const q = this.pickQ(['mcq5']) || this.pickQ(['situation']);
+    const r = await this.askQ(q, 'battle', '知恵の呪文：本番と同じ5択');
+    if (!r.correct) { this.combo = 0; return this.msg('呪文は不発に終わった……。', 800); }
+    this.combo = (this.combo || 0) + 1;
+    await this.hit(m, 2.2, `呪文が炸裂した！`);
+    return this.followUp(m);
+  }
+  async followUp(m) { // 正解すると、仲間が追い打ち
+    for (const p of this.alive()) {
+      if (p === m || this.e.hp <= 0) continue;
+      const bonus = p.id === 'hoan' && /^[LDQ]/.test(this.e.area || '') ? .9 : .6;
+      await this.hit(p, bonus, `${p.name}の追い打ち！`);
+    }
+  }
+
   rustyFor(skillId) { const S = this.g.world.skills[skillId]; return S.kids.some(k => Learn.isDue(k)); }
   // さびた技：結びつく知識の五肢択一に答えると発動
   async rustCheck(skillId) {
     const S = this.g.world.skills[skillId];
     const due = S.kids.filter(k => Learn.isDue(k));
-    if (!due.length) return true;
+    if (!due.length && skillId === 'miyaburu') return true; // みやぶるは、このあと正体の問題が出る
+    if (!due.length) { // さびていなくても、技は問題に正解して発動する
+      const q = this.three(this.pickQ(['mcq5', 'situation'], x => S.kids.includes(x.knowledge_id)));
+      const r = await this.askQ(q, 'battle', `${S.name}：正しいものは？`);
+      if (r.correct) return true;
+      await this.msg(`しかし、${S.name}は不発に終わった……。`, 800); return false;
+    }
     const qs = this.g.questions.filter(q => due.includes(q.knowledge_id) && q.pool !== 'mock');
     const q = pick(qs.filter(x => x.kind === 'mcq5').length ? qs.filter(x => x.kind === 'mcq5') : qs);
     if (!q) return true;
@@ -168,6 +223,7 @@ export class Battle {
   }
   async skill(m, id) {
     const S = this.g.world.skills[id];
+    m = this.g.state.members[S.user] || m; // MPは技の持ち主が使う
     if (m.mp < S.mp) return this.msg('MPが足りない！', 600);
     if (id === 'kikensatchi' && !this.e.tele) return this.msg('いまは予告が出ていない。（MPは使わなかった）', 800);
     if (id === 'miyaburu' && this.e.identified) return this.msg('もう正体は見抜いている。（MPは使わなかった）', 800);
@@ -237,15 +293,18 @@ export class Battle {
     if (e.regen && !e.identified && e.hp < e.mhp) { const h = Math.min(e.regen, e.mhp - e.hp); e.hp += h; await this.msg(`${e.name}は再生した！ HPが${h}回復。`, 700); }
     if (e.tele) { // 予告していた大技
       const T = e.tele; e.tele = null;
+      if (!T.answered) { // 予告していた問題に、いま答える
+        await this.msg(T.call ? `${e.name}の仲間がやってくる！ 見破れ！` : `${e.name}の大技がくる！ 正しい対策は？`, 700);
+        const r = await this.askQ(T.q, 'battle', T.call ? '仲間呼びを見破れ' : '大技を不発にしろ', `この敵の弱点は「${e.weak}」に関わる知識。`);
+        T.answered = true; T.ok = r.correct;
+      }
       if (T.call) { // 仲間呼びの解決
-        if (T.answered && T.ok) { await this.msg(`呼ばれた仲間は、正体を見破られて帰っていった！`, 1000); return; }
-        if (!T.answered) this.review.push(T.q);
+        if (T.ok) { await this.msg(`呼ばれた仲間は、正体を見破られて帰っていった！`, 1000); return; }
         const A = this.g.world.enemies[T.ally] || { name: '仲間' }; e.allies.push({ id: T.ally, name: A.name }); this.shake = 6;
         await this.msg(`${A.name}が仲間に加わった！ ${e.name}の攻撃が激しくなる……。`, 1000);
         await this.msg(`（正しい判断：${T.q.choices[T.q.answer]}）`, 1400); return;
       }
-      if (T.answered && T.ok) { e.broken = 1; this.shake = 10; await this.msg(`${e.name}の大技を防いだ！ ${e.name}はくずれた！（次の味方の攻撃はダメージ2倍）`, 1100); return; }
-      if (!T.answered) this.review.push(T.q);
+      if (T.ok) { e.broken = 1; this.shake = 10; await this.msg(`${e.name}の大技は不発に終わった！ ${e.name}はくずれた！（次の味方の攻撃はダメージ2倍）`, 1100); return; }
       this.shake = 14;
       for (const m of this.alive()) {
         let d = Math.round(e.big * rand(.9, 1.1) * (T.guard ? .5 : 1) * (m.guard ? .75 : 1)); m.hp -= d;
@@ -259,7 +318,7 @@ export class Battle {
     if (e.calls.length && (e.turn === 4 || (e.boss && e.turn === 7))) {
       const qs = e.calls.map(id => this.g.qById[id]).filter(Boolean); let cand = qs.filter(q => !e.used.has(q.id)); if (!cand.length) cand = qs;
       const q = pick(cand); if (q) { e.used.add(q.id); e.tele = { q, answered: false, ok: false, guard: false, call: true, ally: q.ally };
-        await say([[e.name + 'の仲間呼び', q.question]]); this.log.textContent = `${e.name}が仲間を呼んでいる！「★たいさく」で見破れば仲間は帰る。`; return; }
+        await say([[e.name + 'の仲間呼び', q.question]]); this.log.textContent = `${e.name}が仲間を呼んでいる！ 次のターン、問題に正しく答えれば仲間は帰る。`; return; }
     }
     // 予告するか
     const willTele = e.pool && e.pool.length && (e.teleRate >= 1 ? e.turn % 3 === 2 : Math.random() < e.teleRate) || (this.opt.tutorial && e.turn === 1);
@@ -268,13 +327,18 @@ export class Battle {
       let cand = qs.filter(q => !e.used.has(q.id)); if (!cand.length) cand = qs;
       const q = pick(cand); e.used.add(q.id);
       e.tele = { q, answered: false, ok: false, guard: false };
-      await say([[e.name + 'の予告', q.question]]);
-      this.log.textContent = `${e.name}が大技の構えをとっている！「★たいさく」で対策できる。`; return;
+      await say([[e.name + 'の予告', q.question], `${e.name}は力を溜めている！ 次のターンの問題に正しく答えれば、大技は不発になる。`]);
+      this.log.textContent = `${e.name}が力を溜めている！`; return;
     }
     const tgt = pick(this.alive());
-    let d = Math.max(1, Math.round(e.atk * rand(.85, 1.15) - tgt.def / 2)); if (tgt.guard) d = Math.ceil(d / 2);
-    tgt.hp -= d; this.shake = 6;
-    await this.msg(`${e.name}のこうげき！ ${tgt.name}は${d}のダメージを受けた。`, 800);
+    let d = Math.max(1, Math.round(e.atk * rand(.85, 1.15) - tgt.def / 2));
+    await this.msg(`${e.name}のこうげき！ 正しく答えて受け流せ！`, 500);
+    const q = this.three(this.pickQ(['mcq5', 'situation']));
+    const r = await this.askQ(q, 'battle', `${e.name}のこうげきを受け流せ`);
+    if (r.correct && (this.fast(r, q) || tgt.guard)) { await this.msg(`${tgt.name}はひらりとかわした！ ミス！`, 800); return; }
+    if (r.correct) d = Math.max(1, Math.ceil(d / 4));
+    tgt.hp -= d; this.shake = r.correct ? 3 : 8;
+    await this.msg(r.correct ? `受け流した！ ${tgt.name}は${d}のダメージですんだ。` : `${tgt.name}は${d}のダメージを受けた！`, 800);
     if (tgt.hp <= 0) await this.msg(`${tgt.name}はたおれた……。`, 700);
   }
 

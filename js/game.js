@@ -273,6 +273,7 @@ class Game {
     }
     if (ev.type === 'building') return this.building(ev);
     if (ev.type === 'stage') return this.stage(ev.id);
+    if (ev.type === 'sign') return say(ev.text);
     if (ev.type === 'spring') { this.healAll(); return say(['青く光る泉の水を飲んだ。', 'HPとMPが回復した！']); }
     if (ev.type === 'chest') {
       s.chests = s.chests || {}; if (s.chests[ev.id]) return say('宝箱は空っぽだ。');
@@ -335,7 +336,7 @@ class Game {
       s.skills.push(S.skill); const K = this.world.skills[S.skill];
       await say([`${K.user === 'hoan' ? 'ホアン' : s.name}は「${K.name}」を覚えた！`, K.desc]);
     }
-    const r = await this.battle(S.enemy, { noFlee: !!S.boss, stage: true, town: id.split('-')[0] });
+    const r = await this.battle(S.enemy, { noFlee: !!S.boss, stage: true, town: id.split('-')[0], stageId: id });
     if (r === 'lose') return this.retreat();
     if (r !== 'win') { await say([['ホアン', 'いったん引きましょう。準備ができたら、また来てください。']]); return; }
     s.cleared[id] = true;
@@ -472,7 +473,10 @@ class Game {
       let dx = e.clientX - cx, dy = e.clientY - cy; const dist = Math.hypot(dx, dy), max = r.width / 2 - 30;
       if (dist > max) { dx = dx / dist * max; dy = dy / dist * max; }
       knob.style.transform = `translate(${dx}px, ${dy}px)`;
-      if (dist < 16) { f.held = null; return; }
+      if (dist < 24) { f.held = null; return; }
+      // 向きのぶれ止め：今の向きから大きく（約35度以上）ずれた時だけ向きを変える
+      const ang = Math.atan2(dy, dx), C = { right: 0, dr: 1, down: 2, dl: 3, left: 4, ul: -3, up: -2, ur: -1 };
+      if (f.held && C[f.held] != null) { let df = Math.abs(ang - C[f.held] * Math.PI / 4); if (df > Math.PI) df = 2 * Math.PI - df; if (df < Math.PI / 4 * 1.55) return; }
       const d = dir8(dx, dy); if (f.held !== d) { f.held = d; if (!f.anim) f.step(d); }
     };
     stick.addEventListener('pointerdown', e => { e.preventDefault(); pid = e.pointerId; try { stick.setPointerCapture(pid); } catch (er) {} stick.classList.add('on'); move(e); });
