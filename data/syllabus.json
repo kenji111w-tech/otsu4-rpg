@@ -572,35 +572,57 @@
    "subject": "物理・化学",
    "area": "燃焼と消火",
    "item": "燃焼の三要素",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "P-NEN-3YOUSO",
+    "P-NEN-TEIGI",
+    "P-NEN-KANEN",
+    "P-NEN-SANSO",
+    "P-NEN-TENKA"
+   ]
   },
   {
    "id": "P-16",
    "subject": "物理・化学",
    "area": "燃焼と消火",
    "item": "燃焼の種類（蒸発・分解・表面・自己燃焼）",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "P-NEN-JOHATSU",
+    "P-NEN-BUNKAI",
+    "P-NEN-HYOMEN",
+    "P-NEN-JIKO"
+   ]
   },
   {
    "id": "P-17",
    "subject": "物理・化学",
    "area": "燃焼と消火",
    "item": "引火点・発火点・燃焼範囲",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "P-NEN-INKA",
+    "P-NEN-HAKKA",
+    "P-NEN-HANI",
+    "P-NEN-NOUDO"
+   ]
   },
   {
    "id": "P-18",
    "subject": "物理・化学",
    "area": "燃焼と消火",
    "item": "自然発火",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "P-NEN-SHIZEN",
+    "P-NEN-YOUSO"
+   ]
   },
   {
    "id": "P-19",
    "subject": "物理・化学",
    "area": "燃焼と消火",
    "item": "粉じん爆発",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "P-NEN-FUNJIN",
+    "P-NEN-FUKANZEN"
+   ]
   },
   {
    "id": "P-20",

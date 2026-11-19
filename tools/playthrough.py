@@ -66,6 +66,13 @@ SCEN = """
       window.__log.push(st + ':' + !!g.state.cleared[st]);
     }
     window.__log.push('q2reward:' + !!g.state.flags.q2reward);
+    g.field.load('castle3', 16, 1);
+    await ev({type:'exit', to:'town4', tx:8, ty:14, need:'D3-boss'});
+    window.__log.push('party:' + g.state.party.join(','));
+    for (const st of ['P1-1','P1-2','P1-3','P1-4','P1-boss']) {
+      for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('town4', 8, 14); }
+      window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.kemi.lv);
+    }
     g.state.items.yakusou = 9; g.state.items.mizu = 3;
     await ev({type:'building', id:'shop'});
     window.__log.push('kama keshi:' + (g.state.items.keshi||0) + ' jouyaku:' + (g.state.items.jouyaku||0));
@@ -129,7 +136,7 @@ async def main():
             await pg.wait_for_timeout(30)
         await pg.evaluate(SCEN)
         counts = {}
-        for i in range(14000):
+        for i in range(17000):
             if await pg.evaluate("window.__done"): break
             r = await bot_step(pg, None); counts[r.split(':')[0]] = counts.get(r.split(':')[0], 0) + 1
             await pg.wait_for_timeout(15)

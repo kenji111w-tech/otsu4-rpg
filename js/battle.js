@@ -198,7 +198,7 @@ export class Battle {
   async followUp(m) { // 正解すると、仲間が追い打ち
     for (const p of this.alive()) {
       if (p === m || this.e.hp <= 0) continue;
-      const bonus = p.id === 'hoan' && /^[LDQ]/.test(this.e.area || '') ? .9 : .6;
+      const bonus = (p.id === 'hoan' && /^[LDQ]/.test(this.e.area || '')) || (p.id === 'kemi' && /^P/.test(this.e.area || '')) ? .9 : .6;
       await this.hit(p, bonus, `${p.name}の追い打ち！`);
     }
   }
@@ -239,6 +239,7 @@ export class Battle {
     if (id === 'kijunsokutei') return this.hit(m, this.e.area === 'D1' ? 2.5 : 1.5, '基準の数字で、守りのすきを突いた！');
     if (id === 'unpantenken') return this.hit(m, this.e.area === 'D2' ? 2.5 : 1.5, 'ホアンが運び方の違反を指摘した！');
     if (id === 'joubunkanpa') return this.hit(m, this.e.area === 'D3' ? 2.5 : 1.5, '条文を突きつけた！');
+    if (id === 'nenshoubunseki') return this.hit(m, /^P/.test(this.e.area || '') ? 2.5 : 1.5, 'ケミが燃え方を分析して、弱点を突いた！');
     if (id === 'tetsuzuki') return this.hit(m, this.e.area === 'L2' ? 2.5 : 1.5, 'ホアンが手続きの違反を見抜いた！');
   }
   async identify() {
@@ -264,7 +265,7 @@ export class Battle {
     const hero = this.g.state.members.hero;
     const text = q.hint || hintText;
     const inv = this.g.state.items;
-    const r = await ask(q, { title, mode, hintText: text, hintLabel: q.kind === 'mcq5' ? 'ヒント' : 'ホアンに相談', hint: text ? { cost: 1, use: () => { if (hero.mp < 1) return false; hero.mp -= 1; this.refresh(); return true; } } : null,
+    const r = await ask(q, { title, mode, hintText: text, hintLabel: q.kind === 'mcq5' ? 'ヒント' : `${this.g.guide()}に相談`, hint: text ? { cost: 1, use: () => { if (hero.mp < 1) return false; hero.mp -= 1; this.refresh(); return true; } } : null,
       erase: { left: () => inv.keshi || 0, use: () => { if (!(inv.keshi > 0)) return false; inv.keshi--; return true; } } });
     if (!r.correct || r.unsure || r.hint) this.review.push(q);
     this.g.combo(r.correct && !r.hint, q.topic);
