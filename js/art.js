@@ -814,6 +814,56 @@ export const ENEMY_HQ = {
       ctx.fillStyle = '#2a2a2a'; ctx.beginPath(); ctx.arc(x, y, R * .09, 0, 7); ctx.fill(); ctx.fillStyle = '#fff'; ctx.font = `bold ${R * .09}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('C', x, y); }
     ctx.fillStyle = '#1a1a24'; [-1, 1].forEach(k => ctx.fillRect(cx + k * R * .22 - R * .1, cy + R * .85, R * .2, R * .12));
   },
+  // ルイチガイ・キメラ：6つの類の頭をもつ獣
+  ruichigai(ctx, cx, cy, R, t) {
+    ctx.fillStyle = lin(ctx, 0, cy, 0, cy + R * .9, ['#8a6a5a', '#4a3a2a']); ctx.beginPath(); ctx.ellipse(cx, cy + R * .45, R * .6, R * .38, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#3a2a1a'; [-.4, -.15, .15, .4].forEach(x => ctx.fillRect(cx + x * R - R * .06, cy + R * .7, R * .12, R * .22));
+    const H = [['#f4f4f4', '1'], ['#e8c830', '2'], ['#b8c0c8', '3'], ['#e88a2a', '4'], ['#d83a5a', '5'], ['#8ad8f0', '6']];
+    H.forEach(([c, n], i) => { const a = Math.PI * (1.08 + i * .168), sw = Math.sin(t / 9 + i) * R * .04; const hx = cx + Math.cos(a) * R * .72 + sw, hy = cy + R * .2 + Math.sin(a) * R * .8;
+      ctx.strokeStyle = '#6a5040'; ctx.lineWidth = R * .09; ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * R * .25, cy + R * .25); ctx.lineTo(hx, hy); ctx.stroke();
+      ctx.fillStyle = c; ctx.beginPath(); ctx.arc(hx, hy, R * .15, 0, 7); ctx.fill(); ctx.strokeStyle = '#333'; ctx.lineWidth = R * .02; ctx.stroke();
+      ctx.fillStyle = '#222'; ctx.font = `bold ${R * .13}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(n, hx, hy + R * .01);
+      ctx.fillStyle = '#c02020'; ctx.beginPath(); ctx.arc(hx - R * .06, hy - R * .08, R * .025, 0, 7); ctx.arc(hx + R * .06, hy - R * .08, R * .025, 0, 7); ctx.fill(); });
+  },
+  // アブラウキ・スライム：水に浮く虹色の油のスライム
+  aburauki(ctx, cx, cy, R, t) {
+    ctx.fillStyle = lin(ctx, 0, cy + R * .4, 0, cy + R, ['#3a7ac8', '#1a3a7a']); ctx.beginPath(); ctx.ellipse(cx, cy + R * .7, R * .95, R * .25, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(160,140,120,.35)'; for (let i = 0; i < 3; i++) { const p = ((t / 2 + i * 15) % 45) / 45; ctx.beginPath(); ctx.ellipse(cx + R * (.4 + p * .5), cy + R * .82, R * (.15 + p * .2), R * .05, 0, 0, 7); ctx.fill(); }
+    const g = ctx.createLinearGradient(cx - R * .6, cy - R * .5, cx + R * .6, cy + R * .5); ['#e8a83a', '#e86a8a', '#8a6ae8', '#4ac8a8', '#e8d83a'].forEach((c, i) => g.addColorStop(i / 4, c)); ctx.fillStyle = g;
+    const b = Math.sin(t / 10) * R * .04; ctx.beginPath(); ctx.moveTo(cx - R * .65, cy + R * .6 + b); ctx.quadraticCurveTo(cx - R * .7, cy - R * .4 + b, cx, cy - R * .5 + b); ctx.quadraticCurveTo(cx + R * .7, cy - R * .4 + b, cx + R * .65, cy + R * .6 + b); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.beginPath(); ctx.ellipse(cx - R * .3, cy - R * .15 + b, R * .1, R * .18, -.4, 0, 7); ctx.fill();
+    eyes(ctx, cx, cy + R * .05 + b, R * .2, R * .08);
+  },
+  // ヒバナマキ・コゾウ：火花をまくいたずら小僧
+  hibanamaki(ctx, cx, cy, R, t) {
+    ctx.fillStyle = '#c8c8c8'; ctx.save(); ctx.translate(cx - R * .6, cy + R * .78); ctx.rotate(Math.sin(t / 6) * .3); rr(ctx, -R * .12, -R * .16, R * .24, R * .32, R * .03); ctx.fill(); ctx.fillStyle = '#d83a2a'; ctx.fillRect(-R * .12, -R * .04, R * .24, R * .08); ctx.restore();
+    ctx.fillStyle = '#e8702a'; rr(ctx, cx - R * .3, cy - R * .15, R * .6, R * .7, R * .12); ctx.fill(); ctx.fillStyle = '#3a4a8a'; ctx.fillRect(cx - R * .3, cy + R * .4, R * .6, R * .25); ctx.fillStyle = '#2a2a2a'; [-1, 1].forEach(k => ctx.fillRect(cx + k * R * .15 - R * .08, cy + R * .65, R * .16, R * .22));
+    ctx.fillStyle = '#f0c49a'; ctx.beginPath(); ctx.arc(cx, cy - R * .4, R * .27, 0, 7); ctx.fill();
+    ctx.fillStyle = '#c03a1a'; ctx.beginPath(); for (let i = 0; i < 7; i++) ctx.lineTo(cx - R * .3 + i * R * .1, cy - R * (.6 + (i % 2 ? .18 : 0))); ctx.lineTo(cx + R * .3, cy - R * .5); ctx.lineTo(cx - R * .3, cy - R * .5); ctx.fill();
+    ctx.fillStyle = '#222'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + k * R * .1, cy - R * .4, R * .035, 0, 7); ctx.fill(); }); ctx.strokeStyle = '#3a1a0a'; ctx.lineWidth = R * .035; ctx.beginPath(); ctx.arc(cx + R * .03, cy - R * .3, R * .09, .3, 2.6); ctx.stroke();
+    for (let i = 0; i < 7; i++) { const a = t / 6 + i * .9, d = R * (.4 + ((t / 2 + i * 7) % 20) / 40); const x = cx + R * .35 + Math.cos(a) * d * .6, y = cy - R * .05 + Math.sin(a) * d * .5; ctx.fillStyle = i % 2 ? '#ffe04a' : '#ff8a2a'; ctx.beginPath(); for (let k = 0; k < 8; k++) { const rr2 = k % 2 ? R * .02 : R * .06; ctx.lineTo(x + Math.cos(k * .785) * rr2, y + Math.sin(k * .785) * rr2); } ctx.fill(); }
+  },
+  // アワツブシ・ガニ：消火の泡をつぶす大きなカニ
+  awatsubushi(ctx, cx, cy, R, t) {
+    ctx.fillStyle = 'rgba(255,255,255,.85)'; for (let i = 0; i < 9; i++) { const x = cx + Math.sin(i * 2.7) * R * .8, y = cy - R * .6 + Math.cos(i * 1.9) * R * .25, pop = (Math.floor(t / 10) + i) % 5 === 0; if (pop) continue; ctx.beginPath(); ctx.arc(x, y, R * (.06 + (i % 3) * .03), 0, 7); ctx.fill(); }
+    ctx.strokeStyle = '#a82a1a'; ctx.lineWidth = R * .06; for (let k = -1; k <= 1; k += 2) for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(cx + k * R * .35, cy + R * .3 + i * R * .1); ctx.lineTo(cx + k * R * .75, cy + R * .55 + i * R * .12); ctx.lineTo(cx + k * R * .8, cy + R * .8 + i * R * .05); ctx.stroke(); }
+    ctx.fillStyle = lin(ctx, 0, cy, 0, cy + R * .6, ['#e84a2a', '#a82a1a']); ctx.beginPath(); ctx.ellipse(cx, cy + R * .3, R * .55, R * .32, 0, 0, 7); ctx.fill();
+    const sn = Math.abs(Math.sin(t / 5)) * .4;
+    [-1, 1].forEach(k => { ctx.save(); ctx.translate(cx + k * R * .6, cy - R * .2); ctx.fillStyle = '#d83a1a'; ctx.beginPath(); ctx.ellipse(0, 0, R * .2, R * .14, 0, 0, 7); ctx.fill(); ctx.rotate(-k * sn); ctx.beginPath(); ctx.ellipse(k * R * .05, -R * .14, R * .14, R * .07, 0, 0, 7); ctx.fill(); ctx.restore();
+      ctx.strokeStyle = '#a82a1a'; ctx.lineWidth = R * .07; ctx.beginPath(); ctx.moveTo(cx + k * R * .35, cy + R * .15); ctx.lineTo(cx + k * R * .55, cy - R * .1); ctx.stroke(); });
+    ctx.strokeStyle = '#a82a1a'; ctx.lineWidth = R * .04; [-1, 1].forEach(k => { ctx.beginPath(); ctx.moveTo(cx + k * R * .12, cy + R * .05); ctx.lineTo(cx + k * R * .15, cy - R * .15); ctx.stroke(); ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(cx + k * R * .15, cy - R * .18, R * .05, 0, 7); ctx.fill(); });
+  },
+  // ダイヨンルイ将軍：「4」の紋章の鎧の将軍
+  yonrui(ctx, cx, cy, R, t) {
+    ctx.fillStyle = '#5a5a6a'; ctx.beginPath(); ctx.ellipse(cx - R * .55, cy - R * .1, R * .2, R * .45, 0, 0, 7); ctx.fill(); ctx.fillStyle = '#e88a2a'; ctx.fillRect(cx - R * .65, cy - R * .2, R * .2, R * .08);
+    ctx.fillStyle = lin(ctx, cx - R * .4, 0, cx + R * .4, 0, ['#c88a2a', '#7a4a10']); rr(ctx, cx - R * .4, cy - R * .35, R * .8, R * .95, R * .12); ctx.fill();
+    ctx.fillStyle = '#2a2a2a'; [-1, 1].forEach(k => ctx.fillRect(cx + k * R * .18 - R * .1, cy + R * .6, R * .2, R * .3));
+    ctx.fillStyle = '#f0e0a0'; ctx.beginPath(); ctx.arc(cx, cy + R * .1, R * .2, 0, 7); ctx.fill(); ctx.fillStyle = '#8a2a10'; ctx.font = `bold ${R * .3}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('4', cx, cy + R * .12);
+    ctx.fillStyle = '#9a6a2a'; ctx.beginPath(); ctx.arc(cx, cy - R * .58, R * .27, Math.PI, 0); ctx.lineTo(cx + R * .27, cy - R * .38); ctx.lineTo(cx - R * .27, cy - R * .38); ctx.fill();
+    ctx.fillStyle = '#d83a2a'; ctx.beginPath(); ctx.moveTo(cx, cy - R * .85); ctx.quadraticCurveTo(cx + R * .25 + Math.sin(t / 8) * R * .05, cy - R * 1.1, cx + R * .4, cy - R * .95); ctx.quadraticCurveTo(cx + R * .2, cy - R * .9, cx, cy - R * .8); ctx.fill();
+    ctx.fillStyle = '#111'; ctx.fillRect(cx - R * .2, cy - R * .55, R * .4, R * .08); ctx.fillStyle = '#ffd02a'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + k * R * .09, cy - R * .51, R * .025, 0, 7); ctx.fill(); });
+    ctx.save(); ctx.translate(cx + R * .55, cy); ctx.rotate(-.3 + Math.sin(t / 12) * .1); ctx.fillStyle = '#c8c8d8'; ctx.fillRect(-R * .03, -R * .8, R * .06, R * .8); ctx.fillStyle = '#7a4a10'; ctx.fillRect(-R * .1, -R * .05, R * .2, R * .06); ctx.restore();
+  },
 };
 function hslToHex(h, s, l) { const a = s * Math.min(l, 1 - l); const f = n => { const k = (n + h / 30) % 12; const c = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); return Math.round(255 * c).toString(16).padStart(2, '0'); }; return `#${f(0)}${f(8)}${f(4)}`; }
 

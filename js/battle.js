@@ -216,7 +216,7 @@ export class Battle {
   async followUp(m) { // 正解すると、仲間が追い打ち
     for (const p of this.alive()) {
       if (p === m || this.e.hp <= 0) continue;
-      const bonus = (p.id === 'hoan' && /^[LDQ]/.test(this.e.area || '')) || (p.id === 'kemi' && /^P/.test(this.e.area || '')) ? .9 : .6;
+      const bonus = (p.id === 'hoan' && /^[LDQ]/.test(this.e.area || '')) || (p.id === 'kemi' && /^P/.test(this.e.area || '')) || (p.id === 'sekiyu' && /^H/.test(this.e.area || '')) ? .9 : .6;
       await this.hit(p, bonus, `${p.name}の追い打ち！`);
     }
   }
@@ -260,6 +260,7 @@ export class Battle {
     if (id === 'nenshoubunseki') return this.hit(m, /^P/.test(this.e.area || '') ? 2.5 : 1.5, 'ケミが燃え方を分析して、弱点を突いた！');
     if (id === 'netsukeisan') { const cool = this.e.tele && !this.e.tele.call; if (cool) this.e.tele = null; await this.hit(m, 2, 'ケミが熱を計算して、冷ました！'); if (cool && this.e.hp > 0) await this.msg('大技の溜めが冷めて、止まった！', 800); return; }
     if (id === 'chuuwa') { for (const pid of this.g.state.party) { const pm = this.g.state.members[pid]; if (pm.hp > 0) pm.hp = Math.min(pm.mhp, pm.hp + Math.ceil(pm.mhp * .15)); } this.refresh(); return this.hit(m, 2, '化学の知恵で弱点を突き、仲間の体も落ち着いた！（HP少し回復）'); }
+    if (id === 'tankanokaiten') { await this.hit(m, 2, 'セキユが油の知恵で、敵の守りをひっくり返した！'); if (this.e.hp > 0) { this.e.broken = 1; this.e.brokenFresh = true; await this.msg(`${this.e.name}はくずれた！（次の味方の攻撃はダメージ2倍）`, 800); } return; }
     if (id === 'shoukanochie') return this.hit(m, /^P/.test(this.e.area || '') ? 2.5 : 1.5, '火事に合った消し方で、弱点を突いた！');
     if (id === 'tetsuzuki') return this.hit(m, this.e.area === 'L2' ? 2.5 : 1.5, 'ホアンが手続きの違反を見抜いた！');
   }

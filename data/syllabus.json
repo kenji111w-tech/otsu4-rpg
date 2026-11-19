@@ -702,14 +702,18 @@
    "subject": "性質・消火",
    "area": "第4類と他の類",
    "item": "第4類に共通する性質",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "H-KYO"
+   ]
   },
   {
    "id": "H-03",
    "subject": "性質・消火",
    "area": "第4類と他の類",
    "item": "第4類の火災予防",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "H-YOB"
+   ]
   },
   {
    "id": "H-04",
@@ -717,7 +721,8 @@
    "area": "第4類と他の類",
    "item": "第4類の消火方法",
    "kid_prefixes": [
-    "P-SHO-4RUI"
+    "P-SHO-4RUI",
+    "H-SHO"
    ]
   },
   {

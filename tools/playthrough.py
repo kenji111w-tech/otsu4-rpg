@@ -41,7 +41,14 @@ SCEN_CH2 = """(async () => {
       for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'spring'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('tower5', 9, 14); }
       window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.kemi.lv);
     }
-    window.__log.push('skills:' + g.state.skills.slice(-3).join(','));
+    g.field.load('tower5', 16, 1);
+    await ev({type:'exit', to:'town6', tx:8, ty:14, need:'P4-boss'});
+    window.__log.push('party3:' + g.state.party.join(','));
+    for (const st of ['H1-1','H1-2','H1-3','H1-4','H1-boss']) {
+      for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('town6', 8, 14); }
+      window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.sekiyu.lv);
+    }
+    window.__log.push('skills:' + g.state.skills.slice(-4).join(','));
     await g.menu();
   } catch (e) { window.__log.push('EXC ' + e.message + ' ' + e.stack); }
   window.__done = true;
@@ -134,7 +141,14 @@ SCEN = """
       for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'spring'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('tower5', 9, 14); }
       window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.kemi.lv);
     }
-    window.__log.push('skills:' + g.state.skills.slice(-3).join(','));
+    g.field.load('tower5', 16, 1);
+    await ev({type:'exit', to:'town6', tx:8, ty:14, need:'P4-boss'});
+    window.__log.push('party3:' + g.state.party.join(','));
+    for (const st of ['H1-1','H1-2','H1-3','H1-4','H1-boss']) {
+      for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('town6', 8, 14); }
+      window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.sekiyu.lv);
+    }
+    window.__log.push('skills:' + g.state.skills.slice(-4).join(','));
     g.state.items.yakusou = 9; g.state.items.mizu = 3;
     await ev({type:'building', id:'shop'});
     window.__log.push('kama keshi:' + (g.state.items.keshi||0) + ' jouyaku:' + (g.state.items.jouyaku||0));
