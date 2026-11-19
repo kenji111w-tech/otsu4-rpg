@@ -251,13 +251,24 @@ class Game {
     s.party = ['hero', 'sekiyu']; s.flags.chapter3 = true; s.lastInn = { map: 'town6', x: 3, y: 4 };
     if (this.field.setParty) this.field.setParty(s.party); else this.field.party = s.party;
   }
+  async ending13() {
+    const n = this.state.name;
+    await say([
+      'イチセキ大剣豪の赤い剣が、ぽきりと折れた。',
+      ['セキユ', '引火点21℃未満、指定数量200（水溶性400）。ガソリンはオレンジ色で引火点−40℃以下、燃焼範囲1.4〜7.6。ベンゼンは毒と、冬に固まる。アセトンは水に溶ける……。'],
+      ['セキユ', `${n}、次はアルコール類の町だ。燃えても炎が見えにくい、やっかいな連中だぞ。`],
+      '――今の版はここまでです。アルコール類の町から先は、次の版で追加します。',
+    ]);
+    this.state.flags.h3clear = true;
+    await this.recordScreen();
+  }
   async ending12() {
     const n = this.state.name;
     await say([
       'ミツヒクイ魔王の3つの首が、しゅるしゅると黒紫の霧になって消えた。',
       ['セキユ', '引火点がいちばん低いのはジエチルエーテル、発火点は二硫化炭素、沸点はアセトアルデヒド。指定数量は50L。二硫化炭素は水の中、アセトアルデヒドと酸化プロピレンは不活性ガス……。'],
       ['セキユ', `${n}、次は第1石油類の町だ。ガソリンやベンゼン……おなじみの連中が待ってるぜ。`],
-      '――今の版はここまでです。第1石油類の町から先は、次の版で追加します。',
+      ['セキユ', '第1石油類の町へは、この町の東の門から行けるぞ。'],
     ]);
     this.state.flags.h2clear = true;
     await this.recordScreen();
@@ -355,6 +366,7 @@ class Game {
       if (ev.to === 'pass2' && !s.flags.pass2) { s.flags.pass2 = true; await say(['運搬の峠に出た。', '細い山道を、荷車やタンクローリーの魔物が行き来している。', ['ホアン', 'ここは危険物を「運ぶ」ときの決まりを学ぶ場所です。容器に入れて運ぶ「運搬」と、タンクローリーで運ぶ「移送」。'], ['ホアン', 'この峠にも宿屋はありません。泉と宝箱を探しましょう。']]); }
       if (ev.to === 'town4' && !s.flags.chapter2) { await this.chapter2Start(); }
       if (ev.to === 'town6' && !s.flags.chapter3) { await this.chapter3Start(); }
+      if (ev.to === 'town8' && !s.flags.town8) { s.flags.town8 = true; await say(['第1石油類の町に着いた。', '町じゅうにガソリンスタンドがあり、赤い旗がはためいている。', ['セキユ', 'ここは引火点が21℃未満の連中の町だ。赤い服に細い剣が目じるしだぞ。']]); }
       if (ev.to === 'town7' && !s.flags.town7) { s.flags.town7 = true; await say(['特殊引火物の町に着いた。', '町のあちこちに、黒紫の旗がはためいている。空気がひんやりして、つんとしたにおいがする。', ['セキユ', 'ここは第4類でいちばん燃えやすい連中の町だ。まずは町の入口の「黒紫の門」で、この国の魔物の見分け方から教えるぞ。']]); }
       if (ev.to === 'tower5' && !s.flags.tower5) { s.flags.tower5 = true; await say(['化学の塔に入った。', 'ガラスの器具がずらりと並び、あちこちで色のちがう液がぶくぶく泡立っている。', ['ケミ', 'ここはわたしの得意分野よ。物が「別の物に変わる」仕組みを学ぶ塔なの。'], ['ケミ', '4つの部屋を回って、最上階をめざしましょう。4つめの部屋では、第4類の正体につながる「有機化合物」も教えるわね。']]); }
       if (ev.to === 'dungeon4' && !s.flags.dungeon4) { s.flags.dungeon4 = true; await say(['熱の洞窟に入った。', 'むっとする熱気。足もとの岩のすき間から、湯気がしゅうしゅうと噴き出している。', ['ケミ', 'ここでは、物が熱でどう変わるかを学ぶわ。溶ける、湯気になる、浮く、沈む、ふくらむ……全部「熱」と「物の性質」のお話よ。'], ['ケミ', '4つの部屋を順に回って、いちばん奥の大広間をめざしましょう。']]); }
@@ -438,7 +450,7 @@ class Game {
     if (r !== 'win') { await say([[G, 'いったん引きましょう。準備ができたら、また来てください。']]); return; }
     s.cleared[id] = true;
     if (S.doc && !(s.docs || (s.docs = [])).includes(S.doc)) { s.docs.push(S.doc); await say([`大事なもの「${S.doc}」を手に入れた！`, [G, S.doc === '許可書' ? '設置の許可を受けた証です。次は工事、そして完成検査。手続きには順番があります。' : '完成検査で基準に適合していると認められた証です。これでようやく使い始められます。']]); }
-    if (S.boss) return ({ 'L1-boss': () => this.ending(), 'L2-boss': () => this.ending2(), 'L3-boss': () => this.ending3(), 'D1-boss': () => this.ending4(), 'D2-boss': () => this.ending5(), 'D3-boss': () => this.ending6(), 'P1-boss': () => this.ending7(), 'P2-boss': () => this.ending8(), 'P3-boss': () => this.ending9(), 'P4-boss': () => this.ending10(), 'H1-boss': () => this.ending11(), 'H2-boss': () => this.ending12() })[id]();
+    if (S.boss) return ({ 'L1-boss': () => this.ending(), 'L2-boss': () => this.ending2(), 'L3-boss': () => this.ending3(), 'D1-boss': () => this.ending4(), 'D2-boss': () => this.ending5(), 'D3-boss': () => this.ending6(), 'P1-boss': () => this.ending7(), 'P2-boss': () => this.ending8(), 'P3-boss': () => this.ending9(), 'P4-boss': () => this.ending10(), 'H1-boss': () => this.ending11(), 'H2-boss': () => this.ending12(), 'H3-boss': () => this.ending13() })[id]();
     // ホアンの確認：そのステージの五肢択一から2問（未出題を優先）
     const done = new Set(Learn.d.answers.map(a => a.qid));
     const [town, sn] = id.split('-');

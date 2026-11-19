@@ -739,7 +739,9 @@
    "subject": "性質・消火",
    "area": "品名別",
    "item": "第1石油類",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "H-SE1"
+   ]
   },
   {
    "id": "H-07",

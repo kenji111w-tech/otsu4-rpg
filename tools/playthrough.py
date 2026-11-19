@@ -5,6 +5,40 @@ MODE = sys.argv[3] if len(sys.argv) > 3 else 'all'
 ACC = float(sys.argv[1]) if len(sys.argv) > 1 else 0.8  # 正答率
 random.seed(int(sys.argv[2]) if len(sys.argv) > 2 else 1)
 
+SCEN_CH3 = """(async () => {
+  const g = window.__game; window.__done = false; window.__log = [];
+  const ev = async e => { await g.onEvent(e); };
+  try {
+    // 第2章から試す：第1章をクリアした状態をつくる
+    const s = g.state; Object.keys(g.world.stages).filter(k => /^[LDQP]/.test(k)).forEach(k => s.cleared[k] = true);
+    Object.keys(g.world.stages).filter(k => /^[LDQ]/.test(k) && g.world.stages[k].skill).forEach(k => { if (!s.skills.includes(g.world.stages[k].skill)) s.skills.push(g.world.stages[k].skill); });
+    s.flags.tutorial = true; s.flags.hoan = true; s.party = ['hero','hoan']; s.members.hero.lv = 23; Object.assign(s.members.hero, {mhp: 130, hp: 130, mmp: 56, mp: 56, atk: 33, def: 27}); s.flags.chapter2 = true; s.members.kemi = {id:'kemi',name:'ケミ',lv:22,hp:112,mhp:112,mp:54,mmp:54,atk:28,def:26,exp:0}; s.party=['hero','kemi'];
+    Object.assign(s.members.hoan, {lv: 14, mhp: 78, hp: 78, mmp: 36, mp: 36, atk: 20, def: 18});
+    s.items = {yakusou: 8, mizu: 4}; s.gold = 3000;
+    g.field.load('tower5', 16, 1);
+    await ev({type:'exit', to:'town6', tx:8, ty:14, need:'P4-boss'});
+    window.__log.push('party3:' + g.state.party.join(','));
+    for (const st of ['H1-1','H1-2','H1-3','H1-4','H1-boss']) {
+      for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('town6', 8, 14); }
+      window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.sekiyu.lv);
+    }
+    g.field.load('town6', 16, 8);
+    await ev({type:'exit', to:'town7', tx:8, ty:14, need:'H1-boss'});
+    for (const st of ['H2-1','H2-2','H2-3','H2-4','H2-boss']) {
+      for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('town7', 8, 14); }
+      window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.sekiyu.lv);
+    }
+    g.field.load('town7', 16, 7);
+    await ev({type:'exit', to:'town8', tx:8, ty:14, need:'H2-boss'});
+    for (const st of ['H3-1','H3-2','H3-3','H3-4','H3-boss']) {
+      for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('town8', 8, 14); }
+      window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.sekiyu.lv);
+    }
+    window.__log.push('skills:' + g.state.skills.slice(-3).join(','));
+    await g.menu();
+  } catch (e) { window.__log.push('EXC ' + e.message + ' ' + e.stack); }
+  window.__done = true;
+})(); 0;"""
 SCEN_CH2 = """(async () => {
   const g = window.__game; window.__done = false; window.__log = [];
   const ev = async e => { await g.onEvent(e); };
@@ -52,6 +86,12 @@ SCEN_CH2 = """(async () => {
     await ev({type:'exit', to:'town7', tx:8, ty:14, need:'H1-boss'});
     for (const st of ['H2-1','H2-2','H2-3','H2-4','H2-boss']) {
       for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('town7', 8, 14); }
+      window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.sekiyu.lv);
+    }
+    g.field.load('town7', 16, 7);
+    await ev({type:'exit', to:'town8', tx:8, ty:14, need:'H2-boss'});
+    for (const st of ['H3-1','H3-2','H3-3','H3-4','H3-boss']) {
+      for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('town8', 8, 14); }
       window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.sekiyu.lv);
     }
     window.__log.push('skills:' + g.state.skills.slice(-4).join(','));
@@ -160,6 +200,12 @@ SCEN = """
       for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('town7', 8, 14); }
       window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.sekiyu.lv);
     }
+    g.field.load('town7', 16, 7);
+    await ev({type:'exit', to:'town8', tx:8, ty:14, need:'H2-boss'});
+    for (const st of ['H3-1','H3-2','H3-3','H3-4','H3-boss']) {
+      for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('town8', 8, 14); }
+      window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.sekiyu.lv);
+    }
     window.__log.push('skills:' + g.state.skills.slice(-4).join(','));
     g.state.items.yakusou = 9; g.state.items.mizu = 3;
     await ev({type:'building', id:'shop'});
@@ -222,7 +268,7 @@ async def main():
             r = await bot_step(pg, None)
             if r == 'idle' and await pg.evaluate("!!(window.__game.state)"): break
             await pg.wait_for_timeout(30)
-        await pg.evaluate(SCEN_CH2 if MODE == "ch2" else SCEN)
+        await pg.evaluate(SCEN_CH3 if MODE == "ch3" else SCEN_CH2 if MODE == "ch2" else SCEN)
         counts = {}
         for i in range(17000):
             if await pg.evaluate("window.__done"): break
