@@ -516,7 +516,9 @@
    "subject": "物理・化学",
    "area": "物理",
    "item": "静電気",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "P-SEI"
+   ]
   },
   {
    "id": "P-08",
@@ -629,21 +631,36 @@
    "subject": "物理・化学",
    "area": "燃焼と消火",
    "item": "消火の原理（除去・窒息・冷却・負触媒）",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "P-SHO-REIKYAKU",
+    "P-SHO-CHISSOKU",
+    "P-SHO-JOKYO",
+    "P-SHO-FUSHOKUBAI",
+    "P-SHO-GENRI"
+   ]
   },
   {
    "id": "P-21",
    "subject": "物理・化学",
    "area": "燃焼と消火",
    "item": "消火剤の種類と適応",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "P-SHO-AWA",
+    "P-SHO-CO2",
+    "P-SHO-FUNMATSU",
+    "P-SHO-KYOKA",
+    "P-SHO-MIZU"
+   ]
   },
   {
    "id": "P-22",
    "subject": "物理・化学",
    "area": "燃焼と消火",
    "item": "火災の区分（普通・油・電気）",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "P-SHO-ABC",
+    "P-SHO-C"
+   ]
   },
   {
    "id": "H-01",
@@ -673,7 +690,9 @@
    "subject": "性質・消火",
    "area": "第4類と他の類",
    "item": "第4類の消火方法",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "P-SHO-4RUI"
+   ]
   },
   {
    "id": "H-05",

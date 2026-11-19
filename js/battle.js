@@ -22,6 +22,9 @@ export class Battle {
       await this.msg(prefix);
       if (E.look && !opt.revived && !((this.g.state.zukan[this.e.id] || {}).defeated)) await say(E.look);
       if (opt.revived && opt.reviveQ) await this.revivalTrial(opt.reviveQ);
+      this.weak = (E.boss || E.midboss) ? this.weakQs() : [];
+      if (window.__log && (E.boss || E.midboss)) window.__log.push('weakpool:' + this.weak.length);
+      if (this.weak.length) await say([[this.g.guide(), `気をつけて。この章で${this.g.state.name}さんが苦手だった問題も、ぶつけてくるみたい。`]]);
       if (opt.tutorial) await say([['ショウボウ老師', '戦いは「知恵くらべ」じゃ。「たたかう」を選ぶと問題が出る。正しく答えれば攻撃が当たる。'], ['ショウボウ老師', '敵が攻撃してくる時も問題が出る。正しく答えれば受け流せる。すばやく正しく答えれば、かわしてミスにできるぞ。'], ['ショウボウ老師', '敵が「力を溜めている」時は大技の前ぶれじゃ。次の問題に正しく答えれば、大技は不発に終わる！']]);
       const result = await this.loop();
       await this.after(result);
@@ -160,7 +163,22 @@ export class Battle {
     const cl = this.g.state.cleared, id = `${q.town}-${q.stage}`;
     return !!(cl[id] || this.opt.stageId === id);
   }
+  // ボス・中ボス用：この章で「まちがえた・迷った・ヒントを使った・答えるのが遅かった」問題（ユーザー要望 2026-11-19）
+  weakQs() {
+    const ch = a => /^[LDQ]/.test(a || '') ? 1 : /^P/.test(a || '') ? 2 : /^H/.test(a || '') ? 3 : 0, my = ch(this.e.area), seen = {};
+    for (const a of Learn.d.answers) {
+      const q = this.g.qById[a.qid]; if (!q || q.call || q.topic === 'identify' || q.pool === 'mock' || ch(q.town) !== my) continue;
+      const slow = a.ms > (q.question.length > 60 ? 28000 : 20000);
+      const bad = !a.correct || a.unsure || a.hint || slow;
+      seen[q.id] = (seen[q.id] || 0) + (bad ? 1 : -.5); // 最近は正解できている問題は下げる
+    }
+    return Object.entries(seen).filter(([, v]) => v > 0).sort((x, y) => y[1] - x[1]).slice(0, 12).map(([id]) => this.g.qById[id]).filter(q => this.taught(q));
+  }
   pickQ(kinds, prefer) {
+    if (this.weak && this.weak.length && Math.random() < .5) { // ボスでは、苦手な問題を半分くらい混ぜる
+      const w = this.weak.filter(q => kinds.includes(q.kind) && !this.e.used.has(q.id));
+      if (w.length) { const q = pick(w); this.e.used.add(q.id); return q; }
+    }
     const e = this.e, all = this.g.questions.filter(q => kinds.includes(q.kind) && this.taught(q));
     let cand = all.filter(q => !e.used.has(q.id)); if (!cand.length) cand = all;
     const area = cand.filter(q => q.town === e.area), pref = prefer ? cand.filter(prefer) : [];
@@ -240,6 +258,7 @@ export class Battle {
     if (id === 'unpantenken') return this.hit(m, this.e.area === 'D2' ? 2.5 : 1.5, 'ホアンが運び方の違反を指摘した！');
     if (id === 'joubunkanpa') return this.hit(m, this.e.area === 'D3' ? 2.5 : 1.5, '条文を突きつけた！');
     if (id === 'nenshoubunseki') return this.hit(m, /^P/.test(this.e.area || '') ? 2.5 : 1.5, 'ケミが燃え方を分析して、弱点を突いた！');
+    if (id === 'shoukanochie') return this.hit(m, /^P/.test(this.e.area || '') ? 2.5 : 1.5, '火事に合った消し方で、弱点を突いた！');
     if (id === 'tetsuzuki') return this.hit(m, this.e.area === 'L2' ? 2.5 : 1.5, 'ホアンが手続きの違反を見抜いた！');
   }
   async identify() {
@@ -281,7 +300,8 @@ export class Battle {
   async bossQuestion() {
     this.e.askedBoss = true;
     const town = this.opt.town || 'L1';
-    const pool = this.g.questions.filter(q => q.kind === 'mcq5' && q.town === town && !this.e.used.has(q.id));
+    const wk = (this.weak || []).filter(q => q.kind === 'mcq5' && !this.e.used.has(q.id));
+    const pool = wk.length ? wk : this.g.questions.filter(q => q.kind === 'mcq5' && q.town === town && !this.e.used.has(q.id));
     const q = pick(pool); if (!q) return;
     await this.msg(`${this.e.name}「この問いに答えられるか！」`, 900);
     const r = await this.askQ(q, 'battle', 'ボスの問いかけ');

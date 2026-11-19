@@ -257,9 +257,20 @@ class Game {
       'モエサカル王の炎が、しゅうっと小さくなって消えた。',
       ['ケミ', '燃えるには三要素。燃え方は4つ。引火点と発火点、燃焼範囲。それに自然発火と粉じん爆発……。'],
       ['ケミ', `${n}さん、燃えるしくみがわかったら、次は「消す」しくみよ。この先に「消火の町」があるわ。`],
-      '――今の版はここまでです。消火の町と、物理・化学の国のダンジョンは次の版で追加します。',
+      ['ケミ', '消火の町へは、この町の東の門から行けるわ。'],
     ]);
     this.state.flags.p1clear = true;
+    await this.recordScreen();
+  }
+  async ending8() {
+    const n = this.state.name;
+    await say([
+      'ミズブッカケ大将のバケツがひっくり返り、大将はずぶぬれのまま逃げていった。',
+      ['ケミ', '冷却、窒息、除去、抑制。火事の種類はA・B・C。油の火事に棒状の水はだめ。静電気はアースで逃がす……。'],
+      ['ケミ', `${n}さん、「燃える」と「消える」がわかったわね。次は、物そのものの性質を調べに行きましょう。`],
+      '――今の版はここまでです。物理・化学の国のダンジョン（物の状態と熱、化学の基礎）は次の版で追加します。',
+    ]);
+    this.state.flags.p2clear = true;
     await this.recordScreen();
   }
   async ending6() {
@@ -288,6 +299,7 @@ class Game {
       if (ev.to === 'dungeon1' && !s.flags.dungeon1) { s.flags.dungeon1 = true; await say(['基準の砦に入った。', '冷たい石の通路に、たいまつの火がゆれている。', ['ホアン', 'ここは施設の「位置・構造・設備の基準」を守るための砦でした。魔物たちが数字をねじ曲げています。'], ['ホアン', '砦の中は魔物が多い。青く光る泉で休めます。宝箱も探してみましょう。']]); }
       if (ev.to === 'pass2' && !s.flags.pass2) { s.flags.pass2 = true; await say(['運搬の峠に出た。', '細い山道を、荷車やタンクローリーの魔物が行き来している。', ['ホアン', 'ここは危険物を「運ぶ」ときの決まりを学ぶ場所です。容器に入れて運ぶ「運搬」と、タンクローリーで運ぶ「移送」。'], ['ホアン', 'この峠にも宿屋はありません。泉と宝箱を探しましょう。']]); }
       if (ev.to === 'town4' && !s.flags.chapter2) { await this.chapter2Start(); }
+      if (ev.to === 'town5' && !s.flags.town5) { s.flags.town5 = true; await say(['消火の町に着いた。', '通りのあちこちに、消火器と水バケツが並んでいる。……でも、どれも使い方がおかしいようだ。', ['ケミ', 'ここは火を「消す」ことを学ぶ町よ。燃焼の町の裏返しね。']]); }
       if (ev.to === 'castle3' && !s.flags.castle3) { s.flags.castle3 = true; await say(['法令の城に入った。', '赤いじゅうたんの上に、破られた届出書が散らばっている。', ['ホアン', 'ここは法令の国の中心。城の主ムトドケが、届出も規程も、ぜんぶ無視させているそうです。'], ['ホアン', '届出、予防規程、貯蔵と取扱いの決まり、事故のときの決まり。法令の国で学ぶ最後の部屋です！']]); }
       if (ev.to === 'town3' && !s.flags.town3) { s.flags.town3 = true; await say(['保安の町に着いた。', '町の中央に、大きな講習所が建っている。', ['ホアン', 'ここは危険物取扱者の町。免状や講習、保安の体制を学びましょう。']]); }
       if (ev.to === 'town2' && !s.flags.town2) { s.flags.town2 = true; await say(['許可の町に着いた。', 'あちこちで工事の音がする。真新しいタンク、建てかけの倉庫……。', ['ホアン', 'ここは「製造所等」をつくる手続きを学ぶ町です。許可、承認、届出。順番に見ていきましょう。']]); }
@@ -367,7 +379,7 @@ class Game {
     if (r !== 'win') { await say([[G, 'いったん引きましょう。準備ができたら、また来てください。']]); return; }
     s.cleared[id] = true;
     if (S.doc && !(s.docs || (s.docs = [])).includes(S.doc)) { s.docs.push(S.doc); await say([`大事なもの「${S.doc}」を手に入れた！`, [G, S.doc === '許可書' ? '設置の許可を受けた証です。次は工事、そして完成検査。手続きには順番があります。' : '完成検査で基準に適合していると認められた証です。これでようやく使い始められます。']]); }
-    if (S.boss) return ({ 'L1-boss': () => this.ending(), 'L2-boss': () => this.ending2(), 'L3-boss': () => this.ending3(), 'D1-boss': () => this.ending4(), 'D2-boss': () => this.ending5(), 'D3-boss': () => this.ending6(), 'P1-boss': () => this.ending7() })[id]();
+    if (S.boss) return ({ 'L1-boss': () => this.ending(), 'L2-boss': () => this.ending2(), 'L3-boss': () => this.ending3(), 'D1-boss': () => this.ending4(), 'D2-boss': () => this.ending5(), 'D3-boss': () => this.ending6(), 'P1-boss': () => this.ending7(), 'P2-boss': () => this.ending8() })[id]();
     // ホアンの確認：そのステージの五肢択一から2問（未出題を優先）
     const done = new Set(Learn.d.answers.map(a => a.qid));
     const [town, sn] = id.split('-');

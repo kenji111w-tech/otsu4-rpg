@@ -1,9 +1,36 @@
 # 自動で試作品を最初から最後まで遊ぶ（UIを実際にタップして進める）
 import asyncio, sys, random, json
 from playwright.async_api import async_playwright
+MODE = sys.argv[3] if len(sys.argv) > 3 else 'all'
 ACC = float(sys.argv[1]) if len(sys.argv) > 1 else 0.8  # 正答率
 random.seed(int(sys.argv[2]) if len(sys.argv) > 2 else 1)
 
+SCEN_CH2 = """(async () => {
+  const g = window.__game; window.__done = false; window.__log = [];
+  const ev = async e => { await g.onEvent(e); };
+  try {
+    // 第2章から試す：第1章をクリアした状態をつくる
+    const s = g.state; Object.keys(g.world.stages).filter(k => /^[LDQ]/.test(k)).forEach(k => s.cleared[k] = true);
+    Object.keys(g.world.stages).filter(k => /^[LDQ]/.test(k) && g.world.stages[k].skill).forEach(k => { if (!s.skills.includes(g.world.stages[k].skill)) s.skills.push(g.world.stages[k].skill); });
+    s.flags.tutorial = true; s.flags.hoan = true; s.party = ['hero','hoan']; s.members.hero.lv = 14; Object.assign(s.members.hero, {mhp: 82, hp: 82, mmp: 34, mp: 34, atk: 22, def: 17});
+    Object.assign(s.members.hoan, {lv: 14, mhp: 78, hp: 78, mmp: 36, mp: 36, atk: 20, def: 18});
+    s.items = {yakusou: 6, mizu: 3}; s.gold = 1000;
+    g.field.load('castle3', 16, 1);
+    await ev({type:'exit', to:'town4', tx:8, ty:14, need:'D3-boss'});
+    window.__log.push('party:' + g.state.party.join(','));
+    for (const st of ['P1-1','P1-2','P1-3','P1-4','P1-boss']) {
+      for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('town4', 8, 14); }
+      window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.kemi.lv);
+    }
+    await ev({type:'exit', to:'town5', tx:8, ty:14, need:'P1-boss'});
+    for (const st of ['P2-1','P2-2','P2-3','P2-4','P2-boss']) {
+      for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('town5', 8, 14); }
+      window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.kemi.lv);
+    }
+    await g.menu();
+  } catch (e) { window.__log.push('EXC ' + e.message + ' ' + e.stack); }
+  window.__done = true;
+})(); 0;"""
 SCEN = """
 (async () => {
   const g = window.__game; window.__done = false; window.__log = [];
@@ -73,6 +100,11 @@ SCEN = """
       for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('town4', 8, 14); }
       window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.kemi.lv);
     }
+    await ev({type:'exit', to:'town5', tx:8, ty:14, need:'P1-boss'});
+    for (const st of ['P2-1','P2-2','P2-3','P2-4','P2-boss']) {
+      for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('town5', 8, 14); }
+      window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.kemi.lv);
+    }
     g.state.items.yakusou = 9; g.state.items.mizu = 3;
     await ev({type:'building', id:'shop'});
     window.__log.push('kama keshi:' + (g.state.items.keshi||0) + ' jouyaku:' + (g.state.items.jouyaku||0));
@@ -96,7 +128,7 @@ async def bot_step(pg, state):
           target = Math.random() < acc ? right : (wrong[Math.floor(Math.random()*wrong.length)] || right); }
         if (!target) target = btns[0]; target.click(); (Math.random() < .2 ? qz.querySelector('.uns') : qz.querySelector('.ok')).click(); return 'answer';
       }
-      const msg = ui.querySelector('.msg'); if (msg) { msg.click(); return 'msg'; }
+      const msg = ui.querySelector('.msg'); if (msg) { if (msg.innerText.includes('苦手だった')) window.__log.push('WEAKMSG'); msg.click(); return 'msg'; }
       const m = ui.querySelector('.menu'); if (m) {
         const title = (m.querySelector('.title')||{}).textContent || '';
         const items = [...m.querySelectorAll('.item')]; const by = t => items.find(b => b.textContent.startsWith(t));
@@ -134,7 +166,7 @@ async def main():
             r = await bot_step(pg, None)
             if r == 'idle' and await pg.evaluate("!!(window.__game.state)"): break
             await pg.wait_for_timeout(30)
-        await pg.evaluate(SCEN)
+        await pg.evaluate(SCEN_CH2 if MODE == "ch2" else SCEN)
         counts = {}
         for i in range(17000):
             if await pg.evaluate("window.__done"): break
