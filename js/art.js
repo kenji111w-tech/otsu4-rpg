@@ -709,6 +709,57 @@ export const ENEMY_HQ = {
     ctx.fillStyle = 'rgba(90,200,255,.8)'; for (let i = 0; i < 5; i++) { const p = ((t / 2 + i * 7) % 35) / 35; ctx.beginPath(); ctx.ellipse(cx + R * (.75 + p * .15), cy - R * .4 + p * R * 1.2, R * .05, R * .08, 0, 0, 7); ctx.fill(); }
     ctx.fillStyle = '#1a2a4a'; [-1, 1].forEach(k => ctx.fillRect(cx + k * R * .2 - R * .1, cy + R * .78, R * .2, R * .15));
   },
+  // ミツガワリ・スライム：頭は氷、体は水、背中から湯気
+  mitsugawari(ctx, cx, cy, R, t) {
+    ctx.fillStyle = lin(ctx, 0, cy - R * .3, 0, cy + R * .8, ['#7ac8f8', '#2a78c8']); ctx.beginPath(); ctx.moveTo(cx - R * .75, cy + R * .8); ctx.quadraticCurveTo(cx - R * .8, cy - R * .15, cx, cy - R * .25); ctx.quadraticCurveTo(cx + R * .8, cy - R * .15, cx + R * .75, cy + R * .8); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.ellipse(cx - R * .35, cy + R * .1, R * .12, R * .2, -.4, 0, 7); ctx.fill();
+    ctx.fillStyle = '#e8f8ff'; ctx.strokeStyle = '#9ad0f0'; ctx.lineWidth = R * .03; [[-.3, -.4, .28], [.05, -.55, .32], [.35, -.38, .26]].forEach(([x, y, w]) => { ctx.beginPath(); ctx.moveTo(cx + x * R - w * R / 2, cy + y * R + w * R / 2); ctx.lineTo(cx + x * R, cy + y * R - w * R / 2); ctx.lineTo(cx + x * R + w * R / 2, cy + y * R + w * R / 2); ctx.closePath(); ctx.fill(); ctx.stroke(); });
+    eyes(ctx, cx, cy + R * .25, R * .2, R * .08);
+    ctx.fillStyle = 'rgba(230,230,230,.6)'; for (let i = 0; i < 4; i++) { const p = ((t / 2.5 + i * 15) % 60) / 60; ctx.beginPath(); ctx.arc(cx + (i - 1.5) * R * .3 + Math.sin(p * 7 + i) * R * .08, cy - R * .7 - p * R * .5, R * (.07 + p * .1), 0, 7); ctx.fill(); }
+  },
+  // ウキシズミ・ガメ：甲羅に「1」と書かれた、浮いたり沈んだりするカメ
+  ukishizumi(ctx, cx, cy, R, t) {
+    const b = Math.sin(t / 15) * R * .18;
+    ctx.fillStyle = lin(ctx, 0, cy + R * .1, 0, cy + R * .9, ['#4a9ae0', '#1a4a9a']); ctx.beginPath(); ctx.ellipse(cx, cy + R * .45, R * .95, R * .42, 0, 0, 7); ctx.fill(); ctx.strokeStyle = '#bfe4ff'; ctx.lineWidth = R * .03; ctx.beginPath(); ctx.ellipse(cx, cy + R * .1, R * .75, R * .06, 0, 0, 7); ctx.stroke();
+    ctx.fillStyle = '#6a9a4a'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.ellipse(cx + k * R * .5, cy + R * .2 + b, R * .14, R * .08, k * .4, 0, 7); ctx.fill(); });
+    ctx.beginPath(); ctx.ellipse(cx + R * .7, cy - R * .05 + b, R * .18, R * .14, 0, 0, 7); ctx.fill(); ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(cx + R * .76, cy - R * .1 + b, R * .03, 0, 7); ctx.fill();
+    ctx.fillStyle = lin(ctx, 0, cy - R * .4 + b, 0, cy + R * .2 + b, ['#8ab85a', '#4a7a2a']); ctx.beginPath(); ctx.ellipse(cx, cy + b, R * .55, R * .35, 0, Math.PI, 0); ctx.fill(); ctx.fillRect(cx - R * .55, cy + b - R * .01, R * 1.1, R * .08);
+    ctx.fillStyle = '#fffbe0'; ctx.beginPath(); ctx.arc(cx, cy - R * .15 + b, R * .15, 0, 7); ctx.fill(); ctx.fillStyle = '#2a4a1a'; ctx.font = `bold ${R * .2}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('1', cx, cy - R * .14 + b);
+    ctx.fillStyle = '#ffb020'; ctx.beginPath(); ctx.arc(cx - R * .55, cy + R * .5, R * .07, 0, 7); ctx.fill(); ctx.fillStyle = '#8a4a2a'; ctx.beginPath(); ctx.arc(cx + R * .45, cy + R * .78, R * .07, 0, 7); ctx.fill();
+  },
+  // ネツクイ・ナベ：ふたを鳴らし、かまどの熱を食べる大なべ
+  netsukui(ctx, cx, cy, R, t) {
+    const j = Math.floor(t / 4) % 2 ? R * .04 : 0;
+    ctx.fillStyle = '#5a4a3a'; ctx.fillRect(cx - R * .7, cy + R * .6, R * 1.4, R * .3);
+    for (let i = 0; i < 4; i++) { const h = R * (.2 + .06 * Math.sin(t / 4 + i)); ctx.fillStyle = i % 2 ? '#ffb030' : '#ff5a1a'; ctx.beginPath(); ctx.moveTo(cx - R * .45 + i * R * .3 - R * .1, cy + R * .62); ctx.quadraticCurveTo(cx - R * .45 + i * R * .3, cy + R * .62 - h * 2, cx - R * .45 + i * R * .3 + R * .1, cy + R * .62); ctx.fill(); }
+    ctx.fillStyle = lin(ctx, cx - R * .6, 0, cx + R * .6, 0, ['#5a5a6a', '#2a2a34']); ctx.beginPath(); ctx.moveTo(cx - R * .62, cy - R * .2); ctx.lineTo(cx + R * .62, cy - R * .2); ctx.quadraticCurveTo(cx + R * .6, cy + R * .55, cx, cy + R * .55); ctx.quadraticCurveTo(cx - R * .6, cy + R * .55, cx - R * .62, cy - R * .2); ctx.fill();
+    ctx.fillStyle = '#3a3a44'; [-1, 1].forEach(k => ctx.fillRect(cx + k * R * .66 - R * .08, cy - R * .12, R * .16, R * .08));
+    ctx.fillStyle = '#6a6a7a'; ctx.beginPath(); ctx.ellipse(cx, cy - R * .25 - j, R * .62, R * .1, 0, 0, 7); ctx.fill(); ctx.fillStyle = '#2a2a34'; ctx.fillRect(cx - R * .08, cy - R * .4 - j, R * .16, R * .12);
+    ctx.fillStyle = '#ffe04a'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + k * R * .2, cy + R * .1, R * .07, 0, 7); ctx.fill(); }); ctx.fillStyle = '#c02010'; ctx.beginPath(); ctx.ellipse(cx, cy + R * .32, R * .18, R * .07, 0, 0, Math.PI); ctx.fill();
+    ctx.fillStyle = 'rgba(240,240,240,.6)'; for (let i = 0; i < 3; i++) { const p = ((t / 2 + i * 12) % 36) / 36; ctx.beginPath(); ctx.arc(cx + (i - 1) * R * .4, cy - R * .45 - p * R * .5, R * (.06 + p * .09), 0, 7); ctx.fill(); }
+  },
+  // フクラミ・ドラム：温まってぱんぱんにふくらんだドラム缶
+  fukurami(ctx, cx, cy, R, t) {
+    const sw = 1 + Math.sin(t / 10) * .06;
+    ctx.save(); ctx.translate(cx, cy + R * .1); ctx.scale(sw, 1);
+    ctx.fillStyle = lin(ctx, -R * .6, 0, R * .6, 0, ['#e85a3a', '#8a2a1a']); ctx.beginPath(); ctx.moveTo(-R * .45, -R * .75); ctx.quadraticCurveTo(-R * .8, 0, -R * .45, R * .75); ctx.lineTo(R * .45, R * .75); ctx.quadraticCurveTo(R * .8, 0, R * .45, -R * .75); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#5a1a10'; ctx.lineWidth = R * .05; [-.3, .3].forEach(y => { ctx.beginPath(); ctx.moveTo(-R * .62, y * R); ctx.quadraticCurveTo(0, y * R + R * .05, R * .62, y * R); ctx.stroke(); });
+    ctx.restore();
+    ctx.fillStyle = '#c8c8c8'; ctx.beginPath(); ctx.ellipse(cx, cy - R * .65, R * .45, R * .08, 0, 0, 7); ctx.fill(); ctx.fillStyle = '#333'; ctx.beginPath(); ctx.arc(cx + R * .22, cy - R * .66, R * .06, 0, 7); ctx.fill();
+    ctx.fillStyle = '#d8a030'; for (let i = 0; i < 3; i++) { const p = ((t / 2 + i * 9) % 27) / 27; ctx.beginPath(); ctx.ellipse(cx + R * (.25 + p * .2), cy - R * .66 + p * R * .9, R * .04, R * .07, 0, 0, 7); ctx.fill(); }
+    eyes(ctx, cx, cy + R * .05, R * .17, R * .08); ctx.strokeStyle = '#3a0a0a'; ctx.lineWidth = R * .04; ctx.beginPath(); ctx.arc(cx, cy + R * .3, R * .12, 3.4, 6); ctx.stroke();
+    ctx.strokeStyle = '#ff8a3a'; ctx.lineWidth = R * .03; [-1, 1].forEach(k => { for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(cx + k * R * (.75 + i * .07), cy - R * .2 + i * R * .2); ctx.lineTo(cx + k * R * (.88 + i * .07), cy - R * .2 + i * R * .2); ctx.stroke(); } });
+  },
+  // フットウ大魔人：体じゅうが煮えたぎる大魔人
+  futtou(ctx, cx, cy, R, t) {
+    ctx.fillStyle = lin(ctx, 0, cy - R * .6, 0, cy + R * .9, ['#ff7a2a', '#a82a10']); ctx.beginPath(); ctx.moveTo(cx - R * .75, cy + R * .9); ctx.quadraticCurveTo(cx - R * .85, cy - R * .2, cx - R * .45, cy - R * .5); ctx.quadraticCurveTo(cx, cy - R * .8, cx + R * .45, cy - R * .5); ctx.quadraticCurveTo(cx + R * .85, cy - R * .2, cx + R * .75, cy + R * .9); ctx.closePath(); ctx.fill();
+    for (let i = 0; i < 9; i++) { const p = ((t / 3 + i * 11) % 40) / 40, x = cx + Math.sin(i * 2.3) * R * .55, y = cy + R * .8 - p * R * 1.2; ctx.fillStyle = `rgba(255,220,140,${.8 - p * .6})`; ctx.beginPath(); ctx.arc(x, y, R * (.04 + .05 * (i % 3) / 2), 0, 7); ctx.fill(); }
+    ctx.fillStyle = '#3a0a0a'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.moveTo(cx + k * R * .32, cy - R * .25); ctx.lineTo(cx + k * R * .1, cy - R * .18); ctx.lineTo(cx + k * R * .28, cy - R * .1); ctx.fill(); });
+    ctx.fillStyle = '#ffe04a'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + k * R * .22, cy - R * .12, R * .05, 0, 7); ctx.fill(); });
+    ctx.fillStyle = '#3a0a0a'; ctx.beginPath(); ctx.ellipse(cx, cy + R * .15, R * .25, R * .12, 0, 0, 7); ctx.fill(); ctx.fillStyle = '#fff'; for (let i = 0; i < 4; i++) ctx.fillRect(cx - R * .18 + i * R * .1, cy + R * .05, R * .06, R * .06);
+    ctx.fillStyle = '#c8301a'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.moveTo(cx + k * R * .35, cy - R * .55); ctx.lineTo(cx + k * R * .5, cy - R * .95); ctx.lineTo(cx + k * R * .2, cy - R * .62); ctx.fill(); });
+    ctx.fillStyle = 'rgba(235,235,235,.55)'; for (let i = 0; i < 4; i++) { const p = ((t / 2 + i * 10) % 40) / 40; ctx.beginPath(); ctx.arc(cx + (i - 1.5) * R * .25 + Math.sin(p * 5) * R * .1, cy - R * .8 - p * R * .45, R * (.08 + p * .12), 0, 7); ctx.fill(); }
+  },
 };
 function hslToHex(h, s, l) { const a = s * Math.min(l, 1 - l); const f = n => { const k = (n + h / 30) % 12; const c = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); return Math.round(255 * c).toString(16).padStart(2, '0'); }; return `#${f(0)}${f(8)}${f(4)}`; }
 

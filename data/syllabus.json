@@ -474,42 +474,54 @@
    "subject": "物理・化学",
    "area": "物理",
    "item": "物質の三態と状態変化",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "P-JOT"
+   ]
   },
   {
    "id": "P-02",
    "subject": "物理・化学",
    "area": "物理",
    "item": "密度・比重",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "P-HIJ"
+   ]
   },
   {
    "id": "P-03",
    "subject": "物理・化学",
    "area": "物理",
    "item": "沸点・蒸気圧",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "P-FUT"
+   ]
   },
   {
    "id": "P-04",
    "subject": "物理・化学",
    "area": "物理",
    "item": "熱量・比熱・熱容量",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "P-NET"
+   ]
   },
   {
    "id": "P-05",
    "subject": "物理・化学",
    "area": "物理",
    "item": "熱の移動（伝導・対流・放射）",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "P-IDO"
+   ]
   },
   {
    "id": "P-06",
    "subject": "物理・化学",
    "area": "物理",
    "item": "熱膨張",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "P-BOC"
+   ]
   },
   {
    "id": "P-07",

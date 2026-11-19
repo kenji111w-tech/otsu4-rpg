@@ -27,6 +27,14 @@ SCEN_CH2 = """(async () => {
       for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('town5', 8, 14); }
       window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.kemi.lv);
     }
+    g.field.load('town5', 16, 7);
+    await ev({type:'exit', to:'dungeon4', tx:9, ty:14, need:'P2-boss'});
+    for (let i=0;i<2;i++) await g.encounter();
+    for (const st of ['P3-1','P3-2','P3-3','P3-4','P3-boss']) {
+      for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'spring'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('dungeon4', 9, 14); }
+      window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.kemi.lv);
+    }
+    window.__log.push('skills:' + g.state.skills.slice(-2).join(','));
     await g.menu();
   } catch (e) { window.__log.push('EXC ' + e.message + ' ' + e.stack); }
   window.__done = true;
@@ -105,6 +113,14 @@ SCEN = """
       for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('town5', 8, 14); }
       window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.kemi.lv);
     }
+    g.field.load('town5', 16, 7);
+    await ev({type:'exit', to:'dungeon4', tx:9, ty:14, need:'P2-boss'});
+    for (let i=0;i<2;i++) await g.encounter();
+    for (const st of ['P3-1','P3-2','P3-3','P3-4','P3-boss']) {
+      for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'spring'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('dungeon4', 9, 14); }
+      window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.kemi.lv);
+    }
+    window.__log.push('skills:' + g.state.skills.slice(-2).join(','));
     g.state.items.yakusou = 9; g.state.items.mizu = 3;
     await ev({type:'building', id:'shop'});
     window.__log.push('kama keshi:' + (g.state.items.keshi||0) + ' jouyaku:' + (g.state.items.jouyaku||0));

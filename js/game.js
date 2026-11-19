@@ -262,13 +262,24 @@ class Game {
     this.state.flags.p1clear = true;
     await this.recordScreen();
   }
+  async ending9() {
+    const n = this.state.name;
+    await say([
+      'フットウ大魔人の湯気がすうっと引いていき、大魔人は小さなやかんになって、ころんと転がった。',
+      ['ケミ', '三態と状態変化。比重と蒸気比重。沸点と蒸気圧。比熱と熱量の計算。伝導・対流・放射。そして熱膨張……。'],
+      ['ケミ', `${n}さん、物理の基本はこれでひと通りよ。数字の計算も、もうこわくないわね。`],
+      '――今の版はここまでです。化学の基礎（物理変化と化学変化、酸化と還元、酸と塩基、イオン化傾向、有機化合物）は次の版で追加します。',
+    ]);
+    this.state.flags.p3clear = true;
+    await this.recordScreen();
+  }
   async ending8() {
     const n = this.state.name;
     await say([
       'ミズブッカケ大将のバケツがひっくり返り、大将はずぶぬれのまま逃げていった。',
       ['ケミ', '冷却、窒息、除去、抑制。火事の種類はA・B・C。油の火事に棒状の水はだめ。静電気はアースで逃がす……。'],
       ['ケミ', `${n}さん、「燃える」と「消える」がわかったわね。次は、物そのものの性質を調べに行きましょう。`],
-      '――今の版はここまでです。物理・化学の国のダンジョン（物の状態と熱、化学の基礎）は次の版で追加します。',
+      ['ケミ', '東の門の先に「熱の洞窟」があるわ。物が溶けたり、湯気になったり、ふくらんだり……熱の正体を確かめに行きましょう。'],
     ]);
     this.state.flags.p2clear = true;
     await this.recordScreen();
@@ -299,6 +310,7 @@ class Game {
       if (ev.to === 'dungeon1' && !s.flags.dungeon1) { s.flags.dungeon1 = true; await say(['基準の砦に入った。', '冷たい石の通路に、たいまつの火がゆれている。', ['ホアン', 'ここは施設の「位置・構造・設備の基準」を守るための砦でした。魔物たちが数字をねじ曲げています。'], ['ホアン', '砦の中は魔物が多い。青く光る泉で休めます。宝箱も探してみましょう。']]); }
       if (ev.to === 'pass2' && !s.flags.pass2) { s.flags.pass2 = true; await say(['運搬の峠に出た。', '細い山道を、荷車やタンクローリーの魔物が行き来している。', ['ホアン', 'ここは危険物を「運ぶ」ときの決まりを学ぶ場所です。容器に入れて運ぶ「運搬」と、タンクローリーで運ぶ「移送」。'], ['ホアン', 'この峠にも宿屋はありません。泉と宝箱を探しましょう。']]); }
       if (ev.to === 'town4' && !s.flags.chapter2) { await this.chapter2Start(); }
+      if (ev.to === 'dungeon4' && !s.flags.dungeon4) { s.flags.dungeon4 = true; await say(['熱の洞窟に入った。', 'むっとする熱気。足もとの岩のすき間から、湯気がしゅうしゅうと噴き出している。', ['ケミ', 'ここでは、物が熱でどう変わるかを学ぶわ。溶ける、湯気になる、浮く、沈む、ふくらむ……全部「熱」と「物の性質」のお話よ。'], ['ケミ', '4つの部屋を順に回って、いちばん奥の大広間をめざしましょう。']]); }
       if (ev.to === 'town5' && !s.flags.town5) { s.flags.town5 = true; await say(['消火の町に着いた。', '通りのあちこちに、消火器と水バケツが並んでいる。……でも、どれも使い方がおかしいようだ。', ['ケミ', 'ここは火を「消す」ことを学ぶ町よ。燃焼の町の裏返しね。']]); }
       if (ev.to === 'castle3' && !s.flags.castle3) { s.flags.castle3 = true; await say(['法令の城に入った。', '赤いじゅうたんの上に、破られた届出書が散らばっている。', ['ホアン', 'ここは法令の国の中心。城の主ムトドケが、届出も規程も、ぜんぶ無視させているそうです。'], ['ホアン', '届出、予防規程、貯蔵と取扱いの決まり、事故のときの決まり。法令の国で学ぶ最後の部屋です！']]); }
       if (ev.to === 'town3' && !s.flags.town3) { s.flags.town3 = true; await say(['保安の町に着いた。', '町の中央に、大きな講習所が建っている。', ['ホアン', 'ここは危険物取扱者の町。免状や講習、保安の体制を学びましょう。']]); }
@@ -379,7 +391,7 @@ class Game {
     if (r !== 'win') { await say([[G, 'いったん引きましょう。準備ができたら、また来てください。']]); return; }
     s.cleared[id] = true;
     if (S.doc && !(s.docs || (s.docs = [])).includes(S.doc)) { s.docs.push(S.doc); await say([`大事なもの「${S.doc}」を手に入れた！`, [G, S.doc === '許可書' ? '設置の許可を受けた証です。次は工事、そして完成検査。手続きには順番があります。' : '完成検査で基準に適合していると認められた証です。これでようやく使い始められます。']]); }
-    if (S.boss) return ({ 'L1-boss': () => this.ending(), 'L2-boss': () => this.ending2(), 'L3-boss': () => this.ending3(), 'D1-boss': () => this.ending4(), 'D2-boss': () => this.ending5(), 'D3-boss': () => this.ending6(), 'P1-boss': () => this.ending7(), 'P2-boss': () => this.ending8() })[id]();
+    if (S.boss) return ({ 'L1-boss': () => this.ending(), 'L2-boss': () => this.ending2(), 'L3-boss': () => this.ending3(), 'D1-boss': () => this.ending4(), 'D2-boss': () => this.ending5(), 'D3-boss': () => this.ending6(), 'P1-boss': () => this.ending7(), 'P2-boss': () => this.ending8(), 'P3-boss': () => this.ending9() })[id]();
     // ホアンの確認：そのステージの五肢択一から2問（未出題を優先）
     const done = new Set(Learn.d.answers.map(a => a.qid));
     const [town, sn] = id.split('-');

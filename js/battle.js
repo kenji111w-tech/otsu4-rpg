@@ -258,6 +258,7 @@ export class Battle {
     if (id === 'unpantenken') return this.hit(m, this.e.area === 'D2' ? 2.5 : 1.5, 'ホアンが運び方の違反を指摘した！');
     if (id === 'joubunkanpa') return this.hit(m, this.e.area === 'D3' ? 2.5 : 1.5, '条文を突きつけた！');
     if (id === 'nenshoubunseki') return this.hit(m, /^P/.test(this.e.area || '') ? 2.5 : 1.5, 'ケミが燃え方を分析して、弱点を突いた！');
+    if (id === 'netsukeisan') { const cool = this.e.tele && !this.e.tele.call; if (cool) this.e.tele = null; await this.hit(m, 2, 'ケミが熱を計算して、冷ました！'); if (cool && this.e.hp > 0) await this.msg('大技の溜めが冷めて、止まった！', 800); return; }
     if (id === 'shoukanochie') return this.hit(m, /^P/.test(this.e.area || '') ? 2.5 : 1.5, '火事に合った消し方で、弱点を突いた！');
     if (id === 'tetsuzuki') return this.hit(m, this.e.area === 'L2' ? 2.5 : 1.5, 'ホアンが手続きの違反を見抜いた！');
   }
