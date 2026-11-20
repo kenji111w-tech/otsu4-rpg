@@ -748,7 +748,9 @@
    "subject": "性質・消火",
    "area": "品名別",
    "item": "アルコール類",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "H-ALC"
+   ]
   },
   {
    "id": "H-08",

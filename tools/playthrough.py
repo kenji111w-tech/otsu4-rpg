@@ -34,6 +34,12 @@ SCEN_CH3 = """(async () => {
       for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('town8', 8, 14); }
       window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.sekiyu.lv);
     }
+    g.field.load('town8', 16, 8);
+    await ev({type:'exit', to:'town9', tx:8, ty:14, need:'H3-boss'});
+    for (const st of ['H4-1','H4-2','H4-3','H4-4','H4-boss']) {
+      for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('town9', 8, 14); }
+      window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.sekiyu.lv);
+    }
     window.__log.push('skills:' + g.state.skills.slice(-3).join(','));
     await g.menu();
   } catch (e) { window.__log.push('EXC ' + e.message + ' ' + e.stack); }

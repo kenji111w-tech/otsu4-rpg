@@ -960,7 +960,39 @@ export const ENEMY_HQ = {
     ctx.fillStyle = '#111'; ctx.fillRect(cx - R * .18, cy - R * .52, R * .36, R * .07); ctx.fillStyle = '#ffd02a'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + k * R * .08, cy - R * .49, R * .025, 0, 7); ctx.fill(); });
     [-1, 1].forEach(k => { ctx.save(); ctx.translate(cx + k * R * .55, cy + R * .1); ctx.rotate(k * (-.6 + Math.sin(t / 8 + k) * .2)); ctx.fillStyle = '#e8e8f0'; ctx.fillRect(-R * .02, -R * .9, R * .04, R * .85); ctx.fillStyle = '#d8a020'; ctx.fillRect(-R * .08, -R * .06, R * .16, R * .05); ctx.restore(); });
   },
+  // ── アルコール類（青白く透ける・杖・見えにくい炎・鎧の数字400）──
+  sukesuke(ctx, cx, cy, R, t) { alcBody(ctx, cx, cy, R, t, 0); alcStaff(ctx, cx + R * .5, cy, R, t, '#8ad8ff'); alcPlate(ctx, cx, cy + R * .25, R, '400');
+    ctx.fillStyle = 'rgba(200,235,255,.85)'; ctx.beginPath(); ctx.moveTo(cx - R * .3, cy - R * .55); ctx.lineTo(cx, cy - R * 1.0); ctx.lineTo(cx + R * .3, cy - R * .55); ctx.fill(); },
+  metano(ctx, cx, cy, R, t) { alcBody(ctx, cx, cy, R, t, 1); alcStaff(ctx, cx + R * .5, cy, R, t, '#b04ad8');
+    ctx.fillStyle = 'rgba(160,60,200,.8)'; for (let i = 0; i < 3; i++) { const p = ((t / 2 + i * 9) % 27) / 27; ctx.beginPath(); ctx.arc(cx + R * .62, cy - R * .5 + p * R * .9, R * .035, 0, 7); ctx.fill(); }
+    ctx.strokeStyle = '#5a1a7a'; ctx.lineWidth = R * .04; [-1, 1].forEach(k => { ctx.beginPath(); ctx.moveTo(cx + k * R * .2, cy - R * .22); ctx.lineTo(cx + k * R * .06, cy - R * .16); ctx.stroke(); }); alcPlate(ctx, cx, cy + R * .25, R, '400'); },
+  etano(ctx, cx, cy, R, t) { const sw = Math.sin(t / 10) * .12; ctx.save(); ctx.translate(cx, cy + R * .8); ctx.rotate(sw); ctx.translate(-cx, -cy - R * .8); alcBody(ctx, cx, cy, R, t, 2);
+    ctx.fillStyle = 'rgba(255,120,140,.6)'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.ellipse(cx + k * R * .22, cy - R * .08, R * .08, R * .05, 0, 0, 7); ctx.fill(); }); alcPlate(ctx, cx, cy + R * .25, R, '400'); ctx.restore();
+    ctx.save(); ctx.translate(cx + R * .55, cy + R * .1); ctx.rotate(.2); ctx.fillStyle = '#6a4a2a'; ctx.fillRect(-R * .03, -R * .6, R * .06, R * .8); ctx.fillStyle = 'rgba(120,200,120,.85)'; rr(ctx, -R * .1, -R * .85, R * .2, R * .28, R * .05); ctx.fill(); ctx.fillRect(-R * .04, -R * .95, R * .08, R * .12); ctx.restore(); },
+  kagebi(ctx, cx, cy, R, t) {
+    for (let i = 0; i < 7; i++) { const a = i / 7 * 6.283 + t / 20, h = R * (.25 + .08 * Math.sin(t / 5 + i)); ctx.fillStyle = 'rgba(140,190,255,.28)'; ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * R * .5 - R * .07, cy + Math.sin(a) * R * .35); ctx.quadraticCurveTo(cx + Math.cos(a) * R * .55, cy + Math.sin(a) * R * .35 - h * 2, cx + Math.cos(a) * R * .5 + R * .07, cy + Math.sin(a) * R * .35); ctx.fill(); }
+    ctx.fillStyle = 'rgba(210,235,255,.8)'; ctx.beginPath(); ctx.moveTo(cx - R * .38, cy + R * .7); ctx.quadraticCurveTo(cx - R * .45, cy - R * .5, cx, cy - R * .55); ctx.quadraticCurveTo(cx + R * .45, cy - R * .5, cx + R * .38, cy + R * .7); for (let i = 0; i < 4; i++) ctx.lineTo(cx + R * (.28 - i * .19), cy + R * (i % 2 ? .82 : .65)); ctx.fill();
+    ctx.fillStyle = '#2a4a8a'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.ellipse(cx + k * R * .14, cy - R * .15, R * .06, R * .09, 0, 0, 7); ctx.fill(); }); ctx.beginPath(); ctx.ellipse(cx, cy + R * .08, R * .07, R * .1, 0, 0, 7); ctx.fill();
+    alcStaff(ctx, cx + R * .5, cy, R, t, '#bfe4ff'); alcPlate(ctx, cx, cy + R * .4, R, '400'); },
+  arukoru(ctx, cx, cy, R, t) {
+    ctx.fillStyle = 'rgba(200,230,255,.82)'; ctx.beginPath(); ctx.moveTo(cx - R * .5, cy + R * .9); ctx.lineTo(cx - R * .3, cy - R * .3); ctx.lineTo(cx + R * .3, cy - R * .3); ctx.lineTo(cx + R * .5, cy + R * .9); ctx.fill();
+    ctx.fillStyle = 'rgba(120,170,230,.8)'; ctx.fillRect(cx - R * .06, cy - R * .3, R * .12, R * 1.2);
+    ctx.fillStyle = 'rgba(225,240,255,.9)'; ctx.beginPath(); ctx.arc(cx, cy - R * .48, R * .2, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(170,210,255,.95)'; ctx.beginPath(); ctx.moveTo(cx - R * .2, cy - R * .6); ctx.lineTo(cx, cy - R * 1.05); ctx.lineTo(cx + R * .2, cy - R * .6); ctx.fill();
+    ctx.fillStyle = '#2a4a8a'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + k * R * .07, cy - R * .48, R * .025, 0, 7); ctx.fill(); });
+    alcPlate(ctx, cx, cy + R * .2, R * 1.2, '400');
+    ctx.save(); ctx.translate(cx + R * .6, cy + R * .3); ctx.fillStyle = '#c8a050'; ctx.fillRect(-R * .03, -R * 1.1, R * .06, R * 1.4);
+    [0, 1, 2].forEach(i => { const a = -1.2 + i * 1.2, x = Math.cos(a - 1.57) * R * .16, y = -R * 1.15 + Math.sin(a - 1.57) * R * .16; ctx.fillStyle = `rgba(150,210,255,${.6 + .3 * Math.sin(t / 6 + i)})`; ctx.beginPath(); ctx.arc(x, y, R * .08, 0, 7); ctx.fill(); ctx.fillStyle = '#fff'; ctx.font = `bold ${R * .08}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('C', x, y); }); ctx.restore(); },
 };
+function alcBody(ctx, cx, cy, R, t, nC) {
+  const b = Math.sin(t / 12) * R * .04;
+  ctx.fillStyle = 'rgba(205,235,255,.82)'; ctx.beginPath(); ctx.moveTo(cx - R * .4, cy + R * .8); ctx.quadraticCurveTo(cx - R * .5, cy - R * .45 + b, cx, cy - R * .5 + b); ctx.quadraticCurveTo(cx + R * .5, cy - R * .45 + b, cx + R * .4, cy + R * .8); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.beginPath(); ctx.ellipse(cx - R * .2, cy - R * .2 + b, R * .07, R * .16, -.3, 0, 7); ctx.fill();
+  ctx.fillStyle = '#2a4a8a'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + k * R * .13, cy - R * .12 + b, R * .045, 0, 7); ctx.fill(); });
+  for (let i = 0; i < nC; i++) { const x = cx + (i - (nC - 1) / 2) * R * .22, y = cy - R * .68 + b; ctx.fillStyle = '#333'; ctx.beginPath(); ctx.arc(x, y, R * .08, 0, 7); ctx.fill(); ctx.fillStyle = '#fff'; ctx.font = `bold ${R * .09}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('C', x, y); }
+}
+function alcStaff(ctx, x, y, R, t, gem) { ctx.save(); ctx.translate(x, y + R * .2); ctx.rotate(.15); ctx.fillStyle = '#8a6a3a'; ctx.fillRect(-R * .025, -R * .9, R * .05, R * 1.2); ctx.fillStyle = gem; ctx.globalAlpha = .7 + .3 * Math.sin(t / 6); ctx.beginPath(); ctx.arc(0, -R * .95, R * .09, 0, 7); ctx.fill(); ctx.restore(); }
+function alcPlate(ctx, x, y, R, n) { ctx.fillStyle = 'rgba(90,130,190,.9)'; rr(ctx, x - R * .17, y - R * .08, R * .34, R * .16, R * .04); ctx.fill(); ctx.fillStyle = '#fff'; ctx.font = `bold ${R * .12}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(n, x, y + R * .005); }
 function hslToHex(h, s, l) { const a = s * Math.min(l, 1 - l); const f = n => { const k = (n + h / 30) % 12; const c = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); return Math.round(255 * c).toString(16).padStart(2, '0'); }; return `#${f(0)}${f(8)}${f(4)}`; }
 
 export function drawEnemyHQ(ctx, id, cx, cy, R, t, fallback) {
