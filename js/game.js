@@ -6,7 +6,7 @@ import { Field } from './field.js';
 import { Field3D, dir8 } from './field3d.js';
 import { loadAssets } from './art.js';
 import { Battle } from './battle.js';
-import { FORMS, examPool, buildExam, runExam, showResult } from './exam.js';
+import { FORMS, examPool, buildExam, runExam, showResult, nextMockSet } from './exam.js';
 
 const BASE = {
   hero: { id: 'hero', name: 'ユウ', lv: 1, hp: 30, mhp: 30, mp: 8, mmp: 8, atk: 9, def: 4 },
@@ -687,12 +687,22 @@ class Game {
     await say(['試験センターへようこそ。ここでは本番と同じ形の模擬試験が受けられます。今は、冒険で出てくる問題から組む「練習模試」です。本番用の模試専用問題は準備中です。',
       '本番は、法令15問・物理・化学10問・性質・消火10問の35問を2時間で解きます。科目ごとに6割以上正解すれば合格です。1科目でも6割に届かないと不合格です。',
       all ? '物語をクリアしたので、すべての範囲から出題します。' : `出題は、冒険でもう習った範囲だけです（今は 法令${cnt('法令')}問・物理・化学${cnt('物理・化学')}問・性質・消火${cnt('性質・消火')}問 の中から）。冒険を進めると範囲が広がります。`]);
-    const hist = Learn.d.mocks || [];
-    const items = Object.entries(FORMS).map(([k, f]) => ({ label: f.name, value: k }));
+    const run = Learn.d.mockRun;
+    if (run) { // 本番模試の途中で閉じた：続きから（時計は進んでいる）
+      const qs = run.ids.map(id => this.qById[id]).filter(Boolean), form = { ...FORMS.honban, set: run.set };
+      await say(`本番模試（第${run.set}回）の途中です。続きから再開します。アプリを閉じていた間も時間は進んでいます。`);
+      Learn.examMode = true; const r = await runExam(this.ui, qs, form, run); Learn.examMode = false;
+      if (!r.aborted) await showResult(r, this.qById); return;
+    }
+    const hist = Learn.d.mocks || [], nset = nextMockSet(this.questions);
+    const items = Object.entries(FORMS).map(([k, f]) => ({ label: f.name, value: k, disabled: k === 'honban' && (!all || !nset), note: k === 'honban' ? (!all ? '物語をクリアすると受けられます' : nset ? `第${nset}回` : '新しいセットの追加待ち') : '' }));
     if (hist.length) items.push({ label: 'これまでの成績', value: 'hist' });
     const v = await choose('どれを受けますか？', items); if (!v) return;
     if (v === 'hist') { await say(['【これまでの模試】'].concat(hist.slice(-10).map(h => `${h.day} ${h.form}：` + Object.entries(h.by).map(([sj, x]) => `${sj}${x.ok}/${x.n}`).join('・') + (h.pass ? '　合格' : '　不合格')))); return this.examCenter(saved); }
-    const form = FORMS[v];
+    const form = v === 'honban' ? { ...FORMS.honban, set: nset } : FORMS[v];
+    if (v === 'honban') { const ok = await choose(`本番模試 第${nset}回。模試専用の問題35問を2時間で解きます。途中でアプリを閉じても時間は進み、開き直すと続きから再開します。中断すると判定に数えません。2時間とれますか？`, [{ label: '始める', value: 1 }]); if (!ok) return;
+      const qs = this.questions.filter(q => q.pool === 'mock' && q.mock_set === nset); Learn.examMode = true; Learn.subject = '模試';
+      const r = await runExam(this.ui, qs, form); Learn.examMode = false; if (r.aborted) { await say('中断しました。この回は判定に数えません。'); return; } await showResult(r, this.qById); return; }
     const short = Object.entries(form.parts).filter(([sj, n]) => cnt(sj) < n);
     if (short.length === Object.keys(form.parts).length && short.every(([sj]) => cnt(sj) === 0)) { await say('まだ習った範囲がありません。冒険を進めてから来てください。'); return; }
     if (short.length) await say(`まだ習った問題が足りない科目があるので、${short.map(([sj, n]) => `${sj}は${cnt(sj)}問`).join('、')}で出題します。`);
