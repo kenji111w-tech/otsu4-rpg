@@ -5,6 +5,31 @@ MODE = sys.argv[3] if len(sys.argv) > 3 else 'all'
 ACC = float(sys.argv[1]) if len(sys.argv) > 1 else 0.8  # 正答率
 random.seed(int(sys.argv[2]) if len(sys.argv) > 2 else 1)
 
+SCEN_FIRE = """(async () => {
+  const g = window.__game; window.__done = false; window.__log = [];
+  const ev = async e => { await g.onEvent(e); };
+  try {
+    const s = g.state; Object.keys(g.world.stages).filter(k => !/^R/.test(k)).forEach(k => s.cleared[k] = true);
+    Object.keys(g.world.stages).filter(k => g.world.stages[k].skill).forEach(k => { if (!s.skills.includes(g.world.stages[k].skill)) s.skills.push(g.world.stages[k].skill); });
+    s.flags.tutorial = true; s.flags.hoan = true; s.flags.chapter2 = true; s.flags.chapter3 = true; s.flags.finale = true; s.flags.cleared = true;
+    for (const id of ['hero','hoan','kemi','sekiyu']) { s.members[id] = Object.assign(s.members[id] || {id, name: {hero:'ユウ',hoan:'ホアン',kemi:'ケミ',sekiyu:'セキユ'}[id], exp: 0}, {lv: 37, mhp: 200, hp: 200, mmp: 82, mp: 82, atk: 45, def: 41}); }
+    s.items = {yakusou: 8, mizu: 4}; s.gold = 5000;
+    await g.fireStart();
+    window.__log.push('party:' + g.state.party.join(','));
+    const towns = ['R1','R2','R3','R5','R6'];
+    for (let i = 0; i < towns.length; i++) {
+      const T = towns[i], map = 'fire' + T.slice(1);
+      for (const st of [T+'-1',T+'-2',T+'-3',T+'-4',T+'-boss']) {
+        for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load(map, 9, 13); }
+        window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv);
+      }
+      if (i + 1 < towns.length) { g.field.load(map, 16, 8); await ev({type:'exit', to:'fire' + towns[i+1].slice(1), tx:9, ty:13, need:T+'-boss'}); }
+    }
+    window.__log.push('fireCleared:' + !!g.state.flags.fireCleared);
+  } catch (e) { window.__log.push('ERR ' + e.message + e.stack); }
+  window.__done = true;
+})(); 0;
+"""
 SCEN_CH3 = """(async () => {
   const g = window.__game; window.__done = false; window.__log = [];
   const ev = async e => { await g.onEvent(e); };
@@ -307,7 +332,7 @@ async def main():
             r = await bot_step(pg, None)
             if r == 'idle' and await pg.evaluate("!!(window.__game.state)"): break
             await pg.wait_for_timeout(30)
-        await pg.evaluate(SCEN_CH3.replace("/^[LDQP]/.test(k)).forEach(k => s.cleared[k] = true);", "/^([LDQP]|H[1-7])/.test(k)).forEach(k => s.cleared[k] = true); s.flags.chapter3 = true; s.members.sekiyu = {id:'sekiyu',name:'セキユ',lv:30,hp:150,mhp:150,mp:66,mmp:66,atk:38,def:34,exp:0};").replace("s.members.hero.lv = 23; Object.assign(s.members.hero, {mhp: 130, hp: 130, mmp: 56, mp: 56, atk: 33, def: 27});", "s.members.hero.lv = 31; Object.assign(s.members.hero, {mhp: 170, hp: 170, mmp: 72, mp: 72, atk: 42, def: 35});").replace("    s.items = {yakusou: 8, mizu: 4}; s.gold = 3000;", "    s.items = {yakusou: 8, mizu: 4}; s.gold = 3000; s.party = ['hero','sekiyu']; s.lastInn = {map:'town6',x:3,y:4};") if MODE == "ch3late" else SCEN_CH3 if MODE == "ch3" else SCEN_CH2 if MODE == "ch2" else SCEN)
+        await pg.evaluate(SCEN_CH3.replace("/^[LDQP]/.test(k)).forEach(k => s.cleared[k] = true);", "/^([LDQP]|H[1-7])/.test(k)).forEach(k => s.cleared[k] = true); s.flags.chapter3 = true; s.members.sekiyu = {id:'sekiyu',name:'セキユ',lv:30,hp:150,mhp:150,mp:66,mmp:66,atk:38,def:34,exp:0};").replace("s.members.hero.lv = 23; Object.assign(s.members.hero, {mhp: 130, hp: 130, mmp: 56, mp: 56, atk: 33, def: 27});", "s.members.hero.lv = 31; Object.assign(s.members.hero, {mhp: 170, hp: 170, mmp: 72, mp: 72, atk: 42, def: 35});").replace("    s.items = {yakusou: 8, mizu: 4}; s.gold = 3000;", "    s.items = {yakusou: 8, mizu: 4}; s.gold = 3000; s.party = ['hero','sekiyu']; s.lastInn = {map:'town6',x:3,y:4};") if MODE == "ch3late" else SCEN_FIRE if MODE == "fire" else SCEN_CH3 if MODE == "ch3" else SCEN_CH2 if MODE == "ch2" else SCEN)
         counts = {}
         for i in range(17000):
             if await pg.evaluate("window.__done"): break
