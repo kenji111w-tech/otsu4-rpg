@@ -19,7 +19,7 @@ function markText(box, text) {
 }
 // 町の人の話や合言葉で、数字・決まり言葉・「」の言葉を自動で《》にする
 const HL_RE = /(「[^」]{1,24}」|[－-]?\d[\d,.]*(?:〜[－-]?\d[\d,.]*)?(?:m|L|kg|℃|％|%|倍|年|か月|日|時間|基|人|kV|V|個)(?:以上|以下|未満|以内|ごと)?|市町村長等の「?許可」?|承認|認可|遅滞なく|10日前まで|火気厳禁|耐アルコール泡|窒息消火|空気より重い|水より軽い|水より重い|低い所|引火点|発火点|沸点)/g;
-export function hl(text) { return String(text).includes('《') ? text : String(text).replace(HL_RE, '《$1》'); }
+export function hl(text) { const t = String(text); return t.includes('《') ? t : t.replace(HL_RE, (m, a, i) => /(令和|平成|昭和)$/.test(t.slice(Math.max(0, i - 2), i)) ? m : `《${m}》`); } // 令和8年などの年号は光らせない
 export function say(lines) {
   if (!Array.isArray(lines)) lines = [lines];
   return new Promise(res => {

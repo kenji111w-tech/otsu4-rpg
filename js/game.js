@@ -617,10 +617,10 @@ class Game {
       const pts = Object.entries(this.world.stages).filter(([k, X]) => k.startsWith(town + '-') && !X.boss).map(([, X]) => X.lesson[X.lesson.length - 1][1]);
       const E = this.world.enemies[S.enemy];
       const c = await choose(`${G}「ボスに挑む前に、作戦会議をしますか？」`, [{ label: '作戦会議をする', value: 1 }, { label: 'すぐに挑む', value: 2 }], { cancel: false });
-      if (c === 1) await say([[G, 'この町で学んだことを振り返りましょう。']].concat(pts.map(p => [G, p])).concat([[G, `${E.name}の弱点は「${E.weak}」に関わる知識のはずです。予告が出たら、落ち着いて思い出しましょう。`]]));
+      if (c === 1) await say([[G, 'この町で学んだことを振り返りましょう。']].concat(pts.map(p => [G, hl(p)])).concat([[G, `${E.name}の弱点は「${E.weak}」に関わる知識のはずです。予告が出たら、落ち着いて思い出しましょう。`]]));
     }
     Learn.subject = id[0] === 'P' ? '物理・化学' : id[0] === 'H' ? '性質・消火' : id[0] === 'F' ? '総合' : id[0] === 'R' ? '火の国（他類）' : '法令';
-    await say(S.lesson);
+    await say(S.lesson.map(l => Array.isArray(l) ? [l[0], hl(l[1])] : hl(l))); // 授業：数字や大事な言葉を光らせる
     if (S.skill && !s.skills.includes(S.skill)) {
       s.skills.push(S.skill); const K = this.world.skills[S.skill];
       await say([`${K.user === 'hero' ? s.name : this.world.memberNames[K.user] || K.user}は「${K.name}」を覚えた！`, K.desc]);
