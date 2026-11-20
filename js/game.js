@@ -293,7 +293,7 @@ class Game {
     ]);
     this.state.flags.cleared = true;
     await this.clearReport();
-    const v = await choose('この先の物語', [{ label: '火の国へ進む（続きの物語）', value: 'go' }, { label: 'ここでエンディングを見る', value: 'end' }]);
+    let v = null; while (!v) v = await choose('この先の物語', [{ label: '火の国へ進む（続きの物語）', value: 'go' }, { label: 'ここでエンディングを見る', value: 'end' }]);
     if (v === 'go') return this.fireStart();
     await this.endingRoll();
     this.state.flags.endingSeen = true;
