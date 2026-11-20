@@ -22,6 +22,7 @@ class Game {
     this.ui = $('#ui'); initUI(this.ui);
     Learn.init(this.questions, this.dataVersion); Learn.startClock();
     this.buildKidEnemy();
+    try { this._syl = (await (await fetch('data/syllabus.json')).json()).items; } catch (e) { this._syl = []; }
     await loadAssets();
     let use3d = true; try { const c = document.createElement('canvas'); use3d = !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { use3d = false; }
     const FieldClass = use3d ? Field3D : Field;
@@ -214,7 +215,7 @@ class Game {
       ['ホアン', '砦の中には宿屋も役場もありません。届出（セーブ）をして、やくそうを持ってから向かいましょう。'],
     ]);
     this.state.flags.l3clear = true;
-    await this.recordScreen();
+    await this.clearReport();
   }
 
   async ending4() {
@@ -227,7 +228,7 @@ class Game {
       ['ホアン', '峠への道は、将軍の広間の右奥にあります。泉で休んでから行きましょう。'],
     ]);
     this.state.flags.d1clear = true;
-    await this.recordScreen();
+    await this.clearReport();
   }
 
   async ending5() {
@@ -240,7 +241,7 @@ class Game {
       ['ホアン', '城への道は、峠の頂上の左奥から続いています。'],
     ]);
     this.state.flags.d2clear = true;
-    await this.recordScreen();
+    await this.clearReport();
   }
 
   async finalStart() {
@@ -282,7 +283,7 @@ class Game {
       ['ショウボウ老師', '試験センターは、タイトル画面から行けるぞ。'],
     ]);
     this.state.flags.cleared = true;
-    await this.recordScreen();
+    await this.clearReport();
   }
   async chapter3Start() {
     const s = this.state, n = s.name, hero = s.members.hero;
@@ -307,7 +308,7 @@ class Game {
       ['ショウボウ老師', '試練の塔は、低地の油田のくぼ地の奥にある。準備ができたら向かうがよい。'],
     ]);
     this.state.flags.chapter3clear = true;
-    await this.recordScreen();
+    await this.clearReport();
   }
   async ending17() {
     const n = this.state.name;
@@ -320,7 +321,7 @@ class Game {
       ['セキユ', '低地の油田へは、この町の東の門から行けるぞ。'],
     ]);
     this.state.flags.h7clear = true;
-    await this.recordScreen();
+    await this.clearReport();
   }
   async ending16() {
     const n = this.state.name;
@@ -331,7 +332,7 @@ class Game {
       ['セキユ', '動植物油類の町へは、この町の東の門から行けるぞ。'],
     ]);
     this.state.flags.h6clear = true;
-    await this.recordScreen();
+    await this.clearReport();
   }
   async ending15() {
     const n = this.state.name;
@@ -343,7 +344,7 @@ class Game {
       ['セキユ', '第3・第4石油類の町へは、この町の東の門から行けるぞ。'],
     ]);
     this.state.flags.h5clear = true;
-    await this.recordScreen();
+    await this.clearReport();
   }
   async ending14() {
     const n = this.state.name;
@@ -354,7 +355,7 @@ class Game {
       ['セキユ', '第2石油類の町へは、この町の東の門から行けるぞ。'],
     ]);
     this.state.flags.h4clear = true;
-    await this.recordScreen();
+    await this.clearReport();
   }
   async ending13() {
     const n = this.state.name;
@@ -365,7 +366,7 @@ class Game {
       ['セキユ', 'アルコール類の町へは、この町の東の門から行けるぞ。'],
     ]);
     this.state.flags.h3clear = true;
-    await this.recordScreen();
+    await this.clearReport();
   }
   async ending12() {
     const n = this.state.name;
@@ -376,7 +377,7 @@ class Game {
       ['セキユ', '第1石油類の町へは、この町の東の門から行けるぞ。'],
     ]);
     this.state.flags.h2clear = true;
-    await this.recordScreen();
+    await this.clearReport();
   }
   async ending11() {
     const n = this.state.name;
@@ -387,7 +388,7 @@ class Game {
       ['セキユ', '特殊引火物の町へは、この町の東の門から行けるぞ。'],
     ]);
     this.state.flags.h1clear = true;
-    await this.recordScreen();
+    await this.clearReport();
   }
   async chapter2Start() {
     const s = this.state, n = s.name, hero = s.members.hero;
@@ -407,7 +408,7 @@ class Game {
       ['ケミ', '消火の町へは、この町の東の門から行けるわ。'],
     ]);
     this.state.flags.p1clear = true;
-    await this.recordScreen();
+    await this.clearReport();
   }
   async ending10() {
     const n = this.state.name;
@@ -420,7 +421,7 @@ class Game {
       ['ケミ', '最上階の奥の階段から、危険物の国への渡り廊下に出られるわ。'],
     ]);
     this.state.flags.p4clear = true;
-    await this.recordScreen();
+    await this.clearReport();
   }
   async ending9() {
     const n = this.state.name;
@@ -431,7 +432,7 @@ class Game {
       ['ケミ', '奥の扉の先は「化学の塔」。物が別の物に変わる仕組み……化学の基本を確かめに行きましょう。'],
     ]);
     this.state.flags.p3clear = true;
-    await this.recordScreen();
+    await this.clearReport();
   }
   async ending8() {
     const n = this.state.name;
@@ -442,7 +443,7 @@ class Game {
       ['ケミ', '東の門の先に「熱の洞窟」があるわ。物が溶けたり、湯気になったり、ふくらんだり……熱の正体を確かめに行きましょう。'],
     ]);
     this.state.flags.p2clear = true;
-    await this.recordScreen();
+    await this.clearReport();
   }
   async ending6() {
     const n = this.state.name;
@@ -457,7 +458,7 @@ class Game {
       '（法令の国の寄り道をすませてから、玉座の奥の扉へ進もう）',
     ]);
     this.state.flags.d3clear = true; this.state.flags.chapter1 = true;
-    await this.recordScreen();
+    await this.clearReport();
   }
 
   // ---------- イベント ----------
@@ -611,8 +612,8 @@ class Game {
         if (v === 'st') await say(this.state.party.map(id => { const m = this.state.members[id]; return `${m.name}　Lv${m.lv}　HP ${m.hp}/${m.mhp}　MP ${m.mp}/${m.mmp}　こうげき ${m.atk}　まもり ${m.def}`; }).concat([`所持金 ${this.state.gold}G`]));
         if (v === 'sk') await say(this.state.skills.length ? this.state.skills.map(id => { const K = this.world.skills[id]; const rust = K.kids.some(k => Learn.isDue(k)); return `${K.name}（${K.user === 'hoan' ? 'ホアン' : this.state.name}・MP${K.mp}）${rust ? '【さび】' : ''}：${K.desc}`; }) : 'まだ技を覚えていない。');
         if (v === 'bag') await this.bag();
-        if (v === 'rec') await this.recordScreen();
-        if (v === 'weak') await this.weakScreen();
+        if (v === 'rec') await this.recordScreen(); // メニューからは成長指標だけ
+        if (v === 'weak') await this.weakReport(false);
         if (v === 'zk') { const z = this.state.zukan; const ks = Object.keys(z).filter(k => z[k].defeated); await say(ks.length ? ks.map(k => `${this.world.enemies[k].name}（倒した数 ${z[k].defeated}）弱点：${z[k].weak || '？（物質識別で見抜くと記録される）'}`) : 'まだ魔物を倒していない。'); }
         if (v === 'set') { const r = await this.settings(); if (r) { this.field.busy = false; return this.title(); } }
       }
@@ -648,19 +649,6 @@ class Game {
     await say([`宿屋の主人「${from}さんから、お手紙が届いていますよ」`, [`${from}の手紙`, `${s.name}さんへ。そろそろ忘れかけているころかもしれない知識を書いておきます。`]]
       .concat([[`${from}の手紙`, topics.map(t => `・「${t}」`).join('\n')]])
       .concat([[`${from}の手紙`, `答えは書きません。目を閉じて、どんな決まりだったか思い出してみてください。今日あたり、戦いの中で問われるかもしれませんよ。`]]));
-  }
-  // 苦手の判定と練習
-  async weakScreen() {
-    const w = Learn.weakTopics();
-    if (!w.length) return say(['にがての分野は、まだ見つかっていない。', '（同じ分野の問題に3問以上答えると、最近の正答率から判定します。80%未満の分野が「にがて」です）']);
-    const v = await choose('にがての分野（最近の正答率）', w.map(x => ({ label: x.topic, note: `${x.rate}%（${x.n}問）`, value: x.topic })).concat([{ label: 'もどる', value: null }]));
-    if (!v) return;
-    const qs = this.questions.filter(q => q.topic === v && Learn.learned(q.knowledge_id) && !q.call && q.pool !== 'mock');
-    if (!qs.length) return say('練習できる問題がない。');
-    await say([['ショウボウ老師', `「${v}」の練習じゃな。5問いくぞ。まちがえたら解説をよく読むのじゃ。`]]);
-    let ok = 0; const set = qs.sort(() => Math.random() - .5).slice(0, 5);
-    for (const q of set) { const r = await ask(q, { title: `にがての練習：${v}`, mode: 'battle' }); if (r.correct) ok++; }
-    await say([['ショウボウ老師', `${set.length}問中${ok}問正解じゃ。` + (ok === set.length ? 'よく覚えておる！' : 'まちがえた問題は、また戦いの中で出てくるぞ。')]]);
   }
   async bag() {
     const v = await choose('ふくろ', [{ label: 'どうぐ', value: 'i' }, { label: '装備（見た目だけ）', value: 'e' }, { label: '知識', value: 'k' }, { label: '大事なもの', value: 'd' }]);
@@ -722,6 +710,47 @@ class Game {
     if (!q) return null; const sid = `${q.town}-${q.stage}`, st = this.world.stages[sid];
     const map = Object.values(this.world.maps).find(m => (m.events || []).some(e => e.type === 'stage' && e.id === sid));
     return `${map ? map.name : ''}「${st.name}」`;
+  }
+  // クリアしたとき：成長指標のあとに、にがてのまとめを見せる
+  async clearReport() { await this.recordScreen(); await this.weakReport(true); }
+  itemOf(kid) { return (this._syl || []).find(x => (x.kid_prefixes || []).some(p => kid.startsWith(p))) || null; }
+  // にがての判定：出題範囲の項目ごとに、最近10回の解答で「迷わず・ヒントなしで正解」の割合を出す（2回以上答えた項目）
+  weakItems() {
+    const by = {};
+    for (const a of Learn.d.answers) {
+      if (a.held || a.mode === 'furikaeri' || !a.kid) continue;
+      const q = this.qById[a.qid]; if (!q || q.topic === 'identify' || q.call) continue;
+      const it = this.itemOf(a.kid); if (!it) continue;
+      (by[it.id] = by[it.id] || { it, as: [] }).as.push(a);
+    }
+    return Object.values(by).map(({ it, as }) => { const r = as.slice(-10), ok = r.filter(a => a.correct && !a.hint && !a.unsure).length, bad = r.filter(a => !a.correct || a.hint || a.unsure);
+      return { it, n: r.length, rate: Math.round(ok / r.length * 100), kid: (bad.slice(-1)[0] || r[0]).kid }; })
+      .filter(x => x.n >= 2 && x.rate < 70).sort((a, b) => a.rate - b.rate || b.n - a.n);
+  }
+  subjectRates() {
+    const by = {};
+    for (const a of Learn.d.answers) { if (a.held || a.mode === 'furikaeri') continue; const q = this.qById[a.qid]; if (!q || q.topic === 'identify' || q.call || !['法令', '物理化学', '性質消火'].includes(q.subject)) continue; const x = by[q.subject] = by[q.subject] || { ok: 0, n: 0 }; x.n++; if (a.correct && !a.hint) x.ok++; }
+    return ['法令', '物理化学', '性質消火'].filter(sj => by[sj]).map(sj => `${sj === '物理化学' ? '物理・化学' : sj === '性質消火' ? '性質・消火' : sj} ${Math.round(by[sj].ok / by[sj].n * 100)}%（${by[sj].n}問）`);
+  }
+  async weakReport(afterClear = false) {
+    const w = this.weakItems(), sr = this.subjectRates();
+    const head = '【にがてのまとめ】' + (sr.length ? '\n科目別の正答率：' + sr.join('・') : '');
+    if (!w.length) { await say([head, 'いまのところ、にがての項目は見つかっていない。この調子じゃ！\n（出題範囲の項目ごとに、最近の解答で「迷わず・ヒントなしで正解」が7割に届かない項目を「にがて」として示します）']); return; }
+    const top = w.slice(0, 5);
+    await say([head, `まだ身についていない項目が ${w.length}こ あります。苦手な順に${top.length < w.length ? `上から${top.length}こ` : ''}示します。`,
+      top.map((x, i) => { const where = this.whereTaught(x.kid); return `${i + 1}. ${x.it.item}\n　正答率${x.rate}%（${x.n}問）` + (where ? `\n　→ 復習：${where}` : ''); }).join('\n')]);
+    const v = await choose(afterClear ? 'にがての項目を、いま練習しますか？' : 'どの項目を練習しますか？', top.map(x => ({ label: x.it.item, note: `${x.rate}%`, value: x.it.id })));
+    if (!v) { if (afterClear) await say([['ショウボウ老師', 'メニューの「にがて」から、いつでもこのまとめを見て練習できるぞ。']]); return; }
+    return this.weakPractice(top.find(x => x.it.id === v).it);
+  }
+  async weakPractice(it) {
+    const qs = this.questions.filter(q => q.pool !== 'mock' && !q.call && q.topic !== 'identify' && (it.kid_prefixes || []).some(p => q.knowledge_id.startsWith(p)) && Learn.learned(q.knowledge_id));
+    if (!qs.length) return say('練習できる問題がない。');
+    const set = qs.sort(() => Math.random() - .5).slice(0, 5);
+    await say([['ショウボウ老師', `「${it.item}」の練習じゃな。${set.length}問いくぞ。まちがえたら解説をよく読むのじゃ。`]]);
+    let ok = 0;
+    for (const q of set) { const r = await ask(q, { title: `にがての練習：${it.item}`, mode: 'battle' }); if (r.correct) ok++; }
+    await say([['ショウボウ老師', `${set.length}問中${ok}問正解じゃ。` + (ok === set.length ? 'よく覚えておる！' : 'まちがえた問題は、また戦いや宿屋の手紙で出てくるぞ。')]]);
   }
   async recordScreen() {
     const st = Learn.stats(); const hero = this.state.members.hero;
