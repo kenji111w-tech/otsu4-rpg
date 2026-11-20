@@ -20,7 +20,11 @@ export function say(lines) {
       p.appendChild(el('div', 'txt', text));
       p.appendChild(el('div', 'next', '▼'));
     };
-    p.addEventListener('click', () => { i++; if (i >= lines.length) { close(p); res(); } else show(); });
+    // 画面のどこをタップしても次へ進む（会話の枠の外も）
+    const all = el('div', 'tapall', ''); layer.appendChild(all);
+    let t0 = Date.now();
+    const next = () => { if (Date.now() - t0 < 120) return; t0 = Date.now(); i++; if (i >= lines.length) { close(p); all.remove(); res(); } else show(); };
+    p.addEventListener('click', next); all.addEventListener('click', next);
     show();
   });
 }

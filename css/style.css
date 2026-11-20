@@ -32,6 +32,7 @@ button { font: inherit; color: inherit; }
 /* 戦闘中のメッセージは、敵の絵にかぶらないよう下に出す */
 #ui:has(.battle) .msg { top: auto; bottom: calc(10px + env(safe-area-inset-bottom)); }
 .msg .txt { white-space: pre-line; }
+.tapall { position: absolute; inset: 0; z-index: 59; background: transparent; -webkit-tap-highlight-color: transparent; }
 .msg .who { color: #ffd76a; font-size: 14px; margin-bottom: 2px; }
 .msg .next { position: absolute; right: 12px; bottom: 6px; font-size: 12px; animation: blink 1s infinite; }
 @keyframes blink { 50% { opacity: .2; } }
