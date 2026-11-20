@@ -1741,10 +1741,10 @@ for i, (kid, sj, qq, ch, a, ex, ce, src) in enumerate(M6, 1): mk(i, 6, kid, sj, 
 # まちがい選択肢の長さをそろえる差し替え（tools/choice_fix_*.py の FIX）
 import glob, importlib
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-_FIX = {}; _ANS = {}
+_FIX = {}; _ANS = {}; _ONE = {}
 for _p in sorted(glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'choice_fix_*.py'))):
     _m = importlib.import_module(os.path.basename(_p)[:-3])
-    _FIX.update(getattr(_m, 'FIX', {})); _ANS.update(getattr(_m, 'ANS', {}))
+    _FIX.update(getattr(_m, 'FIX', {})); _ANS.update(getattr(_m, 'ANS', {})); _ONE.update(getattr(_m, 'ONE', {}))
 assert not set(_ANS) - {q['id'] for q in Q}, set(_ANS) - {q['id'] for q in Q}
 for _q in Q:
     if _q['id'] in _ANS: _q['choices'][_q['answer']] = _ANS[_q['id']]
@@ -1756,6 +1756,11 @@ for _q in Q:
         for _i in range(len(_q['choices'])):
             if _i != _q['answer']:
                 _q['choices'][_i], _q['choice_explanations'][_i] = _f.pop(0)
+for _q in Q:
+    if _q['id'] in _ONE:
+        _old, _new = _ONE[_q['id']]
+        _i = _q['choices'].index(_old); assert _i != _q['answer'], _q['id']
+        _q['choices'][_i] = _new
 json.dump({'data_version': '2026.11.18-proto', 'questions': Q}, open(sys.argv[1], 'w'), ensure_ascii=False, indent=1)
 from collections import Counter
 print(len(Q), Counter(x['kind'] for x in Q), Counter(x['pool'] for x in Q))
