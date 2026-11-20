@@ -766,14 +766,18 @@
    "subject": "性質・消火",
    "area": "品名別",
    "item": "第3石油類",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "H-SE3"
+   ]
   },
   {
    "id": "H-10",
    "subject": "性質・消火",
    "area": "品名別",
    "item": "第4石油類",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "H-SE4"
+   ]
   },
   {
    "id": "H-11",
