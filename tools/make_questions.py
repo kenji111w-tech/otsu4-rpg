@@ -1738,14 +1738,20 @@ M6 = [
 for i, (kid, sj, qq, ch, a, ex, ce, src) in enumerate(M5, 1): mk(i, 5, kid, sj, qq, ch, a, ex, ce, src)
 for i, (kid, sj, qq, ch, a, ex, ce, src) in enumerate(M6, 1): mk(i, 6, kid, sj, qq, ch, a, ex, ce, src)
 
-# 模試：まちがい選択肢の長さをそろえる差し替え
+# まちがい選択肢の長さをそろえる差し替え（tools/choice_fix_*.py の FIX）
+import glob, importlib
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from choice_fix_mock import FIX as _FIXM
+_FIX = {}
+for _p in sorted(glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'choice_fix_*.py'))):
+    _FIX.update(importlib.import_module(os.path.basename(_p)[:-3]).FIX)
+_ids = {q['id'] for q in Q}
+assert not set(_FIX) - _ids, set(_FIX) - _ids
 for _q in Q:
-    if _q['id'] in _FIXM:
-        _f = _FIXM[_q['id']]; assert len(_f) == len(_q['choices']) - 1 and _q['answer'] == 0, _q['id']
-        _q['choices'] = [_q['choices'][0]] + [a for a, b in _f]
-        _q['choice_explanations'] = [_q['choice_explanations'][0]] + [b for a, b in _f]
+    if _q['id'] in _FIX:
+        _f = list(_FIX[_q['id']]); assert len(_f) == len(_q['choices']) - 1, _q['id']
+        for _i in range(len(_q['choices'])):
+            if _i != _q['answer']:
+                _q['choices'][_i], _q['choice_explanations'][_i] = _f.pop(0)
 json.dump({'data_version': '2026.11.18-proto', 'questions': Q}, open(sys.argv[1], 'w'), ensure_ascii=False, indent=1)
 from collections import Counter
 print(len(Q), Counter(x['kind'] for x in Q), Counter(x['pool'] for x in Q))
