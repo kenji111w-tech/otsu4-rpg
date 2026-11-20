@@ -684,7 +684,7 @@ class Game {
     const cleared = (saved && saved.cleared) || {}, all = !!(saved && saved.flags && saved.flags.cleared);
     const pool = examPool(this.questions, cleared, all);
     const cnt = sj => pool.filter(q => q.subject === sj).length;
-    await say(['試験センターへようこそ。ここでは本番と同じ形の模擬試験が受けられます。',
+    await say(['試験センターへようこそ。ここでは本番と同じ形の模擬試験が受けられます。今は、冒険で出てくる問題から組む「練習模試」です。本番用の模試専用問題は準備中です。',
       '本番は、法令15問・物理・化学10問・性質・消火10問の35問を2時間で解きます。科目ごとに6割以上正解すれば合格です。1科目でも6割に届かないと不合格です。',
       all ? '物語をクリアしたので、すべての範囲から出題します。' : `出題は、冒険でもう習った範囲だけです（今は 法令${cnt('法令')}問・物理・化学${cnt('物理・化学')}問・性質・消火${cnt('性質・消火')}問 の中から）。冒険を進めると範囲が広がります。`]);
     const hist = Learn.d.mocks || [];
