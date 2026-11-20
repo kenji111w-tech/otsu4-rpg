@@ -652,7 +652,8 @@ class Game {
     const town0 = id.split('-')[0], M = (this.world.mysteries || {})[town0];
     s.clues = s.clues || {};
     if (M && !s.flags['myst_' + town0]) { s.flags['myst_' + town0] = true; await say([`【事件】${M.title}`].concat(M.intro.map(l => [l[0], hl(l[1])]))); }
-    if (S.boss && M) { // 推理：集めた手がかりから犯人を当てる
+    if (S.boss && M && !s.flags['rev_' + town0]) { // 推理：集めた手がかりから犯人を当てる（2回目の挑戦からは省く）
+      s.flags['rev_' + town0] = true;
       const got = s.clues[town0] || [];
       await say([[G, got.length ? `集めた手がかり：${got.map(x => `「${x}」`).join('')}` : '手がかりは少ないけれど、考えてみましょう。']].concat(M.reveal.map(l => [l[0], hl(l[1])])));
     }
@@ -683,7 +684,7 @@ class Game {
     if (S.clue) { const c = (s.clues = s.clues || {})[id.split('-')[0]] = (s.clues[id.split('-')[0]] || []); if (!c.includes(S.clue.name)) { c.push(S.clue.name); await say([`手がかり「${S.clue.name}」を手に入れた！`, [G, hl(S.clue.text)]]); } }
     if (S.boss && M && M.after) { s.flags['solved_' + town0] = true; await say(M.after.map(l => Array.isArray(l) ? [l[0], hl(l[1])] : l)); }
     if (S.boss && id[0] === 'R') return this.fireClear(id);
-    if (S.boss) return ({ 'L1-boss': () => this.ending(), 'L2-boss': () => this.ending2(), 'L3-boss': () => this.ending3(), 'D1-boss': () => this.ending4(), 'D2-boss': () => this.ending5(), 'D3-boss': () => this.ending6(), 'P1-boss': () => this.ending7(), 'P2-boss': () => this.ending8(), 'P3-boss': () => this.ending9(), 'P4-boss': () => this.ending10(), 'H1-boss': () => this.ending11(), 'H2-boss': () => this.ending12(), 'H3-boss': () => this.ending13(), 'H4-boss': () => this.ending14(), 'H5-boss': () => this.ending15(), 'H6-boss': () => this.ending16(), 'H7-boss': () => this.ending17(), 'H8-boss': () => this.ending18(), 'F-boss': () => this.finalBoss() })[id]();
+    if (S.boss) { await ({ 'L1-boss': () => this.ending(), 'L2-boss': () => this.ending2(), 'L3-boss': () => this.ending3(), 'D1-boss': () => this.ending4(), 'D2-boss': () => this.ending5(), 'D3-boss': () => this.ending6(), 'P1-boss': () => this.ending7(), 'P2-boss': () => this.ending8(), 'P3-boss': () => this.ending9(), 'P4-boss': () => this.ending10(), 'H1-boss': () => this.ending11(), 'H2-boss': () => this.ending12(), 'H3-boss': () => this.ending13(), 'H4-boss': () => this.ending14(), 'H5-boss': () => this.ending15(), 'H6-boss': () => this.ending16(), 'H7-boss': () => this.ending17(), 'H8-boss': () => this.ending18(), 'F-boss': () => this.finalBoss() })[id](); Sound.bgm(this.mapBgm()); return; } // しんみりした曲などのあとは、その場所の曲にもどす
     // ホアンの確認：そのステージの五肢択一から2問（未出題を優先）
     const done = new Set(Learn.d.answers.map(a => a.qid));
     const [town, sn] = id.split('-');
@@ -970,7 +971,15 @@ class Game {
     }
     let raw = null;
     if (v === 'paste') raw = await prompt('バックアップの文字を貼り付けてください', { multiline: true });
-    if (v === 'load') raw = await new Promise(res => { const f = el('input'); f.type = 'file'; f.accept = '.json,application/json,text/plain'; f.onchange = () => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsText(f.files[0]); }; f.click(); });
+    if (v === 'load') raw = await new Promise(res => { // ファイル選びをやめたときも、止まらずに戻る
+      const f = el('input'); f.type = 'file'; f.accept = '.json,application/json,text/plain'; let done = false;
+      const fin = x => { if (!done) { done = true; removeEventListener('focus', onFocus); res(x); } };
+      f.onchange = () => { if (!f.files[0]) return fin(null); const r = new FileReader(); r.onload = () => fin(r.result); r.onerror = () => fin(null); r.readAsText(f.files[0]); };
+      f.addEventListener('cancel', () => fin(null));
+      const onFocus = () => setTimeout(() => { if (!f.files || !f.files.length) fin(null); }, 1500);
+      addEventListener('focus', onFocus); f.click();
+    });
+    if (v === 'load' && !raw) return say('ファイルの読み込みをやめました。');
     if (!raw) return;
     const p = Learn.parseImport(raw);
     if (!p.error && p.ok.game != null && !this.validGame(p.ok.game)) p.error = '冒険の記録（届出）の中身が壊れています。読み込めません。（今のデータは変わっていません）';
