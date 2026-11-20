@@ -1193,6 +1193,23 @@ export const ENEMY_HQ = {
   numaou(ctx, cx, cy, R, t) { ctx.fillStyle = lin(ctx, 0, cy - R * .5, 0, cy + R * .9, ['#c8d0dc', '#5a6a80']); ctx.beginPath(); ctx.ellipse(cx, cy + R * .3, R * .6, R * .55, 0, 0, 7); ctx.fill();
     ctx.beginPath(); ctx.ellipse(cx, cy - R * .35, R * .32, R * .28, 0, 0, 7); ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = R * .02; for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.arc(cx + (i - 2.5) * R * .18, cy + R * .3, R * .1, 3.4, 6); ctx.stroke(); }
     eyes2(ctx, cx, cy - R * .38, R); flicker(ctx, cx - R * .5, cy + R * .1, R, t); flicker(ctx, cx + R * .5, cy + R * .2, R, t + 6); plate(ctx, cx, cy + R * .55, R, '第3類', '#2a5aa8'); },
+  jibunmoe(ctx, cx, cy, R, t) { ctx.fillStyle = lin(ctx, cx - R * .35, 0, cx + R * .35, 0, ['#c8a070', '#8a6a40']); rr(ctx, cx - R * .35, cy - R * .25, R * .7, R * .9, R * .08); ctx.fill(); ctx.beginPath(); ctx.arc(cx, cy - R * .45, R * .22, 0, 7); ctx.fill();
+    ctx.fillStyle = '#2a1a10'; rr(ctx, cx - R * .15, cy, R * .3, R * .3, R * .04); ctx.fill(); flicker(ctx, cx, cy + R * .27, R * 1.2, t);
+    ctx.strokeStyle = '#6a4a2a'; ctx.lineWidth = R * .05; [-1, 1].forEach(k => { ctx.beginPath(); ctx.moveTo(cx + k * R * .35, cy - R * .1); ctx.lineTo(cx + k * R * .6, cy + R * .2 + Math.sin(t / 6 + k) * R * .1); ctx.stroke(); });
+    eyes2(ctx, cx, cy - R * .47, R); plate(ctx, cx, cy + R * .52, R, '第5類', '#a83a2a'); },
+  peroxa(ctx, cx, cy, R, t) { ctx.fillStyle = 'rgba(210,230,240,.55)'; rr(ctx, cx - R * .35, cy - R * .3, R * .7, R * 1, R * .15); ctx.fill(); ctx.fillStyle = '#8a6a3a'; rr(ctx, cx - R * .15, cy - R * .5, R * .3, R * .2, R * .03); ctx.fill();
+    ctx.fillStyle = '#ffffff'; for (let i = 0; i < 18; i++) { ctx.beginPath(); ctx.arc(cx + Math.sin(i * 2.4) * R * .25, cy + R * .3 + Math.cos(i * 1.9) * R * .3, R * .045, 0, 7); ctx.fill(); }
+    for (let i = 0; i < 3; i++) { const p = ((t / 2 + i * 16) % 48) / 48; ctx.fillStyle = `rgba(230,230,230,${.6 * (1 - p)})`; ctx.beginPath(); ctx.arc(cx + R * .1, cy - R * .55 - p * R * .5, R * (.05 + p * .1), 0, 7); ctx.fill(); }
+    eyes2(ctx, cx, cy - R * .05, R); plate(ctx, cx, cy + R * .58, R, '第5類', '#a83a2a'); },
+  nitrowata(ctx, cx, cy, R, t) { for (let i = 0; i < 12; i++) { const a = i * .52 + t / 40; ctx.fillStyle = i % 2 ? '#ffffff' : '#eeeeea'; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * R * .32, cy + Math.sin(a) * R * .36, R * .22, 0, 7); ctx.fill(); }
+    ctx.fillStyle = 'rgba(140,90,40,.6)'; ctx.beginPath(); ctx.arc(cx + R * .3, cy - R * .25, R * .1, 0, 7); ctx.fill(); eyes2(ctx, cx, cy - R * .05, R); plate(ctx, cx, cy + R * .5, R, '第5類', '#a83a2a'); },
+  picrin(ctx, cx, cy, R, t) { ctx.fillStyle = lin(ctx, cx - R * .3, 0, cx + R * .3, 0, ['#e8d040', '#b89a10']); rr(ctx, cx - R * .3, cy - R * .25, R * .6, R * .9, R * .08); ctx.fill(); ctx.beginPath(); ctx.arc(cx, cy - R * .45, R * .2, 0, 7); ctx.fill();
+    ctx.save(); ctx.translate(cx - R * .5, cy + R * .1); ctx.fillStyle = '#f0dc50'; ctx.beginPath(); ctx.moveTo(0, -R * .35); ctx.lineTo(R * .22, -R * .2); ctx.lineTo(R * .22, R * .2); ctx.lineTo(0, R * .38); ctx.lineTo(-R * .22, R * .2); ctx.lineTo(-R * .22, -R * .2); ctx.fill(); ctx.restore();
+    spear(ctx, cx + R * .5, cy, R, t); eyes2(ctx, cx, cy - R * .47, R); plate(ctx, cx, cy + R * .45, R, '第5類', '#a83a2a'); },
+  kobocho(ctx, cx, cy, R, t) { ctx.fillStyle = lin(ctx, 0, cy - R * .5, 0, cy + R * .9, ['#d8a870', '#7a5a30']); rr(ctx, cx - R * .45, cy - R * .4, R * .9, R * 1.25, R * .12); ctx.fill(); ctx.beginPath(); ctx.arc(cx, cy - R * .58, R * .25, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#5a3a1a'; ctx.lineWidth = R * .06; for (let k = 0; k < 4; k++) { const a = -2.6 + k * .6 + Math.sin(t / 8 + k) * .15; ctx.beginPath(); ctx.moveTo(cx + (k < 2 ? -1 : 1) * R * .4, cy - R * .1); ctx.lineTo(cx + Math.cos(a) * R * .85 * (k < 2 ? 1 : -1), cy + Math.sin(a) * R * .6); ctx.stroke(); }
+    ctx.fillStyle = '#4a2a10'; rr(ctx, cx - R * .2, cy, R * .4, R * .35, R * .05); ctx.fill(); flicker(ctx, cx, cy + R * .32, R * 1.4, t);
+    eyes2(ctx, cx, cy - R * .6, R); plate(ctx, cx, cy + R * .55, R, '第5類', '#a83a2a'); },
   // __ENEMY_END__
 };
 function mist(ctx, cx, cy, R, t) { for (let i = 0; i < 6; i++) { const p = ((t / 3 + i * 8) % 48) / 48; ctx.fillStyle = `rgba(250,230,120,${.35 * (1 - p)})`; ctx.beginPath(); ctx.arc(cx + Math.sin(i * 2.4) * R * .7, cy - R * .2 - p * R * .6, R * (.12 + p * .2), 0, 7); ctx.fill(); } }
