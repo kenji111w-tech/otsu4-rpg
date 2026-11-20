@@ -1,5 +1,5 @@
 // 共通の小道具
-export const APP_VERSION = '0.9.49-proto';
+export const APP_VERSION = '0.9.50-proto';
 export const SCHEMA_VERSION = 1;
 export const KEY = 'otsu4rpg:'; // GitHub Pages では同じユーザーの全リポジトリが保存領域を共有するため必ず付ける
 

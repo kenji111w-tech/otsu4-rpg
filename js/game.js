@@ -612,15 +612,27 @@ class Game {
     if (s.cleared[id]) { await say(`${S.name}の事件は解決した。`); return; }
     if (S.need && !s.cleared[S.need]) { await say([[G, `ここはあとにしましょう。先に「${this.world.stages[S.need].name}」の事件を。`]]); return; }
     const go = await choose(`${S.name}`, [{ label: '事件の現場に入る', value: 1 }]); if (!go) return;
+    const town0 = id.split('-')[0], M = (this.world.mysteries || {})[town0];
+    s.clues = s.clues || {};
+    if (M && !s.flags['myst_' + town0]) { s.flags['myst_' + town0] = true; await say([`【事件】${M.title}`].concat(M.intro.map(l => [l[0], hl(l[1])]))); }
+    if (S.boss && M) { // 推理：集めた手がかりから犯人を当てる
+      const got = s.clues[town0] || [];
+      await say([[G, got.length ? `集めた手がかり：${got.map(x => `「${x}」`).join('')}` : '手がかりは少ないけれど、考えてみましょう。']].concat(M.reveal.map(l => [l[0], hl(l[1])])));
+    }
     if (S.boss) { // ボス戦の前の作戦会議：この町で学んだ要点とボスの弱点の手がかり
       const town = id.split('-')[0];
-      const pts = Object.entries(this.world.stages).filter(([k, X]) => k.startsWith(town + '-') && !X.boss).map(([, X]) => X.lesson[X.lesson.length - 1][1]);
+      const pts = Object.entries(this.world.stages).filter(([k, X]) => k.startsWith(town + '-') && !X.boss).map(([, X]) => X.core ? X.core[0][1] : X.lesson[X.lesson.length - 1][1]);
       const E = this.world.enemies[S.enemy];
       const c = await choose(`${G}「ボスに挑む前に、作戦会議をしますか？」`, [{ label: '作戦会議をする', value: 1 }, { label: 'すぐに挑む', value: 2 }], { cancel: false });
       if (c === 1) await say([[G, 'この町で学んだことを振り返りましょう。']].concat(pts.map(p => [G, hl(p)])).concat([[G, `${E.name}の弱点は「${E.weak}」に関わる知識のはずです。予告が出たら、落ち着いて思い出しましょう。`]]));
     }
     Learn.subject = id[0] === 'P' ? '物理・化学' : id[0] === 'H' ? '性質・消火' : id[0] === 'F' ? '総合' : id[0] === 'R' ? '火の国（他類）' : '法令';
-    await say(S.lesson.map(l => Array.isArray(l) ? [l[0], hl(l[1])] : hl(l))); // 授業：数字や大事な言葉を光らせる
+    const lines = L => L.map(l => Array.isArray(l) ? [l[0], hl(l[1])] : hl(l)); // 授業：数字や大事な言葉を光らせる
+    if (S.core) { // 短い授業（3行まで）。くわしい話は「もっと聞く」で
+      await say(lines(S.core));
+      let more = await choose(`${G}の話`, [{ label: '現場へ向かう', value: 'go' }, { label: 'もっと聞く（くわしい説明）', value: 'more' }], { cancel: false });
+      if (more === 'more') { await say(lines(S.lesson)); }
+    } else await say(lines(S.lesson));
     if (S.skill && !s.skills.includes(S.skill)) {
       s.skills.push(S.skill); const K = this.world.skills[S.skill];
       await say([`${K.user === 'hero' ? s.name : this.world.memberNames[K.user] || K.user}は「${K.name}」を覚えた！`, K.desc]);
@@ -630,6 +642,8 @@ class Game {
     if (r !== 'win') { await say([[G, 'いったん引きましょう。準備ができたら、また来てください。']]); return; }
     s.cleared[id] = true;
     if (S.doc && !(s.docs || (s.docs = [])).includes(S.doc)) { s.docs.push(S.doc); await say([`大事なもの「${S.doc}」を手に入れた！`, [G, S.doc === '許可書' ? '設置の許可を受けた証です。次は工事、そして完成検査。手続きには順番があります。' : '完成検査で基準に適合していると認められた証です。これでようやく使い始められます。']]); }
+    if (S.clue) { const c = (s.clues = s.clues || {})[id.split('-')[0]] = (s.clues[id.split('-')[0]] || []); if (!c.includes(S.clue.name)) { c.push(S.clue.name); await say([`手がかり「${S.clue.name}」を手に入れた！`, [G, hl(S.clue.text)]]); } }
+    if (S.boss && M && M.after) { s.flags['solved_' + town0] = true; await say(M.after.map(l => Array.isArray(l) ? [l[0], hl(l[1])] : l)); }
     if (S.boss && id[0] === 'R') return this.fireClear(id);
     if (S.boss) return ({ 'L1-boss': () => this.ending(), 'L2-boss': () => this.ending2(), 'L3-boss': () => this.ending3(), 'D1-boss': () => this.ending4(), 'D2-boss': () => this.ending5(), 'D3-boss': () => this.ending6(), 'P1-boss': () => this.ending7(), 'P2-boss': () => this.ending8(), 'P3-boss': () => this.ending9(), 'P4-boss': () => this.ending10(), 'H1-boss': () => this.ending11(), 'H2-boss': () => this.ending12(), 'H3-boss': () => this.ending13(), 'H4-boss': () => this.ending14(), 'H5-boss': () => this.ending15(), 'H6-boss': () => this.ending16(), 'H7-boss': () => this.ending17(), 'H8-boss': () => this.ending18(), 'F-boss': () => this.finalBoss() })[id]();
     // ホアンの確認：そのステージの五肢択一から2問（未出題を優先）
@@ -737,7 +751,7 @@ class Game {
       .concat([[`${from}の手紙`, `答えは書きません。目を閉じて、どんな決まりだったか思い出してみてください。今日あたり、戦いの中で問われるかもしれませんよ。`]]));
   }
   async bag() {
-    const v = await choose('ふくろ', [{ label: 'どうぐ', value: 'i' }, { label: '装備（見た目だけ）', value: 'e' }, { label: '知識', value: 'k' }, { label: '合言葉帳', value: 'a' }, { label: '大事なもの', value: 'd' }]);
+    const v = await choose('ふくろ', [{ label: 'どうぐ', value: 'i' }, { label: '装備（見た目だけ）', value: 'e' }, { label: '知識', value: 'k' }, { label: '合言葉帳', value: 'a' }, { label: '事件の手帳', value: 'm' }, { label: '大事なもの', value: 'd' }]);
     if (v === 'i') await say(Object.entries(this.state.items).filter(([, n]) => n > 0).map(([k, n]) => `${this.world.items[k].name} ×${n}：${this.world.items[k].desc}`).concat(['（どうぐは戦闘中に使える）']));
     if (v === 'e') await say('たびびとの服（見た目だけ。強さには影響しない）');
     if (v === 'k') {
@@ -751,6 +765,11 @@ class Game {
       const t = await choose(`${g}（第2段階）`, Object.entries(tps).map(([k, a]) => ({ label: k, note: `${a.length}枚`, value: k })));
       if (!t) return;
       await say(tps[t].map(q => { const r = Learn.d.review[q.knowledge_id]; return `【${r.mastered ? '習得' : '段階' + r.stage}】${q.explanation}`; }));
+    }
+    if (v === 'm') {
+      const M = this.world.mysteries || {}, st = this.state, ts = Object.keys(M).filter(t => st.flags['myst_' + t]);
+      if (!ts.length) return say('事件の手帳：まだ何も書かれていない。');
+      await say(ts.map(t => `事件「${M[t].title}」${st.flags['solved_' + t] ? '（解決）' : '（調査中）'}\n手がかり：` + (((st.clues || {})[t] || []).map(x => `「${x}」`).join('') || 'まだない')));
     }
     if (v === 'a') {
       const got = this.state.aiko || [], tips = this.aiko.filter(t => got.includes(t.id));
