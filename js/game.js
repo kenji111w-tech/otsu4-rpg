@@ -27,6 +27,7 @@ class Game {
     Learn.init(this.questions, this.dataVersion); Learn.startClock();
     this.buildKidEnemy();
     try { this._syl = (await (await fetch('data/syllabus.json')).json()).items; } catch (e) { this._syl = []; }
+    try { this.chars = await (await fetch('data/characters.json')).json(); } catch (e) { this.chars = { members: {}, subjectMember: {}, boss: {} }; }
     try { const ak = await (await fetch('data/aikotoba.json')).json(); this.aiko = ak.tips; this.freq = new Set(ak.freq); } catch (e) { this.aiko = []; this.freq = new Set(); }
     await loadAssets();
     let use3d = true; try { const c = document.createElement('canvas'); use3d = !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { use3d = false; }
@@ -208,6 +209,23 @@ class Game {
       ['ショウボウ老師', hl('「きろく」は勉強の成績、「にがて」は苦手な所の練習、「ずかん」は出会った魔物じゃ。')],
       ['ショウボウ老師', hl('「せってい」では《音の設定》やバックアップができる。さっそく一度、開いてみなさい。')],
     ]);
+  }
+  // 仲間のプロフィール：担当・口ぐせ・試験で思い出す覚え方
+  async mates() {
+    const C = this.chars.members || {}, ids = this.state.party.filter(x => C[x]).concat(['roshi']);
+    while (true) {
+      const v = await choose('なかま', ids.map(x => ({ label: C[x].name, note: C[x].role, value: x })));
+      if (!v) return;
+      const M = C[v];
+      await say([[M.name, `口ぐせ：「${M.kuchiguse}」`]].concat(M.tips.map((t, i) => [M.name, hl(`覚え方${i + 1}：${t}`)])));
+    }
+  }
+  // 戦いで担当の問題をまちがえたとき、その仲間がかける一言（合言葉か口ぐせ）
+  mateLine(q) {
+    const C = this.chars, who = (C.subjectMember || {})[q.subject];
+    if (!who || !this.state.party.includes(who) || !C.members[who]) return null;
+    const tip = (this.aiko || []).find(t => t.topic === q.topic && t.town !== 'V0');
+    return { name: C.members[who].name, text: tip ? `${tip.word}→ ${tip.ans}` : C.members[who].kuchiguse };
   }
   updateMenuBtn() { $('#btnM').classList.toggle('locked', !(this.state && this.state.flags.menu)); }
   async hoanJoin() {
@@ -676,10 +694,13 @@ class Game {
       s.skills.push(S.skill); const K = this.world.skills[S.skill];
       await say([`${K.user === 'hero' ? s.name : this.world.memberNames[K.user] || K.user}は「${K.name}」を覚えた！`, K.desc]);
     }
+    const BL = S.boss && (this.chars.boss || {})[id];
+    if (BL) await say([[this.world.enemies[S.enemy].name, BL.lie]]); // ボスのうその決めゼリフ（試験のひっかけそのもの）
     const r = await this.battle(S.enemy, { noFlee: !!S.boss, stage: true, town: id.split('-')[0], stageId: id });
     if (r === 'lose') return this.retreat();
     if (r !== 'win') { await say([[G, 'いったん引きましょう。準備ができたら、また来てください。']]); return; }
     s.cleared[id] = true;
+    if (BL) await say([`${this.world.enemies[S.enemy].name}「${BL.lie}」……そのうそは、もう通じない。`, [BL.who, hl(BL.fix)]]); // 仲間が正しく言い直す
     if (S.doc && !(s.docs || (s.docs = [])).includes(S.doc)) { s.docs.push(S.doc); await say([`大事なもの「${S.doc}」を手に入れた！`, [G, S.doc === '許可書' ? '設置の許可を受けた証です。次は工事、そして完成検査。手続きには順番があります。' : '完成検査で基準に適合していると認められた証です。これでようやく使い始められます。']]); }
     if (S.clue) { const c = (s.clues = s.clues || {})[id.split('-')[0]] = (s.clues[id.split('-')[0]] || []); if (!c.includes(S.clue.name)) { c.push(S.clue.name); await say([`手がかり「${S.clue.name}」を手に入れた！`, [G, hl(S.clue.text)]]); } }
     if (S.boss && M && M.after) { s.flags['solved_' + town0] = true; await say(M.after.map(l => Array.isArray(l) ? [l[0], hl(l[1])] : l)); }
@@ -730,11 +751,12 @@ class Game {
     try {
       while (true) {
         const v = await choose('メニュー', [
-          { label: 'つよさ', value: 'st' }, { label: 'とくぎ', value: 'sk' }, { label: 'ふくろ', value: 'bag' },
+          { label: 'つよさ', value: 'st' }, { label: 'なかま', value: 'nk', note: '口ぐせと覚え方' }, { label: 'とくぎ', value: 'sk' }, { label: 'ふくろ', value: 'bag' },
           { label: 'きろく（学習）', value: 'rec' }, { label: 'にがて', value: 'weak' }, { label: 'ずかん', value: 'zk' }, { label: 'せってい', value: 'set' }]);
         if (!v) break;
         if (v === 'st') await say(this.state.party.map(id => { const m = this.state.members[id]; return `${m.name}　Lv${m.lv}　HP ${m.hp}/${m.mhp}　MP ${m.mp}/${m.mmp}　こうげき ${m.atk}　まもり ${m.def}`; }).concat([`所持金 ${this.state.gold}G`]));
-        if (v === 'sk') await say(this.state.skills.length ? this.state.skills.map(id => { const K = this.world.skills[id]; const rust = K.kids.some(k => Learn.isDue(k)); return `${K.name}（${K.user === 'hoan' ? 'ホアン' : this.state.name}・MP${K.mp}）${rust ? '【さび】' : ''}：${K.desc}`; }) : 'まだ技を覚えていない。');
+        if (v === 'nk') await this.mates();
+        if (v === 'sk') await say(this.state.skills.length ? this.state.skills.map(id => { const K = this.world.skills[id]; const rust = K.kids.some(k => Learn.isDue(k)); return `${K.name}（${K.user === 'hero' ? this.state.name : this.world.memberNames[K.user] || K.user}・MP${K.mp}）${rust ? '【さび】' : ''}：${K.desc}`; }) : 'まだ技を覚えていない。');
         if (v === 'bag') await this.bag();
         if (v === 'rec') await this.recordScreen(); // メニューからは成長指標だけ
         if (v === 'weak') await this.weakReport(false);

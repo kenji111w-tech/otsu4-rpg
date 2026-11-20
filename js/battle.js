@@ -294,6 +294,7 @@ export class Battle {
     const r = await ask(q, { title, mode, hintText: text, hintLabel: q.kind === 'mcq5' ? 'ヒント' : `${this.g.guide()}に相談`, hint: text ? { cost: 1, use: () => { if (hero.mp < 1) return false; hero.mp -= 1; this.refresh(); return true; } } : null,
       erase: { left: () => inv.keshi || 0, use: () => { if (!(inv.keshi > 0)) return false; inv.keshi--; return true; } } });
     if (!r.correct || r.unsure || r.hint) this.review.push(q);
+    if (!r.correct && !this.mateSaid && this.g.mateLine) { const L = this.g.mateLine(q); if (L) { this.mateSaid = true; await this.msg(`${L.name}「${L.text}」`, 1400 + L.text.length * 45); } } // 仲間のひと言（1回の戦いで1回まで）
     this.g.combo(r.correct && !r.hint, q.topic);
     this.refresh(); return r;
   }
