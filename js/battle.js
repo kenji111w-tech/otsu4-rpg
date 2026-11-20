@@ -6,6 +6,7 @@ import { say, choose, ask, toast } from './ui.js';
 import { drawEnemy } from './sprites.js';
 import { drawEnemyHQ, drawBattleBg, STYLE, drawEnemyDot, drawBattleBgDot, drawEnemySoft } from './art.js';
 import { Learn } from './learn.js';
+import { Sound } from './sound.js';
 
 export class Battle {
   constructor(game) { this.g = game; }
@@ -199,6 +200,7 @@ export class Battle {
     if (!r.correct) { this.combo = 0; return this.msg(`${m.name}のこうげき！ ……しかし、はずれた！`, 800); }
     this.combo = (this.combo || 0) + 1;
     const crit = this.fast(r, q), mult = (crit ? 1.6 : 1) * (1 + Math.min(3, this.combo - 1) * .15);
+    if (crit) Sound.se('crit');
     await this.hit(m, mult, crit ? `すばやい正解！ ${m.name}の会心の一撃！` : (this.combo > 1 ? `${this.combo}連続正解！ ${m.name}のこうげき！` : null));
     return this.followUp(m);
   }

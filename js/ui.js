@@ -1,6 +1,7 @@
 // 画面部品：メッセージ窓、選択肢、問題（五肢択一・たいさく）の出題と解説
 import { el, shuffle } from './util.js';
 import { Learn } from './learn.js';
+import { Sound } from './sound.js';
 
 let layer;
 export function initUI(root) { layer = root; }
@@ -126,6 +127,7 @@ export function ask(q, { title = '', hint = null, showDraft = true, mode = null,
       if (mode) Learn.record(q, { correct, unsure: !!unsure, hint: mode === 'furikaeri' ? false : usedHint, mode, order, ms: Date.now() - t0 });
       p.innerHTML = '';
       p.classList.add('result');
+      Sound.se(correct ? 'ok' : 'ng');
       p.appendChild(el('div', 'verdict ' + (correct ? 'good' : 'bad'), correct ? (unsure ? '正解！（迷った）' : '正解！') : '不正解……'));
       p.appendChild(el('div', 'qtext small', q.question));
       const ex = el('div', 'expl'); ex.textContent = q.explanation; p.appendChild(ex);

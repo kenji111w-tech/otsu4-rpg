@@ -2,6 +2,7 @@
 import { $, el, store, studyDay, isStandalone, fmtMin, pick, APP_VERSION } from './util.js';
 import { initUI, say, choose, prompt, toast, ask, hl } from './ui.js';
 import { Learn } from './learn.js';
+import { Sound } from './sound.js';
 import { Field } from './field.js';
 import { Field3D, dir8 } from './field3d.js';
 import { loadAssets } from './art.js';
@@ -34,6 +35,8 @@ class Game {
       chestOpen: id => !!(this.state && (this.state.chests || {})[id]),
     });
     this.bindControls();
+    Sound.init();
+    { const load = this.field.load.bind(this.field); this.field.load = (m, ...a) => { const r = load(m, ...a); Sound.bgm(this.mapBgm(m)); return r; }; }
     if (!isStandalone()) $('#trial').classList.remove('hide');
     window.__game = this; // 開発・テスト用
     this.title();
@@ -73,7 +76,18 @@ class Game {
   }
 
   // ---------- タイトル ----------
+  // 場所ごとの曲
+  mapBgm(m) {
+    m = m || (this.field && this.field.mapId) || '';
+    if (m === 'village') return 'village';
+    if (/^town[1-3]$/.test(m)) return 'town_law';
+    if (/^town[45]$/.test(m)) return 'town_chem';
+    if (/^(town|fire)/.test(m)) return 'town_haz';
+    if (/^field/.test(m)) return 'field';
+    return 'dungeon'; // 砦・峠・城・洞窟・塔
+  }
   async title() {
+    Sound.bgm('title');
     $('#field-wrap').classList.add('hide'); $('#pad').classList.add('hide');
     let saved = store.get('game');
     if (saved && !this.validGame(saved)) { store.set('game-broken-' + Date.now(), saved); store.del('game'); saved = null; await say('冒険の記録（届出）が壊れていたため、使わないことにしました。学習の記録は残っています。'); }
@@ -86,9 +100,11 @@ class Game {
     items.push({ label: 'はじめから', value: 'new' });
     items.push({ label: '試験センター（模試）', value: 'exam', note: '本番と同じ35問・2時間' });
     items.push({ label: 'バックアップ', value: 'backup' });
+    items.push({ label: '音の設定', value: 'sound', note: `音楽${Sound.prefs.bgm ? 'オン' : 'オフ'}・効果音${Sound.prefs.se ? 'オン' : 'オフ'}` });
     const v = await choose(null, items, { cancel: false, cls: 'titlemenu' });
     t.remove();
     if (v === 'backup') { await this.backupMenu(); return this.title(); }
+    if (v === 'sound') { await this.soundSettings(); return this.title(); }
     if (v === 'exam') { await this.examCenter(saved); return this.title(); }
     if (v === 'new') {
       if (saved) { const ok = await choose('前の冒険の記録（届出）は消えます。学習記録は残ります。', [{ label: 'はじめる', value: 1 }]); if (!ok) return this.title(); }
@@ -274,6 +290,7 @@ class Game {
     return this.epilogue();
   }
   async epilogue() {
+    Sound.bgm('ending');
     const n = this.state.name;
     await say([
       'エンジョウの炎が、ふっと小さくなった。最後に残ったのは、ろうそくほどの、あたたかい小さな火だった。',
@@ -304,6 +321,7 @@ class Game {
   }
   // エンディング（スタッフロール風）。見たあとも遊び続けられる
   async endingRoll() {
+    Sound.bgm('ending');
     const n = this.state.name, hero = this.state.members.hero, st = Learn.stats();
     await say([
       '――おめでとう！ 乙4の物語は、これで完結です。――',
@@ -341,6 +359,7 @@ class Game {
     if (S.last) return this.fireEnding();
   }
   async fireEnding() {
+    Sound.bgm('ending');
     const n = this.state.name;
     await say([
       '火の国じゅうの結晶も、金属も、薬品の湖も、静かになった。',
@@ -379,6 +398,7 @@ class Game {
     await this.clearReport();
   }
   async ending17() {
+    Sound.bgm('sad');
     const n = this.state.name;
     await say([
       'ジネンハッカ大樹の幹のうろの熱が、ふっと消えた。根元のぼろ布の山から、もう煙は出ていない。',
@@ -578,7 +598,7 @@ class Game {
     if (ev.id === 'koshujo') return say([['講習所の係員', 'ここでは都道府県知事等が行う保安講習を開いています。'], ['講習所の係員', '製造所等で危険物の仕事をしている危険物取扱者は、決まった時期に受講してくださいね。受講しないと、免状の返納を命じられることがありますよ。']]);
     if (ev.id === 'inn') {
       const v = await choose('宿屋「旅人のやすらぎ」', [{ label: '泊まる（無料）', value: 'stay' }]);
-      if (v) { this.healAll(); s.lastInn = { map: this.field.mapId, x: ev.x, y: ev.y + 1 }; await say('ぐっすり眠った。HPとMPが回復した！'); await this.letter(); }
+      if (v) { this.healAll(); Sound.jingle('inn', this.mapBgm()); s.lastInn = { map: this.field.mapId, x: ev.x, y: ev.y + 1 }; await say('ぐっすり眠った。HPとMPが回復した！'); await this.letter(); }
       return;
     }
     if (ev.id === 'shop') {
@@ -626,6 +646,7 @@ class Game {
       const c = await choose(`${G}「ボスに挑む前に、作戦会議をしますか？」`, [{ label: '作戦会議をする', value: 1 }, { label: 'すぐに挑む', value: 2 }], { cancel: false });
       if (c === 1) await say([[G, 'この町で学んだことを振り返りましょう。']].concat(pts.map(p => [G, hl(p)])).concat([[G, `${E.name}の弱点は「${E.weak}」に関わる知識のはずです。予告が出たら、落ち着いて思い出しましょう。`]]));
     }
+    if (id === 'F-4') Sound.bgm('sad'); // 老師の告白
     Learn.subject = id[0] === 'P' ? '物理・化学' : id[0] === 'H' ? '性質・消火' : id[0] === 'F' ? '総合' : id[0] === 'R' ? '火の国（他類）' : '法令';
     const lines = L => L.map(l => Array.isArray(l) ? [l[0], hl(l[1])] : hl(l)); // 授業：数字や大事な言葉を光らせる
     if (S.core) { // 短い授業（3行まで）。くわしい話は「もっと聞く」で
@@ -665,8 +686,10 @@ class Game {
     await say(['目の前が真っ暗になった……。', '気がつくと、宿屋で寝かされていた。（失ったものはない）', [this.guide(), '予告が出たら「たいさく」です。正体を見抜けば、再生も止まります。']]);
   }
   async battle(enemyId, opt) {
+    { const S = opt && opt.stageId && this.world.stages[opt.stageId]; Sound.bgm(/^enjou/.test(enemyId) ? 'final' : S && S.boss ? 'boss' : 'battle'); }
     $('#pad').classList.add('hide'); const ar = this.world.enemies[enemyId].area || ''; Learn.subject = ar === 'tutorial' ? '導入' : ar[0] === 'P' ? '物理・化学' : ar[0] === 'H' ? '性質・消火' : ar[0] === 'F' ? '総合' : ar[0] === 'R' ? '火の国（他類）' : '法令';
     const r = await new Battle(this).run(enemyId, opt); $('#pad').classList.remove('hide');
+    if (r === 'win') Sound.jingle('victory', this.mapBgm()); else Sound.bgm(this.mapBgm());
     if (r === 'lose' && !opt.tutorial && !opt.stage) await this.retreat();
     return r;
   }
@@ -894,10 +917,19 @@ class Game {
     ]);
   }
   async settings() {
-    const v = await choose('せってい', [{ label: 'バックアップ（書き出し・読み込み）', value: 'b' }, { label: '版の情報', value: 'v' }, { label: 'タイトルにもどる', value: 't' }]);
+    const v = await choose('せってい', [{ label: '音の設定', value: 's', note: `音楽${Sound.prefs.bgm ? 'オン' : 'オフ'}・効果音${Sound.prefs.se ? 'オン' : 'オフ'}` }, { label: 'バックアップ（書き出し・読み込み）', value: 'b' }, { label: '版の情報', value: 'v' }, { label: 'タイトルにもどる', value: 't' }]);
+    if (v === 's') { await this.soundSettings(); return this.settings(); }
     if (v === 'b') return this.backupMenu();
     if (v === 'v') await say([`アプリ ${APP_VERSION}`, `問題データ ${this.dataVersion}（確認前の問題を含む試作版）`, `表示：${isStandalone() ? 'ホーム画面版' : 'Safari版（お試し）'}`, `最終バックアップ：${Learn.d.lastBackup ? new Date(Learn.d.lastBackup).toLocaleString('ja-JP') : 'まだ'}`]);
     if (v === 't') { const ok = await choose('届出していない進み具合は失われます（学習記録は残ります）。', [{ label: 'タイトルにもどる', value: 1 }]); if (ok) return 'title'; }
+  }
+  async soundSettings() { // 音楽と効果音を別々にオン・オフ（設定は端末に保存）
+    while (true) {
+      const v = await choose('音の設定（iPhoneのマナーモード中は鳴りません）', [{ label: `音楽：${Sound.prefs.bgm ? 'オン' : 'オフ'}`, value: 'b', note: 'たたくと切りかえ' }, { label: `効果音：${Sound.prefs.se ? 'オン' : 'オフ'}`, value: 's', note: 'たたくと切りかえ' }]);
+      if (!v) return;
+      if (v === 'b') Sound.setBgm(!Sound.prefs.bgm);
+      if (v === 's') { Sound.setSe(!Sound.prefs.se); Sound.se('ok'); }
+    }
   }
   async backupMenu() {
     const v = await choose('バックアップ', [
