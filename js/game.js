@@ -251,13 +251,25 @@ class Game {
     s.party = ['hero', 'sekiyu']; s.flags.chapter3 = true; s.lastInn = { map: 'town6', x: 3, y: 4 };
     if (this.field.setParty) this.field.setParty(s.party); else this.field.party = s.party;
   }
+  async ending15() {
+    const n = this.state.name;
+    await say([
+      'ニセキ大槍王の黄金の槍がくだけ、黄色い霧がすっと晴れていった。',
+      ['セキユ', '引火点21℃以上70℃未満、指定数量1,000（水溶性2,000）。灯油は40℃以上、軽油は45℃以上。霧や布は引火点以下でも燃える。酢酸は水に溶けて、凍って、腐食する……。'],
+      ['セキユ', `……${n}。親父の倉庫には、灯油の樽が積んであった。それに、油のしみたぼろ布も、片すみに山になってたんだ。`],
+      ['セキユ', 'いや、いい。先へ行こう。次は第3・第4石油類の町だ。重たくて燃えにくい連中だが、油断はできねえ。'],
+      '――今の版はここまでです。第3・第4石油類の町から先は、次の版で追加します。',
+    ]);
+    this.state.flags.h5clear = true;
+    await this.recordScreen();
+  }
   async ending14() {
     const n = this.state.name;
     await say([
       'アルコール大司教の杖の宝玉が、ひとつずつ淡い光になって消えていった。',
       ['セキユ', '炭素は1〜3個まで、指定数量は400。メタノールは毒、エタノールは酒の成分。どれも水に溶けて、炎が見えにくい。消すのは耐アルコール泡だ。'],
       ['セキユ', `${n}、次は第2石油類の町だ。灯油や軽油……おれの親父の倉庫にもあった連中だ。`],
-      '――今の版はここまでです。第2石油類の町から先は、次の版で追加します。',
+      ['セキユ', '第2石油類の町へは、この町の東の門から行けるぞ。'],
     ]);
     this.state.flags.h4clear = true;
     await this.recordScreen();
@@ -377,6 +389,7 @@ class Game {
       if (ev.to === 'pass2' && !s.flags.pass2) { s.flags.pass2 = true; await say(['運搬の峠に出た。', '細い山道を、荷車やタンクローリーの魔物が行き来している。', ['ホアン', 'ここは危険物を「運ぶ」ときの決まりを学ぶ場所です。容器に入れて運ぶ「運搬」と、タンクローリーで運ぶ「移送」。'], ['ホアン', 'この峠にも宿屋はありません。泉と宝箱を探しましょう。']]); }
       if (ev.to === 'town4' && !s.flags.chapter2) { await this.chapter2Start(); }
       if (ev.to === 'town6' && !s.flags.chapter3) { await this.chapter3Start(); }
+      if (ev.to === 'town10' && !s.flags.town10) { s.flags.town10 = true; await say(['第2石油類の町に着いた。', '黄色い旗の城下町。家々の前に灯油の缶が並び、トラックが行き来している。', ['セキユ', 'ここは第2石油類の町だ。黄色い体に槍が目じるし。霧の炎に気をつけろよ。']]); }
       if (ev.to === 'town9' && !s.flags.town9) { s.flags.town9 = true; await say(['アルコール類の町に着いた。', '町の真ん中に、青白い教会が建っている。どこからか、お酒のような甘いにおいがする。', ['セキユ', 'ここはアルコール類の町だ。青白く透ける体に杖が目じるしだぞ。']]); }
       if (ev.to === 'town8' && !s.flags.town8) { s.flags.town8 = true; await say(['第1石油類の町に着いた。', '町じゅうにガソリンスタンドがあり、赤い旗がはためいている。', ['セキユ', 'ここは引火点が21℃未満の連中の町だ。赤い服に細い剣が目じるしだぞ。']]); }
       if (ev.to === 'town7' && !s.flags.town7) { s.flags.town7 = true; await say(['特殊引火物の町に着いた。', '町のあちこちに、黒紫の旗がはためいている。空気がひんやりして、つんとしたにおいがする。', ['セキユ', 'ここは第4類でいちばん燃えやすい連中の町だ。まずは町の入口の「黒紫の門」で、この国の魔物の見分け方から教えるぞ。']]); }
@@ -462,7 +475,7 @@ class Game {
     if (r !== 'win') { await say([[G, 'いったん引きましょう。準備ができたら、また来てください。']]); return; }
     s.cleared[id] = true;
     if (S.doc && !(s.docs || (s.docs = [])).includes(S.doc)) { s.docs.push(S.doc); await say([`大事なもの「${S.doc}」を手に入れた！`, [G, S.doc === '許可書' ? '設置の許可を受けた証です。次は工事、そして完成検査。手続きには順番があります。' : '完成検査で基準に適合していると認められた証です。これでようやく使い始められます。']]); }
-    if (S.boss) return ({ 'L1-boss': () => this.ending(), 'L2-boss': () => this.ending2(), 'L3-boss': () => this.ending3(), 'D1-boss': () => this.ending4(), 'D2-boss': () => this.ending5(), 'D3-boss': () => this.ending6(), 'P1-boss': () => this.ending7(), 'P2-boss': () => this.ending8(), 'P3-boss': () => this.ending9(), 'P4-boss': () => this.ending10(), 'H1-boss': () => this.ending11(), 'H2-boss': () => this.ending12(), 'H3-boss': () => this.ending13(), 'H4-boss': () => this.ending14() })[id]();
+    if (S.boss) return ({ 'L1-boss': () => this.ending(), 'L2-boss': () => this.ending2(), 'L3-boss': () => this.ending3(), 'D1-boss': () => this.ending4(), 'D2-boss': () => this.ending5(), 'D3-boss': () => this.ending6(), 'P1-boss': () => this.ending7(), 'P2-boss': () => this.ending8(), 'P3-boss': () => this.ending9(), 'P4-boss': () => this.ending10(), 'H1-boss': () => this.ending11(), 'H2-boss': () => this.ending12(), 'H3-boss': () => this.ending13(), 'H4-boss': () => this.ending14(), 'H5-boss': () => this.ending15() })[id]();
     // ホアンの確認：そのステージの五肢択一から2問（未出題を優先）
     const done = new Set(Learn.d.answers.map(a => a.qid));
     const [town, sn] = id.split('-');
