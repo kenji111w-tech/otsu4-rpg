@@ -3,6 +3,7 @@ import { $, el, store, studyDay, isStandalone, fmtMin, pick, APP_VERSION } from 
 import { initUI, say, choose, prompt, toast, ask, hl } from './ui.js';
 import { Learn } from './learn.js';
 import { Sound } from './sound.js';
+import { makeTitle, TITLE_STYLES } from './titlescreen.js';
 import { Field } from './field.js';
 import { Field3D, dir8 } from './field3d.js';
 import { loadAssets } from './art.js';
@@ -92,8 +93,7 @@ class Game {
     let saved = store.get('game');
     if (saved && !this.validGame(saved)) { store.set('game-broken-' + Date.now(), saved); store.del('game'); saved = null; await say('冒険の記録（届出）が壊れていたため、使わないことにしました。学習の記録は残っています。'); }
     if (Learn.brokenFound) { Learn.brokenFound = false; await say('学習の記録が壊れていたため、新しく始めます。壊れた記録は端末内に別に保管しました。バックアップがあれば読み込んでください。'); }
-    const t = el('div', 'titlescr');
-    t.innerHTML = `<div class="logo">乙4 RPG</div><div class="sub">～危険物の世界～</div><div class="ver">試作品 ${APP_VERSION}／問題データ ${this.dataVersion}</div>`;
+    const t = makeTitle(store.get('titleStyle') || 'A', `試作品 ${APP_VERSION}／問題データ ${this.dataVersion}`);
     this.ui.appendChild(t);
     const items = [];
     if (saved) items.push({ label: 'つづきから', value: 'cont', note: `${saved.name}・${this.world.maps[saved.map].name}` });
@@ -125,11 +125,12 @@ class Game {
       return true;
     } catch (e) { return false; }
   }
-  migrate() { const s = this.state; s.combo = s.combo || { n: 0, topics: [] }; s.zukan = s.zukan || {}; }
+  migrate() { const s = this.state; if (s.flags.tutorial) s.flags.menu = true; s.combo = s.combo || { n: 0, topics: [] }; s.zukan = s.zukan || {}; }
   enterWorld() {
     $('#field-wrap').classList.remove('hide'); $('#pad').classList.remove('hide');
     this.field.party = this.state.party.slice(0, 2);
     this.field.load(this.state.map, this.state.x, this.state.y); this.field.resize();
+    this.updateMenuBtn(); $('#btnM').classList.remove('glow');
   }
   roadmapLines() {
     const T = Learn.d.time.bySubject || {};
@@ -182,6 +183,7 @@ class Game {
         ['ショウボウ老師', 'ただし、問題を解いた「学びの記録」は、解くたびに自動で残る。届出を忘れても、覚えたことは消えん。安心せい。'],
         `${n}はやくそうを3つ受け取った。`,
       ]);
+      await this.menuLesson();
       return;
     }
     if (s.flags.cleared) {
@@ -193,6 +195,18 @@ class Game {
     const st = Learn.stats();
     await say([['ショウボウ老師', st.due ? `復習の時期が来た知識が${st.due}こあるようじゃ。草原の魔物が復活しておるぞ。` : '焦らず、ひとつずつ身につけるのじゃ。'], ['ショウボウ老師', '知識は使わねばさびる。さびた技は、思い出せば元に戻るぞ。']]);
   }
+  // メニューの使い方（序盤に教える。それまでメニューは隠しておく。2周目の人は飛ばせる）
+  async menuLesson() {
+    const s = this.state; s.flags.menu = true; this.updateMenuBtn(); $('#btnM').classList.add('glow');
+    await say([['ショウボウ老師', 'それから、旅に役立つ「メニュー」を使えるようにしておこう。右下のボタンじゃ。']]);
+    const v = await choose('メニューの使い方', [{ label: '説明を聞く', value: 'y' }, { label: '知っているので飛ばす', value: 'n', note: '2周目の人など' }], { cancel: false });
+    if (v === 'y') await say([
+      ['ショウボウ老師', hl('「つよさ」「とくぎ」で仲間の力と技、「ふくろ」で道具・《合言葉帳》・《事件の手帳》が見られる。')],
+      ['ショウボウ老師', hl('「きろく」は勉強の成績、「にがて」は苦手な所の練習、「ずかん」は出会った魔物じゃ。')],
+      ['ショウボウ老師', hl('「せってい」では《音の設定》やバックアップができる。さっそく一度、開いてみなさい。')],
+    ]);
+  }
+  updateMenuBtn() { $('#btnM').classList.toggle('locked', !(this.state && this.state.flags.menu)); }
   async hoanJoin() {
     const n = this.state.name;
     await say([
@@ -708,7 +722,7 @@ class Game {
 
   // ---------- メニュー ----------
   async menu() {
-    if (this.field.busy) return; this.field.busy = true;
+    if (this.field.busy || !(this.state && this.state.flags.menu)) return; this.field.busy = true; $('#btnM').classList.remove('glow');
     try {
       while (true) {
         const v = await choose('メニュー', [

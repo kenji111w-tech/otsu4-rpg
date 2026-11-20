@@ -113,3 +113,36 @@ textarea.inp { height: 160px; }
 .excell.done { background: #2a3a6a; color: #fff; }
 .excell.mark { box-shadow: 0 0 0 2px #ffd76a inset; }
 .exnote { font-size: 13px; color: #bcd; margin-bottom: 8px; }
+/* タイトル画面の3つの案 */
+.titlescr .fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.titlescr > *:not(.fx):not(.land) { position: relative; }
+.titlescr.tA { background: radial-gradient(ellipse at 50% 30%, #6a2a14 0%, #2a1028 45%, #08081a 80%); padding-top: 7dvh; }
+.titlescr.tA .glow { position: absolute; left: 50%; top: calc(7dvh - 40px); width: 200px; height: 200px; margin-left: -100px; border-radius: 50%; background: radial-gradient(circle, rgba(255,150,60,.45), rgba(255,90,30,0) 70%); animation: pulse 2.4s ease-in-out infinite; }
+.tA .emblem { width: 100px; height: 125px; display: block; margin: 0 auto 6px; filter: drop-shadow(0 0 12px #ff8a2a); }
+.tA .emblem .fl { transform-origin: 60px 122px; animation: flick .9s ease-in-out infinite alternate; }
+.tA .emblem .fl2 { transform-origin: 60px 118px; animation: flick .6s ease-in-out infinite alternate-reverse; }
+.tA .logo { font-size: 56px; background: linear-gradient(#fff3b0, #ffc23a 55%, #e0701c); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none; filter: drop-shadow(3px 3px 0 #5a1410) drop-shadow(0 0 10px rgba(255,120,30,.7)); }
+.tA .ribbon { display: inline-block; margin-top: 8px; padding: 4px 26px; font-size: 18px; font-weight: 700; color: #fff; background: linear-gradient(90deg, transparent, #a8261c 15%, #c83a22 50%, #a8261c 85%, transparent); letter-spacing: .1em; }
+.titlescr.tB { background: linear-gradient(#0d1440 0%, #3a2a6a 45%, #c8603a 78%, #f0a050 100%); padding-top: 9dvh; overflow: hidden; }
+.tB .land { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 55%; }
+.tB .land .win { animation: twinkle 3s ease-in-out infinite; }
+.tB .logo { font-size: 54px; color: #fff; text-shadow: 0 0 14px #9ab8ff, 3px 3px 0 #2a2060; }
+.tB .sub { color: #ffe6a0; }
+.tB .crests { display: flex; justify-content: center; gap: 18px; margin-top: 18px; }
+.tB .crest .cc { width: 52px; height: 52px; margin: 0 auto; border-radius: 50%; border: 3px solid #ffe6a0; font-size: 26px; font-weight: 800; line-height: 46px; color: #fff; box-shadow: 0 0 12px rgba(255,230,160,.5); animation: bob 3s ease-in-out infinite; }
+.tB .crest:nth-child(2) .cc { animation-delay: .4s; } .tB .crest:nth-child(3) .cc { animation-delay: .8s; }
+.tB .crest .cn { font-size: 11px; margin-top: 4px; color: #fff; text-shadow: 0 1px 2px #000; }
+.titlescr.tC { background: linear-gradient(#1a1040 0%, #6a2a50 40%, #e0703a 70%, #ffc060 86%); padding-top: 7dvh; overflow: hidden; }
+.tC .banner { display: inline-block; padding: 10px 22px 12px; border: 4px double #fff; border-radius: 8px; background: rgba(10,10,40,.82); box-shadow: 0 0 0 3px #1a1a3a, 0 6px 18px rgba(0,0,0,.5); }
+.tC .logo { font-size: 48px; color: #fff; text-shadow: 3px 3px 0 #c83a22; }
+.tC .sub { color: #ffd76a; }
+.tC .party { display: block; width: 300px; height: 90px; margin: 26px auto 0; image-rendering: pixelated; animation: bob 2.2s ease-in-out infinite; }
+.titlescr.tC .ground { position: absolute; left: 0; right: 0; top: calc(7dvh + 230px); height: 40px; background: linear-gradient(#3a5a2a, #1a2a14); }
+@keyframes flick { from { transform: scale(1, 1); } to { transform: scale(.94, 1.06); } }
+@keyframes pulse { 0%, 100% { opacity: .7; transform: scale(1); } 50% { opacity: 1; transform: scale(1.08); } }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes twinkle { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+/* メニューボタン：最初は隠し、教わったら光る */
+#btnM.locked { visibility: hidden; }
+#btnM.glow { animation: btnglow 1.2s ease-in-out infinite; }
+@keyframes btnglow { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,215,106,0); } 50% { box-shadow: 0 0 14px 4px rgba(255,215,106,.9); } }
