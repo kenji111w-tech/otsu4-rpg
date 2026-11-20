@@ -1,0 +1,44 @@
+# スマホアプリ版の組み立て（GitHubの仮想環境で自動ビルド）
+# iOS：Macの仮想環境で、署名なしでシミュレーター向けに組み立てる（組み上がるかの確認用）
+# Android：Linuxの仮想環境で、試しに入れられるAPK（デバッグ版）を作り、成果物として保存する
+name: apps
+on:
+  push:
+    branches: [main]
+    paths: ['native/**', 'js/**', 'css/**', 'data/**', 'index.html', '.github/workflows/apps.yml']
+  workflow_dispatch:
+jobs:
+  ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: 準備
+        working-directory: native
+        run: npm ci && npm run www && npx cap sync ios
+      - name: iOS版を組み立てる（署名なし・シミュレーター向け）
+        working-directory: native/ios/App
+        run: |
+          xcodebuild -project App.xcodeproj -scheme App -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build | tail -40
+          test ${PIPESTATUS[0]} -eq 0
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - name: 準備
+        working-directory: native
+        run: npm ci && npm run www && npx cap sync android
+      - name: Android版（デバッグ版APK）を組み立てる
+        working-directory: native/android
+        run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: otsu4-rpg-debug-apk
+          path: native/android/app/build/outputs/apk/debug/*.apk

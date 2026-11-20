@@ -1,5 +1,6 @@
 // 本体：データ読込、タイトル、物語、施設、メニュー、セーブ（届出）
-import { $, el, store, studyDay, isStandalone, fmtMin, pick, APP_VERSION } from './util.js';
+import { $, el, store, studyDay, isStandalone, isNative, restoreNativeStore, fmtMin, pick, APP_VERSION } from './util.js';
+import { setupNative, hideSplash, shareBackupFile } from './native.js';
 import { initUI, say, choose, prompt, toast, ask, hl } from './ui.js';
 import { Learn } from './learn.js';
 import { Sound } from './sound.js';
@@ -18,6 +19,7 @@ const EXP_NEXT = lv => 20 + lv * 25;
 
 class Game {
   async start() {
+    setupNative(); await restoreNativeStore(); // アプリ版：端末の保存領域から記録を戻す
     const [w, qd] = await Promise.all([fetch('data/world.json').then(r => r.json()), fetch('data/questions.json').then(r => r.json())]);
     this.world = w; this.questions = qd.questions; this.dataVersion = qd.data_version;
     this.qById = {}; this.questions.forEach(q => this.qById[q.id] = q);
@@ -40,6 +42,7 @@ class Game {
     { const load = this.field.load.bind(this.field); this.field.load = (m, ...a) => { const r = load(m, ...a); Sound.bgm(this.mapBgm(m)); return r; }; }
     if (!isStandalone()) $('#trial').classList.remove('hide');
     window.__game = this; // 開発・テスト用
+    hideSplash();
     this.title();
   }
 
@@ -934,7 +937,7 @@ class Game {
     const v = await choose('せってい', [{ label: '音の設定', value: 's', note: `音楽${Sound.prefs.bgm ? 'オン' : 'オフ'}・効果音${Sound.prefs.se ? 'オン' : 'オフ'}` }, { label: 'バックアップ（書き出し・読み込み）', value: 'b' }, { label: '版の情報', value: 'v' }, { label: 'タイトルにもどる', value: 't' }]);
     if (v === 's') { await this.soundSettings(); return this.settings(); }
     if (v === 'b') return this.backupMenu();
-    if (v === 'v') await say([`アプリ ${APP_VERSION}`, `問題データ ${this.dataVersion}（確認前の問題を含む試作版）`, `表示：${isStandalone() ? 'ホーム画面版' : 'Safari版（お試し）'}`, `最終バックアップ：${Learn.d.lastBackup ? new Date(Learn.d.lastBackup).toLocaleString('ja-JP') : 'まだ'}`]);
+    if (v === 'v') await say([`アプリ ${APP_VERSION}`, `問題データ ${this.dataVersion}（確認前の問題を含む試作版）`, `表示：${isNative() ? 'アプリ版' : isStandalone() ? 'ホーム画面版' : 'Safari版（お試し）'}`, `最終バックアップ：${Learn.d.lastBackup ? new Date(Learn.d.lastBackup).toLocaleString('ja-JP') : 'まだ'}`]);
     if (v === 't') { const ok = await choose('届出していない進み具合は失われます（学習記録は残ります）。', [{ label: 'タイトルにもどる', value: 1 }]); if (ok) return 'title'; }
   }
   async soundSettings() { // 音楽と効果音を別々にオン・オフ（設定は端末に保存）
@@ -952,6 +955,11 @@ class Game {
     if (!v) return;
     const game = store.get('game'); // 書き出すのは最後の届出の内容（現在地は保存しない）
     const text = JSON.stringify(Learn.exportObj(game));
+    if (v === 'file' && isNative()) { // アプリ版：ファイルを作って「共有」から保存先を選ぶ
+      const ok = await shareBackupFile(`otsu4rpg-backup-${studyDay()}.json`, text);
+      if (ok) { Learn.markBackup(); return say(['バックアップのファイルを作りました。共有の画面で「ファイルに保存」やメールなど、保存先を選んでください。']); }
+      return say('ファイルを作れませんでした。「テキストをコピー」を使ってください。');
+    }
     if (v === 'file') {
       const a = el('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'application/json' })); a.download = `otsu4rpg-backup-${studyDay()}.json`; document.body.appendChild(a); a.click(); a.remove();
       Learn.markBackup(); return say(['バックアップのファイルを書き出しました。「ファイル」アプリなどに保存してください。', '（保存の画面が出なかった場合は、「テキストをコピー」を使ってください。claude.ai上の試作品ではファイル保存が使えません）']);
@@ -1010,7 +1018,7 @@ class Game {
 
 // オフライン対応と更新のお知らせ（claude.ai上の試作品ではService Workerが使えないので何もしない）
 function setupSW() {
-  if (!('serviceWorker' in navigator)) return;
+  if (!('serviceWorker' in navigator) || isNative()) return; // アプリ版は中にファイルを持っているので不要
   navigator.serviceWorker.register('sw.js').then(reg => {
     const show = w => { const b = document.getElementById('update'); b.classList.remove('hide');
       b.onclick = () => { if (document.querySelector('.battle')) { b.textContent = '戦闘が終わってから更新してください'; return; } w.postMessage('skipWaiting'); }; };

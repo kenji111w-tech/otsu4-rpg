@@ -1,0 +1,12 @@
+{
+  "appId": "jp.otsu4rpg.app",
+  "appName": "乙4 RPG",
+  "webDir": "www",
+  "backgroundColor": "#0b0b1a",
+  "android": { "allowMixedContent": false },
+  "ios": { "contentInset": "never", "backgroundColor": "#0b0b1a" },
+  "plugins": {
+    "SplashScreen": { "launchAutoHide": false, "backgroundColor": "#0b0b1a", "showSpinner": false },
+    "StatusBar": { "style": "DARK", "backgroundColor": "#0b0b1a", "overlaysWebView": false }
+  }
+}
