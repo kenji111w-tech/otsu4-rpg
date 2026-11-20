@@ -182,6 +182,7 @@ export class Battle {
     }
     const e = this.e, all = this.g.questions.filter(q => kinds.includes(q.kind) && this.taught(q) && q.topic !== 'identify' && !q.call && q.pool !== 'mock' && (!e.subjects || e.subjects.includes(q.subject)));
     let cand = all.filter(q => !e.used.has(q.id)); if (!cand.length) cand = all;
+    { const own = cand.filter(q => q.kind !== 'situation' || q.town === e.area); if (own.length) cand = own; } // 状況問題は別の魔物が出てくる話なので、その場所の問題だけにする
     const area = cand.filter(q => q.town === e.area), pref = prefer ? cand.filter(prefer) : [];
     const due = cand.filter(q => Learn.isDue(q.knowledge_id)); // 復習の時期が来た知識を、半分くらいの確率で優先して出す
     const q = pick(pref.length ? pref : due.length && Math.random() < .5 ? due : area.length && Math.random() < .75 ? area : cand) || pick(this.g.questions.filter(x => x.town === 'V0'));

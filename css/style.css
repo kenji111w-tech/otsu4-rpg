@@ -148,3 +148,13 @@ textarea.inp { height: 160px; }
 @keyframes btnglow { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,215,106,0); } 50% { box-shadow: 0 0 14px 4px rgba(255,215,106,.9); } }
 /* 町やフィールドでの選ぶ枠は上に（会話と同じ位置） */
 .menu.top { top: calc(10px + env(safe-area-inset-top)); bottom: auto; max-height: 60dvh; z-index: 61; }
+/* 背の低い画面（iPhone SEなど）：タイトルの紋章と文字を小さくして、メニューと重ならないように */
+@media (max-height: 700px) {
+  .titlescr.tA { padding-top: 2dvh; }
+  .tA .emblem { width: 64px; height: 80px; margin-bottom: 2px; }
+  .titlescr.tA .glow { width: 130px; height: 130px; margin-left: -65px; top: calc(2dvh - 25px); }
+  .tA .logo { font-size: 38px; }
+  .tA .ribbon { font-size: 14px; padding: 2px 18px; margin-top: 4px; }
+  .titlescr .ver { font-size: 10px; }
+  .titlemenu { bottom: calc(10px + env(safe-area-inset-bottom)); }
+}

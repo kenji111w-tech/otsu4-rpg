@@ -808,7 +808,7 @@ class Game {
     s.flags.letterDay = today;
     const qs = due.map(k => this.questions.find(q => q.knowledge_id === k && q.kind === 'mcq5') || this.questions.find(q => q.knowledge_id === k)).filter(Boolean);
     const topics = [...new Set(qs.map(q => q.topic))].slice(0, 4);
-    const from = s.party.includes('hoan') ? 'ホアン' : 'ショウボウ老師';
+    const from = this.guide(); // いまの案内役の仲間から（章によってホアン・ケミ・セキユ）
     await say([`宿屋の主人「${from}さんから、お手紙が届いていますよ」`, [`${from}の手紙`, `${s.name}さんへ。そろそろ忘れかけているころかもしれない知識を書いておきます。`]]
       .concat([[`${from}の手紙`, topics.map(t => `・「${t}」`).join('\n')]])
       .concat([[`${from}の手紙`, `答えは書きません。目を閉じて、どんな決まりだったか思い出してみてください。今日あたり、戦いの中で問われるかもしれませんよ。`]]));
@@ -920,6 +920,7 @@ class Game {
     const w = this.weakItems(), sr = this.subjectRates();
     const tr = this.trickRate();
     const head = '【にがてのまとめ】' + (sr.length ? '\n科目別の正答率：' + sr.join('・') : '') + (tr ? '\n' + tr : '');
+    if (!Learn.d.answers.some(x => x.mode !== 'mock')) { await say([head, 'まだ問題を解いていないので、にがてはわからない。冒険を進めて問題に答えると、ここに苦手な所が出てくるぞ。']); return; }
     if (!w.length) { await say([head, 'いまのところ、にがての項目は見つかっていない。この調子じゃ！\n（出題範囲の項目ごとに、最近の解答で「迷わず・ヒントなしで正解」が7割に届かない項目を「にがて」として示します）']); return; }
     const top = w.slice(0, 5);
     await say([head, `まだ身についていない項目が ${w.length}こ あります。苦手な順に${top.length < w.length ? `上から${top.length}こ` : ''}示します。`,
