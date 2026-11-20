@@ -784,7 +784,9 @@
    "subject": "性質・消火",
    "area": "品名別",
    "item": "動植物油類",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "H-DOU"
+   ]
   },
   {
    "id": "H-12",
