@@ -95,3 +95,20 @@ textarea.inp { height: 160px; }
 .stick.on .knob { transition: none; }
 
 .choice.erased { opacity: .25; text-decoration: line-through; pointer-events: none; }
+/* 試験センター（模擬試験） */
+.exam { top: calc(8px + env(safe-area-inset-top)); bottom: calc(8px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; z-index: 40; border-color: #9ad0ff; }
+.exhead { display: flex; justify-content: space-between; font-size: 13px; color: #cde; margin-bottom: 8px; gap: 8px; }
+.extime { color: #ffd76a; font-weight: bold; white-space: nowrap; }
+.exbody { flex: 1; overflow-y: auto; }
+.exbody .qtext { font-size: 16px; line-height: 1.6; margin-bottom: 10px; }
+.exmark { margin-top: 8px; background: none; border: 1px solid #889; color: #dde; border-radius: 6px; padding: 6px 10px; font-size: 14px; }
+.exmark.on { border-color: #ffd76a; color: #ffd76a; }
+.exnav { display: flex; gap: 8px; margin-top: 8px; }
+.exbtn { flex: 1; padding: 12px 6px; font-size: 15px; border-radius: 8px; border: 2px solid #f2f2f2; background: #1a1a30; color: #fff; }
+.exbtn:disabled { opacity: .35; }
+.exfin { border-color: #ffd76a; color: #ffd76a; }
+.exgrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.excell { padding: 10px 0; border-radius: 6px; border: 1px solid #889; background: #f2f2f2; color: #111; font-weight: bold; }
+.excell.done { background: #2a3a6a; color: #fff; }
+.excell.mark { box-shadow: 0 0 0 2px #ffd76a inset; }
+.exnote { font-size: 13px; color: #bcd; margin-bottom: 8px; }

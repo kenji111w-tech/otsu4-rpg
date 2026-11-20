@@ -6,6 +6,7 @@ import { Field } from './field.js';
 import { Field3D, dir8 } from './field3d.js';
 import { loadAssets } from './art.js';
 import { Battle } from './battle.js';
+import { FORMS, examPool, buildExam, runExam, showResult } from './exam.js';
 
 const BASE = {
   hero: { id: 'hero', name: 'ユウ', lv: 1, hp: 30, mhp: 30, mp: 8, mmp: 8, atk: 9, def: 4 },
@@ -81,12 +82,12 @@ class Game {
     const items = [];
     if (saved) items.push({ label: 'つづきから', value: 'cont', note: `${saved.name}・${this.world.maps[saved.map].name}` });
     items.push({ label: 'はじめから', value: 'new' });
-    items.push({ label: '試験センター（模試）', value: 'exam', note: 'Phase 5で追加' });
+    items.push({ label: '試験センター（模試）', value: 'exam', note: '本番と同じ35問・2時間' });
     items.push({ label: 'バックアップ', value: 'backup' });
     const v = await choose(null, items, { cancel: false, cls: 'titlemenu' });
     t.remove();
     if (v === 'backup') { await this.backupMenu(); return this.title(); }
-    if (v === 'exam') { await say('試験センターの模擬試験は、Phase 5で追加します。本番と同じ35問・2時間の形式で、ゲームの世界の外で受けます。'); return this.title(); }
+    if (v === 'exam') { await this.examCenter(saved); return this.title(); }
     if (v === 'new') {
       if (saved) { const ok = await choose('前の冒険の記録（届出）は消えます。学習記録は残ります。', [{ label: 'はじめる', value: 1 }]); if (!ok) return this.title(); }
       const name = ((await prompt('主人公の名前は？', { value: 'ユウ' })) || 'ユウ').slice(0, 8);
@@ -278,7 +279,7 @@ class Game {
       ['ショウボウ老師', '試験センターで、本番と同じ形の「模擬試験」が受けられるようになったぞ。法令15問、物理・化学10問、性質・消火10問。科目ごとに6割で合格じゃ。'],
       ['ショウボウ老師', 'ゲームはここで一区切りじゃが、苦手な問題は宿屋の手紙と「にがて」で何度でも復習できる。合格の日まで、気をゆるめるでないぞ。'],
       '――おめでとう！ 物語はここで完結です。――',
-      '――今の版では、模擬試験は次の版で追加します。',
+      ['ショウボウ老師', '試験センターは、タイトル画面から行けるぞ。'],
     ]);
     this.state.flags.cleared = true;
     await this.recordScreen();
@@ -679,13 +680,36 @@ class Game {
     }
     if (v === 'd') { const d = this.state.docs || []; await say(d.length ? ['大事なもの（手続きの順に並んでいる）：' + d.join(' → '), '書類は手続きの順番どおりにしか手に入らない。'] : '大事なもの：まだない。（許可の町で、手続きの書類が手に入る）'); }
   }
+  async examCenter(saved) {
+    const cleared = (saved && saved.cleared) || {}, all = !!(saved && saved.flags && saved.flags.cleared);
+    const pool = examPool(this.questions, cleared, all);
+    const cnt = sj => pool.filter(q => q.subject === sj).length;
+    await say(['試験センターへようこそ。ここでは本番と同じ形の模擬試験が受けられます。',
+      '本番は、法令15問・物理・化学10問・性質・消火10問の35問を2時間で解きます。科目ごとに6割以上正解すれば合格です。1科目でも6割に届かないと不合格です。',
+      all ? '物語をクリアしたので、すべての範囲から出題します。' : `出題は、冒険でもう習った範囲だけです（今は 法令${cnt('法令')}問・物理・化学${cnt('物理・化学')}問・性質・消火${cnt('性質・消火')}問 の中から）。冒険を進めると範囲が広がります。`]);
+    const hist = Learn.d.mocks || [];
+    const items = Object.entries(FORMS).map(([k, f]) => ({ label: f.name, value: k }));
+    if (hist.length) items.push({ label: 'これまでの成績', value: 'hist' });
+    const v = await choose('どれを受けますか？', items); if (!v) return;
+    if (v === 'hist') { await say(['【これまでの模試】'].concat(hist.slice(-10).map(h => `${h.day} ${h.form}：` + Object.entries(h.by).map(([sj, x]) => `${sj}${x.ok}/${x.n}`).join('・') + (h.pass ? '　合格' : '　不合格')))); return this.examCenter(saved); }
+    const form = FORMS[v];
+    const short = Object.entries(form.parts).filter(([sj, n]) => cnt(sj) < n);
+    if (short.length === Object.keys(form.parts).length && short.every(([sj]) => cnt(sj) === 0)) { await say('まだ習った範囲がありません。冒険を進めてから来てください。'); return; }
+    if (short.length) await say(`まだ習った問題が足りない科目があるので、${short.map(([sj, n]) => `${sj}は${cnt(sj)}問`).join('、')}で出題します。`);
+    if (form.note) await say(form.note);
+    const ok = await choose(`${form.name}を始めます。${form.minutes ? `制限時間は${form.minutes}分です。` : ''}ヒントや正解の表示はありません。`, [{ label: '始める', value: 1 }]); if (!ok) return;
+    Learn.examMode = true; Learn.subject = '模試';
+    const r = await runExam(this.ui, buildExam(pool, form), form);
+    Learn.examMode = false;
+    await showResult(r, this.qById);
+  }
   async recordScreen() {
     const st = Learn.stats(); const hero = this.state.members.hero;
     await say([
       `【3つの成長指標】`,
       `冒険者レベル：Lv${hero.lv}（ゲームの進み具合。勝敗や合格とは関係ない）`,
       `学習熟練度：学んだ知識${st.learned}こ／安定${st.stable}こ／習得${st.mastered}こ`,
-      `試験戦闘力：模試は未受験（試験センターはPhase 5で追加）`,
+      (() => { const h = (Learn.d.mocks || []).slice(-1)[0]; return h ? `試験戦闘力：最新の模試 ${h.day} ` + Object.entries(h.by).map(([sj, x]) => `${sj}${Math.round(x.ok / x.n * 100)}%`).join('・') + (h.pass ? '（合格ライン）' : '（あと一歩）') : '試験戦闘力：模試は未受験（タイトル画面の「試験センター」で受けられます）'; })(),
       `学習時間：今日 ${fmtMin(Learn.d.time.byDay[studyDay()] || 0)}／今週 ${fmtMin(Learn.weekSeconds())}／累計 ${fmtMin(Learn.d.time.total)}`,
       `判断・解答 ${st.answers}回（正しい ${st.correct}回・${st.rate}%）／迷った ${st.unsure}回／ヒント ${st.hint}回`,
       `今日の復習：${st.due}こ${st.held ? `／保留の記録 ${st.held}件` : ''}`,
