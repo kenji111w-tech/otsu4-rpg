@@ -707,7 +707,7 @@ class Game {
   }
   // 町の人の話。合言葉を教える人は、話のあとに「この言葉が出たら、この答え」を教えてくれる
   async talk(n) {
-    await say(n.talk.map(t => ['村人', hl(t)]));
+    await say(n.talk.map(t => ['村人', /とか言|って言う/.test(t) ? t : hl(t)])); // 魔物のうそを伝えるうわさ話は光らせない
     if (!n.aiko) return;
     const s = this.state; s.aiko = s.aiko || [];
     const tips = this.aiko.filter(t => t.town === n.aiko), fresh = tips.filter(t => !s.aiko.includes(t.id));
