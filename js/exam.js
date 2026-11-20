@@ -1,5 +1,5 @@
 // 試験センター：本番と同じ形の模擬試験（ゲームの世界の外で受ける）
-import { el, shuffle, fmtMin } from './util.js';
+import { el, shuffle, fmtMin, studyDay } from './util.js';
 import { Learn } from './learn.js';
 import { choose, say } from './ui.js';
 
@@ -93,7 +93,8 @@ export function runExam(layer, qs, form, resume = null) {
       qs.forEach((q, i) => { const c = ans[i] === q.answer; (by[q.subject] = by[q.subject] || { n: 0, ok: 0 }).n++; if (c) by[q.subject].ok++;
         Learn.record(q, { correct: c, unsure: mark[i], hint: false, mode: 'mock', order: orders[i], ms: Math.round(ms / qs.length) }); });
       const pass = Object.values(by).every(v => v.ok / v.n >= CONF.passRate);
-      const r = { day: new Date().toISOString().slice(0, 10), form: form.name, by, pass, ms, timeUp, first: !!form.mock, ids: qs.map(q => q.id), ok: qs.map((q, i) => ans[i] === q.answer), wrong: qs.map((q, i) => ({ q, a: ans[i] })).filter(x => x.a !== x.q.answer).map(x => ({ id: x.q.id, a: x.a })) };
+      const r = { day: studyDay(), // 日本時間の学習日（朝4時区切り）。UTCだと朝9時前が前日になってしまう
+         form: form.name, by, pass, ms, timeUp, first: !!form.mock, ids: qs.map(q => q.id), ok: qs.map((q, i) => ans[i] === q.answer), wrong: qs.map((q, i) => ({ q, a: ans[i] })).filter(x => x.a !== x.q.answer).map(x => ({ id: x.q.id, a: x.a })) };
       (Learn.d.mocks = Learn.d.mocks || []).push({ day: r.day, form: r.form, by, pass, ms, first: !!form.mock, set: form.set || null }); Learn.save();
       res(r);
     };

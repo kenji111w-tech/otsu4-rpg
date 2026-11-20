@@ -832,7 +832,7 @@ class Game {
     if (v === 'm') {
       const M = this.world.mysteries || {}, st = this.state, ts = Object.keys(M).filter(t => st.flags['myst_' + t]);
       if (!ts.length) return say('事件の手帳：まだ何も書かれていない。');
-      await say(ts.map(t => `事件「${M[t].title}」${st.flags['solved_' + t] ? '（解決）' : '（調査中）'}\n手がかり：` + (((st.clues || {})[t] || []).map(x => `「${x}」`).join('') || 'まだない')));
+      await say(ts.map(t => { const B = this.world.stages[t + '-boss']; const who = B ? this.world.enemies[B.enemy].name : ''; return `事件「${M[t].title}」${st.flags['solved_' + t] ? `（解決：${who}）` : '（調査中）'}\n手がかり：` + (((st.clues || {})[t] || []).map(x => `「${x}」`).join('') || 'まだない'); }));
     }
     if (v === 'a') {
       const got = this.state.aiko || [], tips = this.aiko.filter(t => got.includes(t.id));
@@ -851,7 +851,7 @@ class Game {
     const cleared = (saved && saved.cleared) || {}, all = !!(saved && saved.flags && saved.flags.cleared);
     const pool = examPool(this.questions, cleared, all);
     const cnt = sj => pool.filter(q => q.subject === sj).length;
-    await say(['試験センターへようこそ。ここでは本番と同じ形の模擬試験が受けられます。今は、冒険で出てくる問題から組む「練習模試」です。本番用の模試専用問題は準備中です。',
+    await say(['試験センターへようこそ。ここでは本番と同じ形の模擬試験が受けられます。「練習模試」は冒険で出てくる問題から組みます。物語をクリアすると、初めて見る問題だけの「本番模試」（模試専用問題・6回分）も受けられます。',
       '本番は、法令15問・物理・化学10問・性質・消火10問の35問を2時間で解きます。科目ごとに6割以上正解すれば合格です。1科目でも6割に届かないと不合格です。',
       all ? '物語をクリアしたので、すべての範囲から出題します。' : `出題は、冒険でもう習った範囲だけです（今は 法令${cnt('法令')}問・物理・化学${cnt('物理・化学')}問・性質・消火${cnt('性質・消火')}問 の中から）。冒険を進めると範囲が広がります。`]);
     const run = Learn.d.mockRun;
