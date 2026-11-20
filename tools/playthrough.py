@@ -58,6 +58,13 @@ SCEN_CH3 = """(async () => {
       for (let k=0;k<4 && !g.state.cleared[st];k++) { await ev({type:'building', id:'inn'}); await ev({type:'stage', id:st}); if (!g.state.cleared[st]) g.field.load('town12', 8, 14); }
       window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.sekiyu.lv);
     }
+    g.field.load('town12', 16, 8);
+    await ev({type:'exit', to:'field4', tx:1, ty:8, need:'H7-boss'});
+    for (let i=0;i<2;i++) await g.encounter();
+    for (const st of ['H8-1','H8-2','H8-3','H8-4','H8-boss']) {
+      for (let k=0;k<4 && !g.state.cleared[st];k++) { g.field.load('town12', 8, 14); await ev({type:'building', id:'inn'}); g.field.load('field4', 1, 8); await ev({type:'stage', id:st}); }
+      window.__log.push(st + ':' + !!g.state.cleared[st] + ' lv' + g.state.members.hero.lv + '/' + g.state.members.sekiyu.lv);
+    }
     window.__log.push('skills:' + g.state.skills.slice(-3).join(','));
     await g.menu();
   } catch (e) { window.__log.push('EXC ' + e.message + ' ' + e.stack); }
@@ -292,7 +299,7 @@ async def main():
             r = await bot_step(pg, None)
             if r == 'idle' and await pg.evaluate("!!(window.__game.state)"): break
             await pg.wait_for_timeout(30)
-        await pg.evaluate(SCEN_CH3.replace("/^[LDQP]/.test(k)).forEach(k => s.cleared[k] = true);", "/^([LDQP]|H[1-5])/.test(k)).forEach(k => s.cleared[k] = true); s.flags.chapter3 = true; s.members.sekiyu = {id:'sekiyu',name:'セキユ',lv:30,hp:150,mhp:150,mp:66,mmp:66,atk:38,def:34,exp:0};").replace("s.members.hero.lv = 23; Object.assign(s.members.hero, {mhp: 130, hp: 130, mmp: 56, mp: 56, atk: 33, def: 27});", "s.members.hero.lv = 31; Object.assign(s.members.hero, {mhp: 170, hp: 170, mmp: 72, mp: 72, atk: 42, def: 35});").replace("    s.items = {yakusou: 8, mizu: 4}; s.gold = 3000;", "    s.items = {yakusou: 8, mizu: 4}; s.gold = 3000; s.party = ['hero','sekiyu']; s.lastInn = {map:'town6',x:3,y:4};") if MODE == "ch3late" else SCEN_CH3 if MODE == "ch3" else SCEN_CH2 if MODE == "ch2" else SCEN)
+        await pg.evaluate(SCEN_CH3.replace("/^[LDQP]/.test(k)).forEach(k => s.cleared[k] = true);", "/^([LDQP]|H[1-6])/.test(k)).forEach(k => s.cleared[k] = true); s.flags.chapter3 = true; s.members.sekiyu = {id:'sekiyu',name:'セキユ',lv:30,hp:150,mhp:150,mp:66,mmp:66,atk:38,def:34,exp:0};").replace("s.members.hero.lv = 23; Object.assign(s.members.hero, {mhp: 130, hp: 130, mmp: 56, mp: 56, atk: 33, def: 27});", "s.members.hero.lv = 31; Object.assign(s.members.hero, {mhp: 170, hp: 170, mmp: 72, mp: 72, atk: 42, def: 35});").replace("    s.items = {yakusou: 8, mizu: 4}; s.gold = 3000;", "    s.items = {yakusou: 8, mizu: 4}; s.gold = 3000; s.party = ['hero','sekiyu']; s.lastInn = {map:'town6',x:3,y:4};") if MODE == "ch3late" else SCEN_CH3 if MODE == "ch3" else SCEN_CH2 if MODE == "ch2" else SCEN)
         counts = {}
         for i in range(17000):
             if await pg.evaluate("window.__done"): break

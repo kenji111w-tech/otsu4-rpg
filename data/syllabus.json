@@ -793,7 +793,9 @@
    "subject": "性質・消火",
    "area": "品名別",
    "item": "事故事例と対策",
-   "kid_prefixes": []
+   "kid_prefixes": [
+    "H-JIKO"
+   ]
   }
  ]
 }

@@ -251,6 +251,22 @@ class Game {
     s.party = ['hero', 'sekiyu']; s.flags.chapter3 = true; s.lastInn = { map: 'town6', x: 3, y: 4 };
     if (this.field.setParty) this.field.setParty(s.party); else this.field.party = s.party;
   }
+  async ending18() {
+    const n = this.state.name;
+    await say([
+      '蒸気竜の長い体が、風にほどけるように薄れていった。くぼ地にたまっていた重い蒸気も、もうどこにもない。',
+      ['セキユ', 'やったな……。第4類の共通の性質、7つの品名、それに事故を防ぐ知恵。危険物の国は、これで取り戻した。'],
+      ['セキユ', `${n}。おれはこの国に残って、親父の店を建て直す。今度は、油のしみたぼろ布なんか、ぜったいにためこまねえ店にな。`],
+      ['セキユ', 'だが、おまえが本当の試練に挑むときは、かならず駆けつける。ホアンも、ケミも、きっと同じ気持ちだ。'],
+      'セキユが拳を突き出した。ユウも拳を合わせた。',
+      '――第3章「危険物の国」完。',
+      ['ショウボウ老師', '（どこからか声が響く）よくぞここまで来た。法令、物理・化学、そして危険物。3つの国の知恵がそろったな。'],
+      ['ショウボウ老師', '……だが、この国々に炎をもたらした「エンジョウ」は、まだ試練の塔の上におる。あやつの正体については、わしからも話さねばならんことがある。'],
+      '――今の版はここまでです。終章「試練の塔」は次の版で追加します。',
+    ]);
+    this.state.flags.chapter3clear = true;
+    await this.recordScreen();
+  }
   async ending17() {
     const n = this.state.name;
     await say([
@@ -259,7 +275,7 @@ class Game {
       ['セキユ', 'すみに積んであった、アマニ油のしみたぼろ布。あれが、火の気もないのにゆっくり熱をためて……自然発火したんだ。'],
       ['セキユ', `${n}、ありがとう。おまえと旅して、油のことを一から学んで、やっとわかった。知っていれば、防げたんだ。だから、知ることは大事なんだな。`],
       ['セキユ', '第4類の7つの品名は、これでぜんぶ回った。だが……国のいちばん奥で、低い所をはいまわる「蒸気の竜」が目をさましたらしい。'],
-      '――今の版はここまでです。第3章の最後「低きを這う蒸気竜」は次の版で追加します。',
+      ['セキユ', '低地の油田へは、この町の東の門から行けるぞ。'],
     ]);
     this.state.flags.h7clear = true;
     await this.recordScreen();
@@ -413,6 +429,7 @@ class Game {
       if (ev.to === 'pass2' && !s.flags.pass2) { s.flags.pass2 = true; await say(['運搬の峠に出た。', '細い山道を、荷車やタンクローリーの魔物が行き来している。', ['ホアン', 'ここは危険物を「運ぶ」ときの決まりを学ぶ場所です。容器に入れて運ぶ「運搬」と、タンクローリーで運ぶ「移送」。'], ['ホアン', 'この峠にも宿屋はありません。泉と宝箱を探しましょう。']]); }
       if (ev.to === 'town4' && !s.flags.chapter2) { await this.chapter2Start(); }
       if (ev.to === 'town6' && !s.flags.chapter3) { await this.chapter3Start(); }
+      if (ev.to === 'field4' && !s.flags.field4) { s.flags.field4 = true; await say(['低地の油田に出た。', '地面が低くくぼんだ土地。足もとを、うす茶色の重たい蒸気がゆっくり流れていく。', ['セキユ', 'ここが危険物の国のいちばん奥だ。4つの事故現場を調べて、事故を防ぐ知恵を身につけてから、くぼ地の蒸気竜に挑むぞ。']]); }
       if (ev.to === 'town12' && !s.flags.town12) { s.flags.town12 = true; await say(['動植物油類の町に着いた。', '畑と森にかこまれた町。油しぼりの小屋から、ナタネやゴマのこうばしいにおいがする。', ['セキユ', 'ここが最後の品名、動植物油類の町だ。緑の体に弓とつるが目じるしだぞ。'], ['セキユ', '……この町には、ずっと気になってることの答えがある気がするんだ。']]); }
       if (ev.to === 'town11' && !s.flags.town11) { s.flags.town11 = true; await say(['第3・第4石油類の町に着いた。', '煙突の並ぶ工場の町。ボイラーの低い音が響き、歯車がごうんと回っている。', ['セキユ', 'ここは重たい油の町だ。茶色の斧は第3石油類、灰色の大槌は第4石油類だぞ。']]); }
       if (ev.to === 'town10' && !s.flags.town10) { s.flags.town10 = true; await say(['第2石油類の町に着いた。', '黄色い旗の城下町。家々の前に灯油の缶が並び、トラックが行き来している。', ['セキユ', 'ここは第2石油類の町だ。黄色い体に槍が目じるし。霧の炎に気をつけろよ。']]); }
@@ -501,7 +518,7 @@ class Game {
     if (r !== 'win') { await say([[G, 'いったん引きましょう。準備ができたら、また来てください。']]); return; }
     s.cleared[id] = true;
     if (S.doc && !(s.docs || (s.docs = [])).includes(S.doc)) { s.docs.push(S.doc); await say([`大事なもの「${S.doc}」を手に入れた！`, [G, S.doc === '許可書' ? '設置の許可を受けた証です。次は工事、そして完成検査。手続きには順番があります。' : '完成検査で基準に適合していると認められた証です。これでようやく使い始められます。']]); }
-    if (S.boss) return ({ 'L1-boss': () => this.ending(), 'L2-boss': () => this.ending2(), 'L3-boss': () => this.ending3(), 'D1-boss': () => this.ending4(), 'D2-boss': () => this.ending5(), 'D3-boss': () => this.ending6(), 'P1-boss': () => this.ending7(), 'P2-boss': () => this.ending8(), 'P3-boss': () => this.ending9(), 'P4-boss': () => this.ending10(), 'H1-boss': () => this.ending11(), 'H2-boss': () => this.ending12(), 'H3-boss': () => this.ending13(), 'H4-boss': () => this.ending14(), 'H5-boss': () => this.ending15(), 'H6-boss': () => this.ending16(), 'H7-boss': () => this.ending17() })[id]();
+    if (S.boss) return ({ 'L1-boss': () => this.ending(), 'L2-boss': () => this.ending2(), 'L3-boss': () => this.ending3(), 'D1-boss': () => this.ending4(), 'D2-boss': () => this.ending5(), 'D3-boss': () => this.ending6(), 'P1-boss': () => this.ending7(), 'P2-boss': () => this.ending8(), 'P3-boss': () => this.ending9(), 'P4-boss': () => this.ending10(), 'H1-boss': () => this.ending11(), 'H2-boss': () => this.ending12(), 'H3-boss': () => this.ending13(), 'H4-boss': () => this.ending14(), 'H5-boss': () => this.ending15(), 'H6-boss': () => this.ending16(), 'H7-boss': () => this.ending17(), 'H8-boss': () => this.ending18() })[id]();
     // ホアンの確認：そのステージの五肢択一から2問（未出題を優先）
     const done = new Set(Learn.d.answers.map(a => a.qid));
     const [town, sn] = id.split('-');

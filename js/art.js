@@ -1086,6 +1086,36 @@ export const ENEMY_HQ = {
     ctx.fillStyle = '#ffe04a'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + k * R * .1, cy - R * .08, R * .04, 0, 7); ctx.fill(); });
     for (let i = 0; i < 4; i++) { ctx.fillStyle = ['#8a7a5a', '#6a6a4a', '#9a8a6a', '#5a5a3a'][i]; rr(ctx, cx - R * .55 + i * R * .05, cy + R * .62 + i * R * .07, R * (.5 - i * .05), R * .1, R * .03); ctx.fill(); rr(ctx, cx + R * .1 - i * R * .03, cy + R * .65 + i * R * .06, R * (.45 - i * .05), R * .1, R * .03); ctx.fill(); }
     plate(ctx, cx, cy + R * .45, R * 1.2, '10000', '#2a5a1a'); },
+  // ── 低地の油田（事故事例）──
+  seidenkyu(ctx, cx, cy, R, t) {
+    ctx.fillStyle = lin(ctx, cx - R * .35, 0, cx + R * .35, 0, ['#e85a3a', '#a82a1a']); rr(ctx, cx - R * .35, cy - R * .55, R * .7, R * 1.35, R * .1); ctx.fill();
+    ctx.fillStyle = '#222'; rr(ctx, cx - R * .25, cy - R * .45, R * .5, R * .3, R * .05); ctx.fill(); ctx.fillStyle = '#7aff8a'; ctx.font = `bold ${R * .14}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('ｾﾙﾌ', cx, cy - R * .3);
+    ctx.fillStyle = '#ffe04a'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + k * R * .12, cy + R * .02, R * .06, 0, 7); ctx.fill(); }); ctx.fillStyle = '#3a0a0a'; ctx.beginPath(); ctx.arc(cx, cy + R * .2, R * .07, 0, Math.PI); ctx.fill();
+    ctx.strokeStyle = '#222'; ctx.lineWidth = R * .06; ctx.beginPath(); ctx.moveTo(cx + R * .35, cy - R * .1); ctx.quadraticCurveTo(cx + R * .75, cy, cx + R * .6, cy + R * .4); ctx.stroke(); ctx.fillStyle = '#444'; rr(ctx, cx + R * .52, cy + R * .38, R * .16, R * .1, R * .02); ctx.fill();
+    for (let i = 0; i < 5; i++) { const a = t / 3 + i * 1.26, x = cx + R * .6 + Math.cos(a) * R * .2, y = cy + R * .45 + Math.sin(a) * R * .15; ctx.strokeStyle = '#ffe860'; ctx.lineWidth = R * .025; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + R * .05, y - R * .04); ctx.lineTo(x + R * .02, y - R * .07); ctx.lineTo(x + R * .08, y - R * .11); ctx.stroke(); } },
+  ayamari(ctx, cx, cy, R, t) {
+    [-.5, .1, .45].forEach(k => { ctx.fillStyle = '#2a2a2a'; ctx.beginPath(); ctx.arc(cx + k * R, cy + R * .6, R * .14, 0, 7); ctx.fill(); });
+    ctx.fillStyle = lin(ctx, 0, cy - R * .3, 0, cy + R * .5, ['#d8d8e0', '#8a8a98']); rr(ctx, cx - R * .75, cy - R * .25, R * 1.0, R * .75, R * .3); ctx.fill();
+    ctx.fillStyle = '#e83a2a'; rr(ctx, cx + R * .25, cy - R * .35, R * .45, R * .85, R * .08); ctx.fill(); ctx.fillStyle = '#bfe4ff'; rr(ctx, cx + R * .32, cy - R * .25, R * .3, R * .22, R * .04); ctx.fill();
+    ctx.fillStyle = '#222'; [0, 1].forEach(i => { ctx.beginPath(); ctx.arc(cx + R * (.4 + i * .14), cy - R * .14, R * .03, 0, 7); ctx.fill(); });
+    ctx.fillStyle = '#ffd820'; rr(ctx, cx - R * .55, cy - R * .05, R * .6, R * .2, R * .04); ctx.fill(); ctx.fillStyle = '#222'; ctx.font = `bold ${R * .13}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('危', cx - R * .25, cy + R * .05);
+    ctx.strokeStyle = '#333'; ctx.lineWidth = R * .05; const sw = Math.sin(t / 8) * R * .08; ctx.beginPath(); ctx.moveTo(cx - R * .7, cy + R * .2); ctx.quadraticCurveTo(cx - R * .95, cy + R * .5, cx - R * .8 + sw, cy + R * .85); ctx.stroke();
+    ctx.fillStyle = '#ff5a5a'; ctx.font = `bold ${R * .3}px sans-serif`; ctx.fillText('?', cx - R * .85, cy - R * .45 + Math.sin(t / 6) * R * .04); },
+  moreana(ctx, cx, cy, R, t) {
+    ctx.fillStyle = '#6a4a2a'; ctx.beginPath(); ctx.ellipse(cx, cy + R * .7, R * .8, R * .2, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#7a7a8a'; ctx.fillRect(cx - R * .9, cy + R * .45, R * 1.8, R * .14); ctx.fillStyle = '#9a4a2a'; ctx.beginPath(); ctx.arc(cx + R * .5, cy + R * .52, R * .06, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(160,120,40,.8)'; for (let i = 0; i < 3; i++) { const p = ((t / 2 + i * 8) % 24) / 24; ctx.beginPath(); ctx.ellipse(cx + R * .5, cy + R * .58 + p * R * .25, R * .03, R * .05, 0, 0, 7); ctx.fill(); }
+    const b = Math.abs(Math.sin(t / 15)) * R * .1; ctx.fillStyle = lin(ctx, 0, cy - R * .5, 0, cy + R * .5, ['#6a5a4a', '#3a2a1a']); ctx.beginPath(); ctx.ellipse(cx - R * .1, cy + R * .15 - b, R * .38, R * .45, 0, Math.PI, 0); ctx.lineTo(cx + R * .28, cy + R * .5); ctx.lineTo(cx - R * .48, cy + R * .5); ctx.fill();
+    ctx.fillStyle = '#f0a0a0'; ctx.beginPath(); ctx.ellipse(cx - R * .1, cy - R * .05 - b, R * .1, R * .07, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#111'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx - R * .1 + k * R * .14, cy - R * .2 - b, R * .03, 0, 7); ctx.fill(); });
+    ctx.fillStyle = '#e8d8c8'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.ellipse(cx - R * .1 + k * R * .35, cy + R * .3 - b, R * .1, R * .06, k * .5, 0, 7); ctx.fill(); }); },
+  tamarigas(ctx, cx, cy, R, t) {
+    ctx.fillStyle = 'rgba(80,60,40,.35)'; ctx.beginPath(); ctx.ellipse(cx, cy + R * .75, R * .95, R * .2, 0, 0, 7); ctx.fill();
+    const w = Math.sin(t / 10) * R * .04;
+    ctx.fillStyle = 'rgba(190,160,110,.85)'; ctx.beginPath(); ctx.moveTo(cx - R * .9, cy + R * .7); for (let i = 0; i <= 10; i++) { const x = cx - R * .9 + i * R * .18, y = cy + R * (.15 + .12 * Math.sin(i * 1.3 + t / 8)) - (i > 2 && i < 8 ? R * .25 : 0) + w; ctx.lineTo(x, y); } ctx.lineTo(cx + R * .9, cy + R * .7); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.beginPath(); ctx.ellipse(cx - R * .3, cy - R * .02, R * .15, R * .05, -.2, 0, 7); ctx.fill();
+    ctx.fillStyle = '#3a2a1a'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.ellipse(cx + k * R * .15, cy + R * .1, R * .05, R * .025, 0, 0, 7); ctx.fill(); }); ctx.strokeStyle = '#3a2a1a'; ctx.lineWidth = R * .03; ctx.beginPath(); ctx.arc(cx, cy + R * .22, R * .08, .3, 2.8); ctx.stroke();
+    ctx.fillStyle = 'rgba(180,150,100,.5)'; for (let i = 0; i < 3; i++) { const p = ((t / 3 + i * 12) % 36) / 36; ctx.beginPath(); ctx.ellipse(cx + R * (.6 + p * .4), cy + R * .65, R * (.1 + p * .1), R * .04, 0, 0, 7); ctx.fill(); } },
   // __ENEMY_END__
 };
 function mist(ctx, cx, cy, R, t) { for (let i = 0; i < 6; i++) { const p = ((t / 3 + i * 8) % 48) / 48; ctx.fillStyle = `rgba(250,230,120,${.35 * (1 - p)})`; ctx.beginPath(); ctx.arc(cx + Math.sin(i * 2.4) * R * .7, cy - R * .2 - p * R * .6, R * (.12 + p * .2), 0, 7); ctx.fill(); } }
