@@ -165,7 +165,7 @@ export class Battle {
   }
   // ボス・中ボス用：この章で「まちがえた・迷った・ヒントを使った・答えるのが遅かった」問題（ユーザー要望 2026-11-19）
   weakQs() {
-    const ch = a => /^[LDQ]/.test(a || '') ? 1 : /^P/.test(a || '') ? 2 : /^H/.test(a || '') ? 3 : 0, my = ch(this.e.area), seen = {};
+    const ch = a => /^[LDQ]/.test(a || '') ? 1 : /^P/.test(a || '') ? 2 : /^H/.test(a || '') ? 3 : /^R/.test(a || '') ? 4 : 0, my = ch(this.e.area), seen = {};
     for (const a of Learn.d.answers) {
       const q = this.g.qById[a.qid]; if (!q || q.call || q.topic === 'identify' || q.pool === 'mock' || (my && ch(q.town) !== my)) continue; // 終章（my=0）は全章から
       const slow = a.ms > (q.question.length > 60 ? 28000 : 20000);

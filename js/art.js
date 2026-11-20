@@ -1140,6 +1140,29 @@ export const ENEMY_HQ = {
   enjou3(ctx, cx, cy, R, t) { enjouBody(ctx, cx, cy, R, t, ['#ffe04a', '#a82a6a']);
     ['#4a2a6a', '#e83a2a', '#a8d8ff', '#f0d030', '#8a5a2a', '#8a8a98', '#4aa83a'].forEach((c, i) => { const a = t / 10 + i * .9; ctx.fillStyle = c; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * R * .6, cy - R * .1 + Math.sin(a) * R * .55, R * .08, 0, 7); ctx.fill(); });
     ctx.fillStyle = 'rgba(190,160,110,.55)'; for (let i = 0; i < 4; i++) { const p = ((t / 3 + i * 10) % 40) / 40; ctx.beginPath(); ctx.ellipse(cx + (p - .5) * R * 1.8, cy + R * .85, R * (.15 + p * .1), R * .05, 0, 0, 7); ctx.fill(); } },
+  sansodashi(ctx, cx, cy, R, t) { crystals(ctx, cx, cy + R * .1, R, ['#f4f8ff', '#b8c8e0'], 5); eyes2(ctx, cx, cy, R); bubbles(ctx, cx, cy - R * .2, R, t, 'rgba(160,220,255,.8)'); plate(ctx, cx, cy + R * .55, R, '第1類', '#5a6a8a'); },
+  ensosan(ctx, cx, cy, R, t) {
+    ctx.fillStyle = lin(ctx, cx - R * .45, 0, cx + R * .45, 0, ['#ffffff', '#c8d0e0']); ctx.beginPath(); ctx.arc(cx, cy + R * .1, R * .48, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#6a5a3a'; ctx.lineWidth = R * .04; ctx.beginPath(); ctx.moveTo(cx + R * .2, cy - R * .32); ctx.quadraticCurveTo(cx + R * .45, cy - R * .7, cx + R * .3, cy - R * .85); ctx.stroke();
+    const f = .5 + .5 * Math.sin(t / 3); ctx.fillStyle = `rgba(255,${150 + 80 * f},40,.95)`; ctx.beginPath(); ctx.arc(cx + R * .3, cy - R * .88, R * (.06 + .03 * f), 0, 7); ctx.fill();
+    ctx.fillStyle = '#c0392b'; rr(ctx, cx - R * .75, cy + R * .1, R * .22, R * .26, R * .05); ctx.fill(); ctx.fillStyle = '#e8c830'; rr(ctx, cx + R * .52, cy + R * .15, R * .22, R * .26, R * .05); ctx.fill();
+    eyes2(ctx, cx, cy, R); plate(ctx, cx, cy + R * .42, R, '第1類', '#5a6a8a'); },
+  mizugirai(ctx, cx, cy, R, t) {
+    for (let i = 0; i < 9; i++) { const a = i * .7 + t / 30, r = R * (.25 + (i % 3) * .12); ctx.fillStyle = i % 2 ? '#f6eec0' : '#e8dc98'; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * r, cy + R * .15 + Math.sin(a) * r * .6, R * .2, 0, 7); ctx.fill(); }
+    for (let i = 0; i < 4; i++) { const p = ((t / 2 + i * 12) % 48) / 48; ctx.fillStyle = `rgba(255,255,255,${.5 * (1 - p)})`; ctx.beginPath(); ctx.arc(cx + (i - 1.5) * R * .25, cy - R * .3 - p * R * .5, R * (.08 + p * .12), 0, 7); ctx.fill(); }
+    eyes2(ctx, cx, cy + R * .05, R); plate(ctx, cx, cy + R * .6, R, '禁水', '#2a5aa8'); },
+  shosankayaku(ctx, cx, cy, R, t) {
+    ctx.fillStyle = lin(ctx, cx - R * .4, 0, cx + R * .4, 0, ['#7a5a3a', '#4a3420']); rr(ctx, cx - R * .4, cy - R * .4, R * .8, R * 1.1, R * .2); ctx.fill();
+    ctx.strokeStyle = '#2a2a2a'; ctx.lineWidth = R * .05; [-.15, .45].forEach(k => { ctx.beginPath(); ctx.moveTo(cx - R * .4, cy + R * k); ctx.lineTo(cx + R * .4, cy + R * k); ctx.stroke(); });
+    ctx.fillStyle = '#f4f4f4'; ctx.beginPath(); ctx.ellipse(cx, cy - R * .42, R * .32, R * .1, 0, 0, 7); ctx.fill();
+    for (let i = 0; i < 8; i++) { ctx.fillStyle = 'rgba(30,30,30,.6)'; ctx.beginPath(); ctx.arc(cx + Math.sin(i * 2.1 + t / 10) * R * .6, cy + R * .7 - ((t + i * 9) % 40) / 40 * R * .4, R * .03, 0, 7); ctx.fill(); }
+    ctx.fillStyle = '#6a2a8a'; ctx.beginPath(); ctx.arc(cx - R * .18, cy + R * .05, R * .07, 0, 7); ctx.fill(); ctx.fillStyle = '#e87a2a'; ctx.beginPath(); ctx.arc(cx + R * .18, cy + R * .05, R * .07, 0, 7); ctx.fill();
+    eyes2(ctx, cx, cy - R * .15, R); plate(ctx, cx, cy + R * .3, R, '第1類', '#5a6a8a'); },
+  sankanoou(ctx, cx, cy, R, t) {
+    ctx.fillStyle = lin(ctx, 0, cy - R * .4, 0, cy + R * .9, ['#ffffff', '#a8b8d0']); rr(ctx, cx - R * .45, cy - R * .35, R * .9, R * 1.2, R * .15); ctx.fill();
+    crystals(ctx, cx, cy - R * .45, R * .7, ['#ffffff', '#c0d8f0'], 5);
+    ctx.fillStyle = '#e8c840'; ctx.beginPath(); ctx.moveTo(cx - R * .3, cy - R * .62); for (let i = 0; i < 5; i++) { ctx.lineTo(cx - R * .3 + i * R * .15, cy - R * (i % 2 ? .62 : .82)); } ctx.lineTo(cx + R * .3, cy - R * .62); ctx.fill();
+    eyes2(ctx, cx, cy - R * .2, R); bubbles(ctx, cx, cy, R * 1.3, t, 'rgba(160,220,255,.85)'); plate(ctx, cx, cy + R * .45, R, '第1類', '#5a6a8a'); },
   // __ENEMY_END__
 };
 function mist(ctx, cx, cy, R, t) { for (let i = 0; i < 6; i++) { const p = ((t / 3 + i * 8) % 48) / 48; ctx.fillStyle = `rgba(250,230,120,${.35 * (1 - p)})`; ctx.beginPath(); ctx.arc(cx + Math.sin(i * 2.4) * R * .7, cy - R * .2 - p * R * .6, R * (.12 + p * .2), 0, 7); ctx.fill(); } }
@@ -1155,6 +1178,9 @@ function enjouBody(ctx, cx, cy, R, t, [c1, c2]) {
   ctx.fillStyle = '#ffd820'; ctx.beginPath(); ctx.moveTo(cx - R * .3, cy - R * .6); for (let i = 0; i < 5; i++) ctx.lineTo(cx - R * .3 + i * R * .15, cy - R * (.95 - (i % 2) * .2)); ctx.lineTo(cx + R * .3, cy - R * .6); ctx.fill();
   ctx.fillStyle = '#fff8c0'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.ellipse(cx + k * R * .15, cy - R * .3, R * .07, R * .04, k * -.3, 0, 7); ctx.fill(); });
   ctx.fillStyle = '#3a0a0a'; ctx.beginPath(); ctx.ellipse(cx, cy - R * .08, R * .2, R * .08, 0, 0, Math.PI); ctx.fill(); }
+function crystals(ctx, cx, cy, R, [c1, c2], n) { for (let i = 0; i < n; i++) { const x = cx + (i - (n - 1) / 2) * R * .22, h = R * (.5 + .35 * Math.sin(i * 2.3 + 1)), w = R * .16; ctx.fillStyle = lin(ctx, x - w, 0, x + w, 0, [c1, c2]); ctx.beginPath(); ctx.moveTo(x - w, cy + R * .45); ctx.lineTo(x - w, cy + R * .45 - h); ctx.lineTo(x, cy + R * .45 - h - R * .18); ctx.lineTo(x + w, cy + R * .45 - h); ctx.lineTo(x + w, cy + R * .45); ctx.fill(); ctx.strokeStyle = 'rgba(90,110,150,.5)'; ctx.lineWidth = R * .015; ctx.stroke(); } }
+function bubbles(ctx, cx, cy, R, t, col) { ctx.fillStyle = col; for (let i = 0; i < 6; i++) { const p = ((t / 2 + i * 8) % 48) / 48; ctx.globalAlpha = 1 - p; ctx.beginPath(); ctx.arc(cx + Math.sin(i * 2.7) * R * .45, cy - p * R * .6, R * .04, 0, 7); ctx.fill(); } ctx.globalAlpha = 1; }
+function eyes2(ctx, cx, cy, R) { ctx.fillStyle = '#fff'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + k * R * .13, cy, R * .07, 0, 7); ctx.fill(); }); ctx.fillStyle = '#222'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + k * R * .13, cy + R * .015, R * .035, 0, 7); ctx.fill(); }); }
 function alcBody(ctx, cx, cy, R, t, nC) {
   const b = Math.sin(t / 12) * R * .04;
   ctx.fillStyle = 'rgba(205,235,255,.82)'; ctx.beginPath(); ctx.moveTo(cx - R * .4, cy + R * .8); ctx.quadraticCurveTo(cx - R * .5, cy - R * .45 + b, cx, cy - R * .5 + b); ctx.quadraticCurveTo(cx + R * .5, cy - R * .45 + b, cx + R * .4, cy + R * .8); ctx.closePath(); ctx.fill();

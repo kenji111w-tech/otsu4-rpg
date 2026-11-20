@@ -1738,6 +1738,10 @@ M6 = [
 for i, (kid, sj, qq, ch, a, ex, ce, src) in enumerate(M5, 1): mk(i, 5, kid, sj, qq, ch, a, ex, ce, src)
 for i, (kid, sj, qq, ch, a, ex, ce, src) in enumerate(M6, 1): mk(i, 6, kid, sj, qq, ch, a, ex, ce, src)
 
+import glob
+# 後日談「火の国」（第1・2・3・5・6類）
+for _p in sorted(glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fire_q*.py'))):
+    exec(open(_p).read())
 # まちがい選択肢の長さをそろえる差し替え（tools/choice_fix_*.py の FIX）
 import glob, importlib
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
