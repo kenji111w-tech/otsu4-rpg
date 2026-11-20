@@ -1261,8 +1261,11 @@ export function outlined(src, w = 6, color = [90, 58, 42], cut = 150) {
   o.drawImage(src, 0, 0); return out;
 }
 const _soft = document.createElement('canvas');
+const _softCache = {}; // 敵ごとに、縁取りした絵を3フレームのあいだ使い回す（iPhoneでの負担を減らす）
 export function drawEnemySoft(ctx, id, cx, cy, R, t, fallback) {
-  const S = 360; _soft.width = _soft.height = S; const b = _soft.getContext('2d'); b.clearRect(0, 0, S, S);
+  const S = 360, k0 = R * 2.6 / S, c = _softCache[id];
+  if (c && t >= c.t && t - c.t < 3) { ctx.save(); ctx.fillStyle = 'rgba(30,40,70,.22)'; ctx.beginPath(); ctx.ellipse(cx, cy + R * 1.08, R * .62, R * .11, 0, 0, 7); ctx.fill(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(c.img, cx - S * k0 / 2, cy - S * k0 / 2 - R * .05, S * k0, S * k0); ctx.restore(); return; }
+  _soft.width = _soft.height = S; const b = _soft.getContext('2d'); b.clearRect(0, 0, S, S);
   if (!b.__num) { // 鎧の数字（指定数量など）は大きく、縁取りして読みやすく
     const ft = b.fillText.bind(b); b.__num = true;
     b.fillText = function (txt, x, y, mw) {
@@ -1273,7 +1276,9 @@ export function drawEnemySoft(ctx, id, cx, cy, R, t, fallback) {
   drawEnemyHQ(b, id, 180, 190, 125, t, fallback);
   const k = R * 2.6 / S, cut = { hibana: 255, wisp: 255, kemurin: 200, steamdragon: 170 }[id] || 150;
   ctx.save(); ctx.fillStyle = 'rgba(30,40,70,.22)'; ctx.beginPath(); ctx.ellipse(cx, cy + R * 1.08, R * .62, R * .11, 0, 0, 7); ctx.fill(); ctx.restore();
-  const img = cut >= 255 ? _soft : outlined(_soft, 8, [70, 44, 30], cut);
+  let img = cut >= 255 ? _soft : outlined(_soft, 8, [70, 44, 30], cut);
+  if (img === _soft) { const cp = document.createElement('canvas'); cp.width = cp.height = S; cp.getContext('2d').drawImage(_soft, 0, 0); img = cp; }
+  _softCache[id] = { t, img };
   ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(img, cx - S * k / 2, cy - S * k / 2 - R * .05, S * k, S * k); ctx.restore();
 }
 export function characterSoft(look, dir = 'down', fr = 0) {
