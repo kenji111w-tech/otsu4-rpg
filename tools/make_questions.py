@@ -1741,9 +1741,13 @@ for i, (kid, sj, qq, ch, a, ex, ce, src) in enumerate(M6, 1): mk(i, 6, kid, sj, 
 # まちがい選択肢の長さをそろえる差し替え（tools/choice_fix_*.py の FIX）
 import glob, importlib
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-_FIX = {}
+_FIX = {}; _ANS = {}
 for _p in sorted(glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'choice_fix_*.py'))):
-    _FIX.update(importlib.import_module(os.path.basename(_p)[:-3]).FIX)
+    _m = importlib.import_module(os.path.basename(_p)[:-3])
+    _FIX.update(getattr(_m, 'FIX', {})); _ANS.update(getattr(_m, 'ANS', {}))
+assert not set(_ANS) - {q['id'] for q in Q}, set(_ANS) - {q['id'] for q in Q}
+for _q in Q:
+    if _q['id'] in _ANS: _q['choices'][_q['answer']] = _ANS[_q['id']]
 _ids = {q['id'] for q in Q}
 assert not set(_FIX) - _ids, set(_FIX) - _ids
 for _q in Q:
