@@ -1765,6 +1765,12 @@ for _q in Q:
         _old, _new = _ONE[_q['id']]
         _i = _q['choices'].index(_old); assert _i != _q['answer'], _q['id']
         _q['choices'][_i] = _new
+# 確認済みの問題：tools/verified_ids.txt に1行1つのID（または ALL）。Geminiの確認とユーザーの承認が済んだら書く
+_vp = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'verified_ids.txt')
+if os.path.exists(_vp):
+    _v = {l.strip() for l in open(_vp) if l.strip() and not l.startswith('#')}
+    for _q in Q:
+        if 'ALL' in _v or _q['id'] in _v: _q['review_status'] = 'verified'
 json.dump({'data_version': '2026.11.18-proto', 'questions': Q}, open(sys.argv[1], 'w'), ensure_ascii=False, indent=1)
 from collections import Counter
 print(len(Q), Counter(x['kind'] for x in Q), Counter(x['pool'] for x in Q))
