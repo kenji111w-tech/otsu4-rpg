@@ -95,13 +95,18 @@ export function runExam(layer, qs, form, resume = null) {
   });
 }
 
-export async function showResult(r, qById) {
+export async function showResult(r, qById, where = null) {
   const lines = [`【採点結果】${r.form}${r.timeUp ? '（時間切れ）' : ''}`];
   for (const [sj, v] of Object.entries(r.by)) { const p = Math.round(v.ok / v.n * 100); lines.push(`${sj}：${v.ok}／${v.n}問（${p}%）${p >= 60 ? '　合格ライン到達' : '　あと' + (Math.ceil(v.n * .6) - v.ok) + '問'}`); }
   lines.push(r.pass ? '判定：合格！ すべての科目で6割以上です。' : '判定：不合格……。1科目でも6割に届かないと不合格です。');
   lines.push(`かかった時間：${fmtMin(r.ms / 1e3)}`);
   if (r.first) { const rc = recommend(); lines.push(rc.ok ? '初見模試を3回連続、3科目とも80%以上。推奨条件を満たしました。本番に挑戦しましょう！' : `推奨条件（初見模試3回連続・各科目80%以上）：直近${rc.n}回分で判定中。`); }
   await say(lines);
+  if (r.wrong.length && where) { // 次に学ぶ場所：まちがえた知識を教えている場所を、多い順に
+    const cnt = {}; for (const w of r.wrong) { const p = where(qById[w.id].knowledge_id); if (p) cnt[p] = (cnt[p] || 0) + 1; }
+    const top = Object.entries(cnt).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    if (top.length) await say(['【次に復習するとよい場所】'].concat(top.map(([p, n]) => `${p}（${n}問）`)).concat(['冒険の「にがて」や宿屋の手紙でも、まちがえた知識を復習できます。']));
+  }
   if (!r.wrong.length) return;
   const v = await choose(`まちがえた問題（${r.wrong.length}問）を見直しますか？`, [{ label: '見直す', value: 1 }, { label: 'あとで', value: 0 }], { cancel: false });
   if (!v) return;
