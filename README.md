@@ -7,6 +7,7 @@
 - 出題範囲：81項目（法令47・物理化学22・性質消火12）をすべて扱う。どの問題も、ゲームの中で先に教えてから出す
 - 戦闘：クイズ形式。こちらの攻撃も敵の攻撃も問題で決まる。ボス・中ボスには、その章で苦手だった問題が混ざる
 - 復習：宿屋の手紙、「にがて」、間隔をあけた復習（0・1・2・4・7・16日）
+- にがてのまとめ：町・章・物語をクリアするたびに、科目別の正答率と苦手な出題範囲の項目（教わった場所つき）を表示し、その場で練習できる
 - 試験センター（タイトル画面）：
   - 本番模試：模試専用問題210問（6回分）。物語クリア後。途中再開・時間切れ自動提出
   - 練習模試：本番形式／科目免除（性質・消火のみ）／苦手中心
@@ -25,11 +26,11 @@
 - data/questions.json：問題（練習・模試専用・導入） ／ data/world.json：地図・ステージ・敵・技 ／ data/syllabus.json：出題範囲81項目
 - tools/：開発用（公開には不要）
   - make_questions.py：問題データを作る
-  - check_taught.py：教える前に問う問題がないか ／ check_terms.py：用語が説明より先に出ていないか ／ coverage.py：出題範囲の網羅
+  - check_taught.py：教える前に問う問題がないか ／ check_terms.py：用語が説明より先に出ていないか ／ coverage.py：出題範囲の網羅 ／ check_length.py：正解だけが長い選択肢のかたより
   - playthrough.py：自動プレイ（`python3 tools/playthrough.py 0.75 7 all|ch2|ch3|ch3late`）／ smoke.py：起動確認
 
 ## 更新方法
-問題を直すときは tools/make_questions.py を編集して `python3 tools/make_questions.py data/questions.json` を実行する。review_status が verified でない問題は「確認前の問題」と表示される（試作品の開発モード）。
+問題を直すときは tools/make_questions.py を編集して `python3 tools/make_questions.py data/questions.json` を実行する。選択肢の長さをそろえる差し替えは tools/choice_fix_*.py（FIX：まちがい選択肢の差し替え、ANS：正解を短く、ONE：まちがい選択肢を1つ長く）。Gemini確認用ファイルは gemini_mock.py・gemini_changed.py で作る。review_status が verified でない問題は「確認前の問題」と表示される（試作品の開発モード）。
 
 ## バックアップ
 役場またはタイトルの「バックアップ」から、ファイルまたはテキストで書き出し・読み込みできる。Safari版とホーム画面版はデータが別なので、移すときはこの機能を使う。
