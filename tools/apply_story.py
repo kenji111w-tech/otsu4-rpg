@@ -8,7 +8,8 @@ w['mysteries'] = MYST
 bad = []
 for sid, d in STAGE.items():
     S = w['stages'][sid]
-    S['core'] = d['core']; S['clue'] = {'name': d['clue'][0], 'text': d['clue'][1]}
+    S['core'] = d['core']
+    if 'clue' in d: S['clue'] = {'name': d['clue'][0], 'text': d['clue'][1]}
     if len(d['core']) > 3: bad.append((sid, '4行以上'))
     for who, t in d['core']:
         if len(t.replace('《', '').replace('》', '')) > 70: bad.append((sid, len(t), t[:20]))
