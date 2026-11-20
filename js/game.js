@@ -6,7 +6,7 @@ import { Field } from './field.js';
 import { Field3D, dir8 } from './field3d.js';
 import { loadAssets } from './art.js';
 import { Battle } from './battle.js';
-import { FORMS, examPool, buildExam, runExam, showResult, nextMockSet, buildRetry } from './exam.js';
+import { FORMS, examPool, buildExam, runExam, showResult, nextMockSet, buildRetry, applyConfig } from './exam.js';
 
 const BASE = {
   hero: { id: 'hero', name: 'ユウ', lv: 1, hp: 30, mhp: 30, mp: 8, mmp: 8, atk: 9, def: 4 },
@@ -681,6 +681,7 @@ class Game {
     if (v === 'd') { const d = this.state.docs || []; await say(d.length ? ['大事なもの（手続きの順に並んでいる）：' + d.join(' → '), '書類は手続きの順番どおりにしか手に入らない。'] : '大事なもの：まだない。（許可の町で、手続きの書類が手に入る）'); }
   }
   async examCenter(saved) {
+    if (!this._examConf) { try { this._examConf = await (await fetch('data/config/exam.json')).json(); applyConfig(this._examConf); } catch (e) { this._examConf = {}; } }
     const cleared = (saved && saved.cleared) || {}, all = !!(saved && saved.flags && saved.flags.cleared);
     const pool = examPool(this.questions, cleared, all);
     const cnt = sj => pool.filter(q => q.subject === sj).length;

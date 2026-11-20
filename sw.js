@@ -1,9 +1,9 @@
 // オフライン対応（仕様書 第16-4節）。版を上げるときは VERSION と js/util.js の APP_VERSION をそろえる
-const VERSION = '0.9.22-proto';
+const VERSION = '0.9.23-proto';
 const CACHE = 'otsu4rpg-' + VERSION;
 const FILES = ['./', 'index.html', 'manifest.json', 'css/style.css', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png',
   'js/util.js', 'js/learn.js', 'js/sprites.js', 'js/art.js', 'js/ui.js', 'js/field.js', 'js/field3d.js', 'js/battle.js', 'js/exam.js', 'js/game.js',
-  'vendor/three.module.min.js', 'data/world.json', 'data/questions.json', 'data/assets.json'];
+  'vendor/three.module.min.js', 'data/world.json', 'data/questions.json', 'data/assets.json', 'data/config/exam.json'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); });
 self.addEventListener('activate', e => {
   // otsu4rpg- で始まる古いキャッシュだけを消す（同じサイトの他のリポジトリのキャッシュには触れない）

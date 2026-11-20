@@ -12,6 +12,11 @@ export const FORMS = {
   weak: { name: '苦手中心の練習模試（35問・時間制限なし）', parts: { '法令': 15, '物理・化学': 10, '性質・消火': 10 }, minutes: 0, weak: true },
 };
 
+export const CONF = { passRate: .6, recommend: { count: 3, rate: .8 } };
+export function applyConfig(c) { // data/config/exam.json の内容で上書きする
+  if (!c) return; if (c.passRate) CONF.passRate = c.passRate; if (c.recommend) CONF.recommend = c.recommend;
+  for (const [k, f] of Object.entries(c.forms || {})) if (FORMS[k]) Object.assign(FORMS[k], f);
+}
 // 出題できる問題：習ったステージの五肢択一だけ（教える前に問わない）
 export function examPool(questions, cleared, all = false) {
   return questions.filter(q => q.kind === 'mcq5' && !q.call && q.pool === 'practice' && q.topic !== 'identify' && q.subject in FORMS.full.parts &&
@@ -87,7 +92,7 @@ export function runExam(layer, qs, form, resume = null) {
       const ms = Math.min(elapsed(), limit || Infinity), by = {};
       qs.forEach((q, i) => { const c = ans[i] === q.answer; (by[q.subject] = by[q.subject] || { n: 0, ok: 0 }).n++; if (c) by[q.subject].ok++;
         Learn.record(q, { correct: c, unsure: mark[i], hint: false, mode: 'mock', order: orders[i], ms: Math.round(ms / qs.length) }); });
-      const pass = Object.values(by).every(v => v.ok / v.n >= .6);
+      const pass = Object.values(by).every(v => v.ok / v.n >= CONF.passRate);
       const r = { day: new Date().toISOString().slice(0, 10), form: form.name, by, pass, ms, timeUp, first: !!form.mock, wrong: qs.map((q, i) => ({ q, a: ans[i] })).filter(x => x.a !== x.q.answer).map(x => ({ id: x.q.id, a: x.a })) };
       (Learn.d.mocks = Learn.d.mocks || []).push({ day: r.day, form: r.form, by, pass, ms, first: !!form.mock, set: form.set || null }); Learn.save();
       res(r);
@@ -98,7 +103,7 @@ export function runExam(layer, qs, form, resume = null) {
 
 export async function showResult(r, qById, where = null) {
   const lines = [`【採点結果】${r.form}${r.timeUp ? '（時間切れ）' : ''}`];
-  for (const [sj, v] of Object.entries(r.by)) { const p = Math.round(v.ok / v.n * 100); lines.push(`${sj}：${v.ok}／${v.n}問（${p}%）${p >= 60 ? '　合格ライン到達' : '　あと' + (Math.ceil(v.n * .6) - v.ok) + '問'}`); }
+  for (const [sj, v] of Object.entries(r.by)) { const p = Math.round(v.ok / v.n * 100); lines.push(`${sj}：${v.ok}／${v.n}問（${p}%）${v.ok / v.n >= CONF.passRate ? '　合格ライン到達' : '　あと' + (Math.ceil(v.n * CONF.passRate - 1e-9) - v.ok) + '問'}`); }
   lines.push(r.pass ? '判定：合格！ すべての科目で6割以上です。' : '判定：不合格……。1科目でも6割に届かないと不合格です。');
   lines.push(`かかった時間：${fmtMin(r.ms / 1e3)}`);
   if (r.first) { const rc = recommend(); lines.push(rc.ok ? '初見模試を3回連続、3科目とも80%以上。推奨条件を満たしました。本番に挑戦しましょう！' : `推奨条件（初見模試3回連続・各科目80%以上）：直近${rc.n}回分で判定中。`); }
@@ -119,8 +124,8 @@ export async function showResult(r, qById, where = null) {
 
 // 推奨条件（プロジェクト独自）：初見模試を3回連続、各回とも3科目すべて80%以上
 export function recommend() {
-  const f = (Learn.d.mocks || []).filter(h => h.first).slice(-3);
-  const ok = f.length === 3 && f.every(h => Object.values(h.by).every(v => v.ok / v.n >= .8));
+  const R = CONF.recommend, f = (Learn.d.mocks || []).filter(h => h.first).slice(-R.count);
+  const ok = f.length === R.count && f.every(h => Object.values(h.by).every(v => v.ok / v.n >= R.rate));
   return { n: f.length, ok };
 }
 export function nextMockSet(questions) {
