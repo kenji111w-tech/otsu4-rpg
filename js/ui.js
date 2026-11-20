@@ -46,7 +46,9 @@ export function say(lines) {
 // メニュー選択。items: [{label, value, disabled, note}]
 export function choose(title, items, { cancel = true, cls = '' } = {}) {
   return new Promise(res => {
-    const p = panel('menu ' + cls);
+    // 町やフィールドでは、選ぶ枠も会話と同じく上に出す（下のスティックやボタンを隠さない）
+    const fw = document.getElementById('field-wrap'), onField = fw && !fw.classList.contains('hide') && !document.querySelector('#ui .battle, #ui .titlescr');
+    const p = panel('menu ' + cls + (onField ? ' top' : ''));
     if (title) p.appendChild(el('div', 'title', title));
     items.forEach(it => {
       const b = el('button', 'item' + (it.disabled ? ' off' : ''), '');

@@ -93,7 +93,7 @@ class Game {
     let saved = store.get('game');
     if (saved && !this.validGame(saved)) { store.set('game-broken-' + Date.now(), saved); store.del('game'); saved = null; await say('冒険の記録（届出）が壊れていたため、使わないことにしました。学習の記録は残っています。'); }
     if (Learn.brokenFound) { Learn.brokenFound = false; await say('学習の記録が壊れていたため、新しく始めます。壊れた記録は端末内に別に保管しました。バックアップがあれば読み込んでください。'); }
-    const t = makeTitle(store.get('titleStyle') || 'A', `試作品 ${APP_VERSION}／問題データ ${this.dataVersion}`);
+    const t = makeTitle('A', `試作品 ${APP_VERSION}／問題データ ${this.dataVersion}`);
     this.ui.appendChild(t);
     const items = [];
     if (saved) items.push({ label: 'つづきから', value: 'cont', note: `${saved.name}・${this.world.maps[saved.map].name}` });

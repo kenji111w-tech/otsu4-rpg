@@ -146,3 +146,5 @@ textarea.inp { height: 160px; }
 #btnM.locked { visibility: hidden; }
 #btnM.glow { animation: btnglow 1.2s ease-in-out infinite; }
 @keyframes btnglow { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,215,106,0); } 50% { box-shadow: 0 0 14px 4px rgba(255,215,106,.9); } }
+/* 町やフィールドでの選ぶ枠は上に（会話と同じ位置） */
+.menu.top { top: calc(10px + env(safe-area-inset-top)); bottom: auto; max-height: 60dvh; z-index: 61; }
