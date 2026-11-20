@@ -285,7 +285,9 @@ export class Battle {
 
   async askQ(q, mode, title, hintText) {
     const hero = this.g.state.members.hero;
-    const text = q.hint || hintText;
+    const ak = this.g.aikoFor ? this.g.aikoFor(q) : [];
+    const text = [q.hint || hintText, ...ak].filter(Boolean).join('\n') || null;
+    if (this.g.freq && this.g.freq.has(q.topic) && q.kind === 'mcq5') title = '★よく出る　' + (title || '');
     const inv = this.g.state.items;
     const r = await ask(q, { title, mode, hintText: text, hintLabel: q.kind === 'mcq5' ? 'ヒント' : `${this.g.guide()}に相談`, hint: text ? { cost: 1, use: () => { if (hero.mp < 1) return false; hero.mp -= 1; this.refresh(); return true; } } : null,
       erase: { left: () => inv.keshi || 0, use: () => { if (!(inv.keshi > 0)) return false; inv.keshi--; return true; } } });

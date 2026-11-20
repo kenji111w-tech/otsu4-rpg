@@ -9,6 +9,17 @@ function panel(cls) { const p = el('div', 'win ' + (cls || '')); layer.appendChi
 const close = p => p.remove();
 
 // 会話・ナレーション。lines: [[話者, 文], ...] または文字列
+// 《》でかこんだ所を、目立つ色で表示する（重要な所のハイライト）
+function markText(box, text) {
+  String(text).split(/(《[^》]*》)/).forEach(part => {
+    if (part.startsWith('《') && part.endsWith('》')) box.appendChild(el('span', 'hl', part.slice(1, -1)));
+    else if (part) box.appendChild(document.createTextNode(part));
+  });
+  return box;
+}
+// 町の人の話や合言葉で、数字・決まり言葉・「」の言葉を自動で《》にする
+const HL_RE = /(「[^」]{1,24}」|[－-]?\d[\d,.]*(?:〜[－-]?\d[\d,.]*)?(?:m|L|kg|℃|％|%|倍|年|か月|日|時間|基|人|kV|V|個)(?:以上|以下|未満|以内|ごと)?|市町村長等の「?許可」?|承認|認可|遅滞なく|10日前まで|火気厳禁|耐アルコール泡|窒息消火|空気より重い|水より軽い|水より重い|低い所|引火点|発火点|沸点)/g;
+export function hl(text) { return String(text).includes('《') ? text : String(text).replace(HL_RE, '《$1》'); }
 export function say(lines) {
   if (!Array.isArray(lines)) lines = [lines];
   return new Promise(res => {
@@ -17,7 +28,7 @@ export function say(lines) {
       const ln = lines[i]; p.innerHTML = '';
       const [who, text] = Array.isArray(ln) ? ln : [null, ln];
       if (who) p.appendChild(el('div', 'who', who));
-      p.appendChild(el('div', 'txt', text));
+      p.appendChild(markText(el('div', 'txt', ''), text));
       p.appendChild(el('div', 'next', '▼'));
     };
     // 画面のどこをタップしても次へ進む（会話の枠の外も）
@@ -98,7 +109,7 @@ export function ask(q, { title = '', hint = null, showDraft = true, mode = null,
     const htxt = hintText || q.hint;
     if (hint && htxt) {
       const hb = el('button', 'hintbtn', `${hintLabel}（MP${hint.cost || 1}）`);
-      hb.onclick = () => { if (usedHint) return; if (!hint.use()) { hb.textContent = 'MPが足りない'; return; } usedHint = true; hintBox.textContent = '💡 ' + htxt; hintBox.classList.remove('hide'); hb.remove(); };
+      hb.onclick = () => { if (usedHint) return; if (!hint.use()) { hb.textContent = 'MPが足りない'; return; } usedHint = true; hintBox.textContent = ''; markText(hintBox, '💡 ' + hl(htxt)); hintBox.classList.remove('hide'); hb.remove(); };
       head.appendChild(hb);
     }
     if (erase && erase.left() > 0) { // けしけし草：まちがいの選択肢を消す（ヒント扱い）

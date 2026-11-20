@@ -186,7 +186,9 @@ export class Field3D {
       if (dx && dy) { if (this.canWalk(this.x + dx, this.y)) return this.step(dx < 0 ? 'left' : 'right'); if (this.canWalk(this.x, this.y + dy)) return this.step(dy < 0 ? 'up' : 'down'); }
       return;
     }
-    if (dx && dy && (!this.canWalk(this.x + dx, this.y) || !this.canWalk(this.x, this.y + dy))) return; // 角はすり抜けない
+    if (dx && dy && (!this.canWalk(this.x + dx, this.y) || !this.canWalk(this.x, this.y + dy))) { // 角はすり抜けない。通れる方の縦横に歩く
+      if (this.canWalk(this.x + dx, this.y)) return this.step(dx < 0 ? 'left' : 'right'); if (this.canWalk(this.x, this.y + dy)) return this.step(dy < 0 ? 'up' : 'down'); return;
+    }
     this.anim = { fx: this.x, fy: this.y, px: this.prev.x, py: this.prev.y, t0: performance.now() };
     this.prev = { x: this.x, y: this.y }; this.x = nx; this.y = ny;
   }
@@ -221,16 +223,21 @@ export class Field3D {
       moved = true; const d = dir8(dx, dy);
       if (this.held !== d) { this.held = d; if (!this.anim) this.step(d); }
     });
-    const end = e => { if (e.pointerId !== id) return; id = null; this.held = null; if (!moved) this.action(); };
+    const end = e => { if (e.pointerId !== id) return; id = null; this.held = null; if (!moved) this.action(true); };
     cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
   }
-  async action() {
-    if (this.busy || this.anim) return;
-    const [dx, dy] = DIRS[this.dir]; const n = this.npcAt(this.x + dx, this.y + dy);
-    if (n) { this.busy = true; await this.hooks.onTalk(n); this.busy = false; return; }
-    const ev = this.eventAt(this.x + dx, this.y + dy);
-    if (ev && ev.type === 'building') { this.busy = true; await this.hooks.onEvent(ev); this.busy = false; }
+  // 目の前の相手や建物を調べる。nearby のときは、まわり8マスにいる相手にも向きを変えて話しかける
+  target(dx, dy) { const n = this.npcAt(this.x + dx, this.y + dy); if (n) return { n }; const ev = this.eventAt(this.x + dx, this.y + dy); return ev && ev.type === 'building' ? { ev } : null; }
+  async action(nearby = false) {
+    if (this.busy || this.anim) return false;
+    let [dx, dy] = DIRS[this.dir], t = this.target(dx, dy);
+    if (!t && nearby) for (const d of ['up', 'down', 'left', 'right', 'ul', 'ur', 'dl', 'dr']) { const [ax, ay] = DIRS[d]; t = this.target(ax, ay); if (t) { this.dir = FACE[d] || d; if (this.setDirTex) this.setDirTex(); break; } }
+    if (!t) return false;
+    this.busy = true; this.held = null;
+    if (t.n) await this.hooks.onTalk(t.n); else await this.hooks.onEvent(t.ev);
+    this.busy = false; return true;
   }
+
 
   // ---------- 描画 ----------
   frame() {

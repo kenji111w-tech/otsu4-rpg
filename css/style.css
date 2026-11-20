@@ -32,6 +32,7 @@ button { font: inherit; color: inherit; }
 /* 戦闘中のメッセージは、敵の絵にかぶらないよう下に出す */
 #ui:has(.battle) .msg { top: auto; bottom: calc(10px + env(safe-area-inset-bottom)); }
 .msg .txt { white-space: pre-line; }
+.msg .hl, .hintbox .hl { color: #ffd76a; font-weight: bold; background: rgba(255,215,106,.16); border-radius: 3px; padding: 0 2px; }
 .tapall { position: absolute; inset: 0; z-index: 59; background: transparent; -webkit-tap-highlight-color: transparent; }
 .msg .who { color: #ffd76a; font-size: 14px; margin-bottom: 2px; }
 .msg .next { position: absolute; right: 12px; bottom: 6px; font-size: 12px; animation: blink 1s infinite; }
@@ -56,7 +57,7 @@ textarea.inp { height: 160px; }
 .qtitle { color: #ffd76a; font-weight: bold; font-size: 15px; }
 .draft { font-size: 11px; background: #7a1d18; padding: 2px 6px; border-radius: 4px; }
 .hintbtn { margin-left: auto; font-size: 13px; background: #2a3a5a; border: 1px solid #7ad; border-radius: 14px; padding: 4px 10px; }
-.hintbox { background: #1c2a40; border-left: 3px solid #7ad; padding: 8px; margin: 8px 0; font-size: 15px; }
+.hintbox { white-space: pre-line; background: #1c2a40; border-left: 3px solid #7ad; padding: 8px; margin: 8px 0; font-size: 15px; }
 .qtext { font-size: 17px; line-height: 1.7; margin-bottom: 10px; -webkit-user-select: text; user-select: text; }
 .qtext.small { font-size: 14px; color: #ccd; }
 .choices { display: flex; flex-direction: column; gap: 8px; }

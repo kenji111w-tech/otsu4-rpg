@@ -32,7 +32,10 @@ export class Field {
   step(d) {
     if (this.busy || this.anim) return;
     this.dir = FACE[d] || d; const [dx, dy] = DIRS[d]; const nx = this.x + dx, ny = this.y + dy;
-    if (!this.canWalk(nx, ny)) return; if (dx && dy && (!this.canWalk(this.x + dx, this.y) || !this.canWalk(this.x, this.y + dy))) return;
+    if (dx && dy && (!this.canWalk(nx, ny) || !this.canWalk(this.x + dx, this.y) || !this.canWalk(this.x, this.y + dy))) { // 斜めで進めないときは、通れる方の縦横に歩く
+      if (this.canWalk(this.x + dx, this.y)) return this.step(dx < 0 ? 'left' : 'right'); if (this.canWalk(this.x, this.y + dy)) return this.step(dy < 0 ? 'up' : 'down'); return;
+    }
+    if (!this.canWalk(nx, ny)) return;
     this.anim = { fx: this.x, fy: this.y, t0: performance.now(), dur: 150 };
     this.x = nx; this.y = ny;
     setTimeout(() => { this.anim = null; this.arrive(); }, 150);
@@ -45,13 +48,18 @@ export class Field {
       if (Math.random() < rate) { this.held = null; this.busy = true; await this.hooks.onEncounter(); this.busy = false; }
     }
   }
-  async action() {
-    if (this.busy || this.anim) return;
-    const [dx, dy] = DIRS[this.dir]; const n = this.npcAt(this.x + dx, this.y + dy);
-    if (n) { this.busy = true; await this.hooks.onTalk(n); this.busy = false; return; }
-    const ev = this.eventAt(this.x + dx, this.y + dy);
-    if (ev && ev.type === 'building') { this.busy = true; await this.hooks.onEvent(ev); this.busy = false; }
+  // 目の前の相手や建物を調べる。nearby のときは、まわり8マスにいる相手にも向きを変えて話しかける
+  target(dx, dy) { const n = this.npcAt(this.x + dx, this.y + dy); if (n) return { n }; const ev = this.eventAt(this.x + dx, this.y + dy); return ev && ev.type === 'building' ? { ev } : null; }
+  async action(nearby = false) {
+    if (this.busy || this.anim) return false;
+    let [dx, dy] = DIRS[this.dir], t = this.target(dx, dy);
+    if (!t && nearby) for (const d of ['up', 'down', 'left', 'right', 'ul', 'ur', 'dl', 'dr']) { const [ax, ay] = DIRS[d]; t = this.target(ax, ay); if (t) { this.dir = FACE[d] || d; if (this.setDirTex) this.setDirTex(); break; } }
+    if (!t) return false;
+    this.busy = true; this.held = null;
+    if (t.n) await this.hooks.onTalk(t.n); else await this.hooks.onEvent(t.ev);
+    this.busy = false; return true;
   }
+
   draw() {
     if (!this.map) return;
     const ctx = this.ctx, ts = this.ts;

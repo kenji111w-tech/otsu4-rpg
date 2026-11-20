@@ -1,6 +1,6 @@
 // 本体：データ読込、タイトル、物語、施設、メニュー、セーブ（届出）
 import { $, el, store, studyDay, isStandalone, fmtMin, pick, APP_VERSION } from './util.js';
-import { initUI, say, choose, prompt, toast, ask } from './ui.js';
+import { initUI, say, choose, prompt, toast, ask, hl } from './ui.js';
 import { Learn } from './learn.js';
 import { Field } from './field.js';
 import { Field3D, dir8 } from './field3d.js';
@@ -23,11 +23,12 @@ class Game {
     Learn.init(this.questions, this.dataVersion); Learn.startClock();
     this.buildKidEnemy();
     try { this._syl = (await (await fetch('data/syllabus.json')).json()).items; } catch (e) { this._syl = []; }
+    try { const ak = await (await fetch('data/aikotoba.json')).json(); this.aiko = ak.tips; this.freq = new Set(ak.freq); } catch (e) { this.aiko = []; this.freq = new Set(); }
     await loadAssets();
     let use3d = true; try { const c = document.createElement('canvas'); use3d = !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { use3d = false; }
     const FieldClass = use3d ? Field3D : Field;
     this.field = new FieldClass($('#field'), w, {
-      onEvent: ev => this.onEvent(ev), onEncounter: () => this.encounter(), onTalk: n => say(n.talk.map(t => ['村人', t])),
+      onEvent: ev => this.onEvent(ev), onEncounter: () => this.encounter(), onTalk: n => this.talk(n),
       stageVisible: id => this.stageVisible(id), stageCleared: id => !!(this.state && this.state.cleared[id]),
       isNight: () => this.state && this.state.flags.night,
       chestOpen: id => !!(this.state && (this.state.chests || {})[id]),
@@ -704,6 +705,23 @@ class Game {
       await say([`ぽんっ！ ${I[v].name}ができた！`, `${I[v].name}：${I[v].desc}`]);
     }
   }
+  // 町の人の話。合言葉を教える人は、話のあとに「この言葉が出たら、この答え」を教えてくれる
+  async talk(n) {
+    await say(n.talk.map(t => ['村人', hl(t)]));
+    if (!n.aiko) return;
+    const s = this.state; s.aiko = s.aiko || [];
+    const tips = this.aiko.filter(t => t.town === n.aiko), fresh = tips.filter(t => !s.aiko.includes(t.id));
+    if (!fresh.length) { await say([['村人', 'わしの合言葉は、もうぜんぶ教えたぞ。ふくろの「合言葉帳」で読み返しておきなされ。']]); return; }
+    await say([['村人', n.aiko === 'V0' ? 'そうそう、試験の問題には「ひっかけ」があるんじゃ。読み方の合言葉を教えておこう。' : 'それから、この町の合言葉を教えておこう。試験で「この言葉」が出たら、「この答え」じゃ。']]
+      .concat(fresh.map(t => ['合言葉', `《${t.word}》\n→ ${hl(t.ans)}`]))
+      .concat([['村人', '合言葉は、ふくろの「合言葉帳」にしまっておいた。戦いでヒントを使ったときにも、思い出させてくれるぞ。']]));
+    fresh.forEach(t => s.aiko.push(t.id));
+  }
+  aikoFor(q) { // その問題に関係する、もう聞いた合言葉
+    const got = this.state.aiko || [];
+    return this.aiko.filter(t => got.includes(t.id) && t.topic === q.topic && t.town === q.town).slice(0, 1).map(t => `合言葉：${t.word}→ ${t.ans}`);
+  }
+  isTrick(q) { return q.kind === 'mcq5' && /誤っている|誤りは|以外|正しくない|適切でない|該当しない/.test(q.question); }
   guide() { const p = this.state.party; return p.includes('kemi') ? 'ケミ' : p.includes('sekiyu') ? 'セキユ' : p.includes('hoan') ? 'ホアン' : 'ショウボウ老師'; }
   // 仲間の手紙：宿屋で泊まると、1日1回、復習の時期が来た知識を仲間が手紙で思い出させてくれる（答えは書かず、分野名だけ）
   async letter() {
@@ -719,7 +737,7 @@ class Game {
       .concat([[`${from}の手紙`, `答えは書きません。目を閉じて、どんな決まりだったか思い出してみてください。今日あたり、戦いの中で問われるかもしれませんよ。`]]));
   }
   async bag() {
-    const v = await choose('ふくろ', [{ label: 'どうぐ', value: 'i' }, { label: '装備（見た目だけ）', value: 'e' }, { label: '知識', value: 'k' }, { label: '大事なもの', value: 'd' }]);
+    const v = await choose('ふくろ', [{ label: 'どうぐ', value: 'i' }, { label: '装備（見た目だけ）', value: 'e' }, { label: '知識', value: 'k' }, { label: '合言葉帳', value: 'a' }, { label: '大事なもの', value: 'd' }]);
     if (v === 'i') await say(Object.entries(this.state.items).filter(([, n]) => n > 0).map(([k, n]) => `${this.world.items[k].name} ×${n}：${this.world.items[k].desc}`).concat(['（どうぐは戦闘中に使える）']));
     if (v === 'e') await say('たびびとの服（見た目だけ。強さには影響しない）');
     if (v === 'k') {
@@ -733,6 +751,15 @@ class Game {
       const t = await choose(`${g}（第2段階）`, Object.entries(tps).map(([k, a]) => ({ label: k, note: `${a.length}枚`, value: k })));
       if (!t) return;
       await say(tps[t].map(q => { const r = Learn.d.review[q.knowledge_id]; return `【${r.mastered ? '習得' : '段階' + r.stage}】${q.explanation}`; }));
+    }
+    if (v === 'a') {
+      const got = this.state.aiko || [], tips = this.aiko.filter(t => got.includes(t.id));
+      if (!tips.length) return say('合言葉帳：まだ何も書かれていない。（町の人に話しかけると、合言葉を教えてくれることがある）');
+      const names = {}, towns = [...new Set(tips.map(t => t.town))];
+      const mapOf = t => Object.values(this.world.maps).find(m => (m.npcs || []).some(n => n.aiko === t));
+      const t = await choose('合言葉帳', towns.map(x => ({ label: names[x] || (mapOf(x) || {}).name || x, note: `${tips.filter(y => y.town === x).length}こ`, value: x })));
+      if (!t) return;
+      await say(tips.filter(y => y.town === t).map(y => ['合言葉', `《${y.word}》\n→ ${hl(y.ans)}`]));
     }
     if (v === 'd') { const d = this.state.docs || []; await say(d.length ? ['大事なもの（手続きの順に並んでいる）：' + d.join(' → '), '書類は手続きの順番どおりにしか手に入らない。'] : '大事なもの：まだない。（許可の町で、手続きの書類が手に入る）'); }
   }
@@ -809,7 +836,8 @@ class Game {
   }
   async weakReport(afterClear = false) {
     const w = this.weakItems(), sr = this.subjectRates();
-    const head = '【にがてのまとめ】' + (sr.length ? '\n科目別の正答率：' + sr.join('・') : '');
+    const tr = this.trickRate();
+    const head = '【にがてのまとめ】' + (sr.length ? '\n科目別の正答率：' + sr.join('・') : '') + (tr ? '\n' + tr : '');
     if (!w.length) { await say([head, 'いまのところ、にがての項目は見つかっていない。この調子じゃ！\n（出題範囲の項目ごとに、最近の解答で「迷わず・ヒントなしで正解」が7割に届かない項目を「にがて」として示します）']); return; }
     const top = w.slice(0, 5);
     await say([head, `まだ身についていない項目が ${w.length}こ あります。苦手な順に${top.length < w.length ? `上から${top.length}こ` : ''}示します。`,
@@ -817,6 +845,12 @@ class Game {
     const v = await choose(afterClear ? 'にがての項目を、いま練習しますか？' : 'どの項目を練習しますか？', top.map(x => ({ label: x.it.item, note: `${x.rate}%`, value: x.it.id })));
     if (!v) { if (afterClear) await say([['ショウボウ老師', 'メニューの「にがて」から、いつでもこのまとめを見て練習できるぞ。']]); return; }
     return this.weakPractice(top.find(x => x.it.id === v).it);
+  }
+  trickRate() { // 「誤っているもの」などを選ぶ問題（ひっかけ）の、最近の正答率
+    const a = Learn.d.answers.filter(x => x.mode !== 'mock' && this.qById[x.qid] && this.isTrick(this.qById[x.qid])).slice(-20);
+    if (a.length < 3) return '';
+    const r = Math.round(a.filter(x => x.correct).length / a.length * 100);
+    return `「誤っているもの」を選ぶ問題：正答率${r}%（${a.length}問）` + (r < 70 ? '\n　→ ひっかけに注意。選ぶ前に、問題文の最後をもう一度読もう' : '');
   }
   async weakPractice(it) {
     const qs = this.questions.filter(q => q.pool !== 'mock' && !q.call && q.topic !== 'identify' && (it.kid_prefixes || []).some(p => q.knowledge_id.startsWith(p)) && Learn.learned(q.knowledge_id));
@@ -887,16 +921,18 @@ class Game {
       if (dist > max) { dx = dx / dist * max; dy = dy / dist * max; }
       knob.style.transform = `translate(${dx}px, ${dy}px)`;
       if (dist < 24) { f.held = null; return; }
-      // 向きのぶれ止め：今の向きから大きく（約35度以上）ずれた時だけ向きを変える
+      // 向きのぶれ止め：今の向きから約32度以上ずれたら向きを変える（斜めにも入りやすいように小さめ）
       const ang = Math.atan2(dy, dx), C = { right: 0, dr: 1, down: 2, dl: 3, left: 4, ul: -3, up: -2, ur: -1 };
-      if (f.held && C[f.held] != null) { let df = Math.abs(ang - C[f.held] * Math.PI / 4); if (df > Math.PI) df = 2 * Math.PI - df; if (df < Math.PI / 4 * 1.55) return; }
+      if (f.held && C[f.held] != null) { let df = Math.abs(ang - C[f.held] * Math.PI / 4); if (df > Math.PI) df = 2 * Math.PI - df; if (df < Math.PI / 4 * 0.7) return; }
       const d = dir8(dx, dy); if (f.held !== d) { f.held = d; if (!f.anim) f.step(d); }
     };
     stick.addEventListener('pointerdown', e => { e.preventDefault(); pid = e.pointerId; try { stick.setPointerCapture(pid); } catch (er) {} stick.classList.add('on'); move(e); });
     stick.addEventListener('pointermove', e => { if (e.pointerId === pid) move(e); });
     const up = e => { if (e.pointerId !== pid) return; pid = null; stick.classList.remove('on'); knob.style.transform = ''; f.held = null; };
     stick.addEventListener('pointerup', up); stick.addEventListener('pointercancel', up);
-    $('#btnA').addEventListener('click', () => f.action());
+    $('#btnA').addEventListener('click', () => f.action(true));
+    // ボタン以外の場所をたたいても、まわりに話す相手や調べる物があれば「しらべる・はなす」と同じにする
+    $('#pad').addEventListener('click', e => { if (e.target.closest('button,#stick')) return; f.action(true); });
     $('#btnM').addEventListener('click', () => this.menu());
     addEventListener('keydown', e => {
       const k = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' }[e.key];
