@@ -167,7 +167,7 @@ export class Battle {
   weakQs() {
     const ch = a => /^[LDQ]/.test(a || '') ? 1 : /^P/.test(a || '') ? 2 : /^H/.test(a || '') ? 3 : 0, my = ch(this.e.area), seen = {};
     for (const a of Learn.d.answers) {
-      const q = this.g.qById[a.qid]; if (!q || q.call || q.topic === 'identify' || q.pool === 'mock' || ch(q.town) !== my) continue;
+      const q = this.g.qById[a.qid]; if (!q || q.call || q.topic === 'identify' || q.pool === 'mock' || (my && ch(q.town) !== my)) continue; // 終章（my=0）は全章から
       const slow = a.ms > (q.question.length > 60 ? 28000 : 20000);
       const bad = !a.correct || a.unsure || a.hint || slow;
       seen[q.id] = (seen[q.id] || 0) + (bad ? 1 : -.5); // 最近は正解できている問題は下げる
@@ -179,7 +179,7 @@ export class Battle {
       const w = this.weak.filter(q => kinds.includes(q.kind) && !this.e.used.has(q.id));
       if (w.length) { const q = pick(w); this.e.used.add(q.id); return q; }
     }
-    const e = this.e, all = this.g.questions.filter(q => kinds.includes(q.kind) && this.taught(q));
+    const e = this.e, all = this.g.questions.filter(q => kinds.includes(q.kind) && this.taught(q) && q.topic !== 'identify' && !q.call && q.pool !== 'mock' && (!e.subjects || e.subjects.includes(q.subject)));
     let cand = all.filter(q => !e.used.has(q.id)); if (!cand.length) cand = all;
     const area = cand.filter(q => q.town === e.area), pref = prefer ? cand.filter(prefer) : [];
     const due = cand.filter(q => Learn.isDue(q.knowledge_id)); // 復習の時期が来た知識を、半分くらいの確率で優先して出す
@@ -304,7 +304,8 @@ export class Battle {
     this.e.askedBoss = true;
     const town = this.opt.town || 'L1';
     const wk = (this.weak || []).filter(q => q.kind === 'mcq5' && !this.e.used.has(q.id));
-    const pool = wk.length ? wk : this.g.questions.filter(q => q.kind === 'mcq5' && q.town === town && !this.e.used.has(q.id));
+    let pool = wk.length ? wk : this.g.questions.filter(q => q.kind === 'mcq5' && q.town === town && !this.e.used.has(q.id));
+    if (!pool.length) pool = this.g.questions.filter(q => q.kind === 'mcq5' && this.taught(q) && !this.e.used.has(q.id) && (!this.e.subjects || this.e.subjects.includes(q.subject)));
     const q = pick(pool); if (!q) return;
     await this.msg(`${this.e.name}「この問いに答えられるか！」`, 900);
     const r = await this.askQ(q, 'battle', 'ボスの問いかけ');

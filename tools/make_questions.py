@@ -1493,6 +1493,17 @@ call('C18-ayamari','H-JIKO-NIOROSHI',J2,2,'H8','ayamari','ayamari','アヤマリ
 call('C18-moreana','H-JIKO-ROEI',J3,3,'H8','moreana','moreana','モレアナ・モグラが仲間を呼んだ！ 仲間「タンクの点検なんて、何年もしなくていいよ」',['定期点検や漏えい検査で早く見つける','しなくていい','壊れてからでいい'],'早期発見。',['正しい。','誤り。','誤り。'],'SAITAMA2')
 call('C18-tamarigas','H-JIKO-JORYU',J4,4,'H8','tamarigas','tamarigas','タマリガス・スライムが仲間を呼んだ！ 仲間「換気口は天井の近くだけで十分さ」',['蒸気は低い所にたまるので、床近くも換気する','天井だけ','換気しない'],'低所の換気。',['正しい。','誤り。','誤り。'],'SAITAMA2')
 
+# ================= 終章 試練の塔（正体を見抜く問題だけ。出題は全章の問題から） =================
+for id,kid,enemy,t,ch,ex,ce,src in [
+ ('ID-wasure1','K-MUL-1','wasure1','法令の階の影。指定数量の倍数が1以上になると？',['消防法の規制を受ける','市町村条例だけの規制','規制はない'],'指定数量以上は消防法の規制。',['正しい。','指定数量未満の場合。','誤り。'],'FDMA_BEPPYO'),
+ ('ID-wasure2','P-NEN-3YOUSO','wasure2','物理・化学の階の影。燃焼の三要素は？',['可燃物・酸素供給源・点火源','水・空気・土','光・熱・音'],'燃焼の三要素。',['正しい。','誤り。','誤り。'],'BUTSU1'),
+ ('ID-wasure3','H-KYO-JOKI','wasure3','危険物の階の影。第4類の蒸気は？',['空気より重い','空気より軽い','水に溶けて消える'],'空気より重く低所にたまる。',['正しい。','誤り。','誤り。'],'SAITAMA1'),
+ ('ID-yudan','H-YOB-YOUKI','yudan','油断の亡霊。空になった容器は？',['蒸気が残っていて危険','空なので安全','水を入れれば安全'],'空でも蒸気が残る。',['正しい。','誤り。','誤り。'],'SAITAMA2'),
+ ('ID-enjou1','K-MUL-1','enjou1','法令の王の姿。第1石油類（非水溶性）の指定数量は？',['200L','400L','1,000L'],'200L。',['正しい。','水溶性。','第2石油類。'],'FDMA_BEPPYO'),
+ ('ID-enjou2','P-NEN-3YOUSO','enjou2','物理・化学の王の姿。燃焼の三要素で、窒息消火が取り除くのは？',['酸素供給源','可燃物','点火源'],'酸素を断つ。',['正しい。','除去消火。','冷却消火に近い。'],'BUTSU1'),
+ ('ID-enjou3','H-SHO-TEKI','enjou3','危険物の王の姿。第4類の火災に適した消火は？',['泡・粉末・二酸化炭素による窒息消火','棒状の水','霧状の水'],'窒息消火。',['正しい。','誤り。','誤り。'],'SAITAMA2'),
+]: q(id,kid,'identify',0,S,t,ch,0,ex,ce,src=src,enemy=enemy,town='F',subject='総合')
+
 json.dump({'data_version': '2026.11.18-proto', 'questions': Q}, open(sys.argv[1], 'w'), ensure_ascii=False, indent=1)
 from collections import Counter
 print(len(Q), Counter(x['kind'] for x in Q), Counter(x['pool'] for x in Q))

@@ -242,6 +242,47 @@ class Game {
     await this.recordScreen();
   }
 
+  async finalStart() {
+    const s = this.state, n = s.name, hero = s.members.hero, lv = Math.max(1, hero.lv - 1);
+    const mk = (id, name) => { const m = s.members[id] || (s.members[id] = { id, name, exp: 0 }); m.lv = Math.max(m.lv || 1, lv); const hp = 30 + 5 * (m.lv - 1), mp = 8 + 2 * (m.lv - 1); m.mhp = Math.max(m.mhp || 0, hp); m.mmp = Math.max(m.mmp || 0, mp); m.hp = m.mhp; m.mp = m.mmp; m.atk = Math.max(m.atk || 0, 8 + m.lv); m.def = Math.max(m.def || 0, 5 + m.lv); };
+    mk('hoan', 'ホアン'); mk('kemi', 'ケミ'); mk('sekiyu', 'セキユ');
+    await say(['塔の入口に立つと、うしろから聞きなれた声がした。',
+      ['ホアン', `${n}さん！ 法令の国から、走ってきましたよ。`],
+      ['ケミ', '化学の塔の研究、ひと区切りつけてきたわ。最後くらい、いっしょに行かせて。'],
+      ['セキユ', '言っただろう。本当の試練のときは、かならず駆けつけるってな！'],
+      'ホアン、ケミ、セキユが仲間に加わった！',
+      '――終章「試練の塔」――']);
+    s.party = ['hero', 'hoan', 'kemi', 'sekiyu']; s.flags.finale = true; s.lastInn = { map: 'tower6', x: 12, y: 9 };
+    if (this.field.setParty) this.field.setParty(s.party); else this.field.party = s.party;
+  }
+  async finalBoss() {
+    const s = this.state;
+    for (const [id, words] of [['enjou2', [['エンジョウ', 'ぐぬぬ……法令の知恵か。ならば、この姿はどうだ！'], 'エンジョウの体が、化学反応の泡をまとった姿に変わった！']], ['enjou3', [['エンジョウ', 'まだだ……！ 人が油断するかぎり、わしは消えぬ！'], 'エンジョウの炎が7色にうずまき、地をはう蒸気が広がった！']]]) {
+      await say(words);
+      const r = await this.battle(id, { noFlee: true, stage: true, town: 'F', stageId: 'F-boss' });
+      if (r !== 'win') { s.cleared['F-boss'] = false; return r === 'lose' ? this.retreat() : say([[this.guide(), 'いったん引きましょう。']]); }
+    }
+    return this.epilogue();
+  }
+  async epilogue() {
+    const n = this.state.name;
+    await say([
+      'エンジョウの炎が、ふっと小さくなった。最後に残ったのは、ろうそくほどの、あたたかい小さな火だった。',
+      ['ショウボウ老師', '……火は、こわいだけのものではない。正しく知り、正しく扱えば、人の暮らしを照らす火になる。'],
+      ['ショウボウ老師', `${n}。おまえは、知らなさと油断に、知恵で勝った。わしの長い後悔も、これで終わりじゃ。ありがとう。`],
+      ['ホアン', '法令は、人を縛るためじゃなく、守るためにあるんですね。'],
+      ['ケミ', '理由がわかれば、こわさの正体も見えるわ。'],
+      ['セキユ', '知っていれば防げる。それを、ずっと覚えておくよ。'],
+      '――エピローグ――',
+      '数日後。ユウは村に戻り、本物の試験に向けて最後の仕上げを始めた。',
+      ['ショウボウ老師', '試験センターで、本番と同じ形の「模擬試験」が受けられるようになったぞ。法令15問、物理・化学10問、性質・消火10問。科目ごとに6割で合格じゃ。'],
+      ['ショウボウ老師', 'ゲームはここで一区切りじゃが、苦手な問題は宿屋の手紙と「にがて」で何度でも復習できる。合格の日まで、気をゆるめるでないぞ。'],
+      '――おめでとう！ 物語はここで完結です。――',
+      '――今の版では、模擬試験は次の版で追加します。',
+    ]);
+    this.state.flags.cleared = true;
+    await this.recordScreen();
+  }
   async chapter3Start() {
     const s = this.state, n = s.name, hero = s.members.hero;
     await say([['ケミ', `${n}さん、わたしはここまで。塔に残って、物の変化をもっと調べたいの。`], ['ケミ', '燃える仕組みと消す仕組み、物の性質と変化。忘れそうになったら、宿屋に手紙を書くわね。'], 'ケミが手をふって、塔の中へ戻っていった。', '――第3章「危険物の国」――']);
@@ -262,7 +303,7 @@ class Game {
       '――第3章「危険物の国」完。',
       ['ショウボウ老師', '（どこからか声が響く）よくぞここまで来た。法令、物理・化学、そして危険物。3つの国の知恵がそろったな。'],
       ['ショウボウ老師', '……だが、この国々に炎をもたらした「エンジョウ」は、まだ試練の塔の上におる。あやつの正体については、わしからも話さねばならんことがある。'],
-      '――今の版はここまでです。終章「試練の塔」は次の版で追加します。',
+      ['ショウボウ老師', '試練の塔は、低地の油田のくぼ地の奥にある。準備ができたら向かうがよい。'],
     ]);
     this.state.flags.chapter3clear = true;
     await this.recordScreen();
@@ -429,6 +470,7 @@ class Game {
       if (ev.to === 'pass2' && !s.flags.pass2) { s.flags.pass2 = true; await say(['運搬の峠に出た。', '細い山道を、荷車やタンクローリーの魔物が行き来している。', ['ホアン', 'ここは危険物を「運ぶ」ときの決まりを学ぶ場所です。容器に入れて運ぶ「運搬」と、タンクローリーで運ぶ「移送」。'], ['ホアン', 'この峠にも宿屋はありません。泉と宝箱を探しましょう。']]); }
       if (ev.to === 'town4' && !s.flags.chapter2) { await this.chapter2Start(); }
       if (ev.to === 'town6' && !s.flags.chapter3) { await this.chapter3Start(); }
+      if (ev.to === 'tower6' && !s.flags.finale) { await this.finalStart(); }
       if (ev.to === 'field4' && !s.flags.field4) { s.flags.field4 = true; await say(['低地の油田に出た。', '地面が低くくぼんだ土地。足もとを、うす茶色の重たい蒸気がゆっくり流れていく。', ['セキユ', 'ここが危険物の国のいちばん奥だ。4つの事故現場を調べて、事故を防ぐ知恵を身につけてから、くぼ地の蒸気竜に挑むぞ。']]); }
       if (ev.to === 'town12' && !s.flags.town12) { s.flags.town12 = true; await say(['動植物油類の町に着いた。', '畑と森にかこまれた町。油しぼりの小屋から、ナタネやゴマのこうばしいにおいがする。', ['セキユ', 'ここが最後の品名、動植物油類の町だ。緑の体に弓とつるが目じるしだぞ。'], ['セキユ', '……この町には、ずっと気になってることの答えがある気がするんだ。']]); }
       if (ev.to === 'town11' && !s.flags.town11) { s.flags.town11 = true; await say(['第3・第4石油類の町に着いた。', '煙突の並ぶ工場の町。ボイラーの低い音が響き、歯車がごうんと回っている。', ['セキユ', 'ここは重たい油の町だ。茶色の斧は第3石油類、灰色の大槌は第4石油類だぞ。']]); }
@@ -507,7 +549,7 @@ class Game {
       const c = await choose(`${G}「ボスに挑む前に、作戦会議をしますか？」`, [{ label: '作戦会議をする', value: 1 }, { label: 'すぐに挑む', value: 2 }], { cancel: false });
       if (c === 1) await say([[G, 'この町で学んだことを振り返りましょう。']].concat(pts.map(p => [G, p])).concat([[G, `${E.name}の弱点は「${E.weak}」に関わる知識のはずです。予告が出たら、落ち着いて思い出しましょう。`]]));
     }
-    Learn.subject = id[0] === 'P' ? '物理・化学' : '法令';
+    Learn.subject = id[0] === 'P' ? '物理・化学' : id[0] === 'H' ? '性質・消火' : id[0] === 'F' ? '総合' : '法令';
     await say(S.lesson);
     if (S.skill && !s.skills.includes(S.skill)) {
       s.skills.push(S.skill); const K = this.world.skills[S.skill];
@@ -518,12 +560,13 @@ class Game {
     if (r !== 'win') { await say([[G, 'いったん引きましょう。準備ができたら、また来てください。']]); return; }
     s.cleared[id] = true;
     if (S.doc && !(s.docs || (s.docs = [])).includes(S.doc)) { s.docs.push(S.doc); await say([`大事なもの「${S.doc}」を手に入れた！`, [G, S.doc === '許可書' ? '設置の許可を受けた証です。次は工事、そして完成検査。手続きには順番があります。' : '完成検査で基準に適合していると認められた証です。これでようやく使い始められます。']]); }
-    if (S.boss) return ({ 'L1-boss': () => this.ending(), 'L2-boss': () => this.ending2(), 'L3-boss': () => this.ending3(), 'D1-boss': () => this.ending4(), 'D2-boss': () => this.ending5(), 'D3-boss': () => this.ending6(), 'P1-boss': () => this.ending7(), 'P2-boss': () => this.ending8(), 'P3-boss': () => this.ending9(), 'P4-boss': () => this.ending10(), 'H1-boss': () => this.ending11(), 'H2-boss': () => this.ending12(), 'H3-boss': () => this.ending13(), 'H4-boss': () => this.ending14(), 'H5-boss': () => this.ending15(), 'H6-boss': () => this.ending16(), 'H7-boss': () => this.ending17(), 'H8-boss': () => this.ending18() })[id]();
+    if (S.boss) return ({ 'L1-boss': () => this.ending(), 'L2-boss': () => this.ending2(), 'L3-boss': () => this.ending3(), 'D1-boss': () => this.ending4(), 'D2-boss': () => this.ending5(), 'D3-boss': () => this.ending6(), 'P1-boss': () => this.ending7(), 'P2-boss': () => this.ending8(), 'P3-boss': () => this.ending9(), 'P4-boss': () => this.ending10(), 'H1-boss': () => this.ending11(), 'H2-boss': () => this.ending12(), 'H3-boss': () => this.ending13(), 'H4-boss': () => this.ending14(), 'H5-boss': () => this.ending15(), 'H6-boss': () => this.ending16(), 'H7-boss': () => this.ending17(), 'H8-boss': () => this.ending18(), 'F-boss': () => this.finalBoss() })[id]();
     // ホアンの確認：そのステージの五肢択一から2問（未出題を優先）
     const done = new Set(Learn.d.answers.map(a => a.qid));
     const [town, sn] = id.split('-');
     const pool = this.questions.filter(q => q.town === town && q.stage === Number(sn) && q.kind === 'mcq5');
     const qs = pool.filter(q => !done.has(q.id)).concat(pool.filter(q => done.has(q.id))).slice(0, 2);
+    if (!qs.length) return;
     await say([[G, '事件は解決です。念のため、書類で確かめておきましょう。']]);
     const hero = s.members.hero, again = [];
     for (const q of qs) { const a = await ask(q, { title: `${G}の確認`, mode: 'stage', hint: { cost: 1, use: () => { if (hero.mp < 1) return false; hero.mp -= 1; return true; } } }); if (!a.correct || a.unsure || a.hint) again.push(q); }
@@ -537,7 +580,7 @@ class Game {
     await say(['目の前が真っ暗になった……。', '気がつくと、宿屋で寝かされていた。（失ったものはない）', [this.guide(), '予告が出たら「たいさく」です。正体を見抜けば、再生も止まります。']]);
   }
   async battle(enemyId, opt) {
-    $('#pad').classList.add('hide'); const ar = this.world.enemies[enemyId].area || ''; Learn.subject = ar === 'tutorial' ? '導入' : ar[0] === 'P' ? '物理・化学' : '法令';
+    $('#pad').classList.add('hide'); const ar = this.world.enemies[enemyId].area || ''; Learn.subject = ar === 'tutorial' ? '導入' : ar[0] === 'P' ? '物理・化学' : ar[0] === 'H' ? '性質・消火' : ar[0] === 'F' ? '総合' : '法令';
     const r = await new Battle(this).run(enemyId, opt); $('#pad').classList.remove('hide');
     if (r === 'lose' && !opt.tutorial && !opt.stage) await this.retreat();
     return r;

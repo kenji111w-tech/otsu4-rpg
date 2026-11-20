@@ -79,6 +79,7 @@ textarea.inp { height: 160px; }
 .ecv { display: block; }
 .pstat { display: flex; gap: 6px; width: 100%; padding: 6px 8px; }
 .pm { flex: 1; border: 2px solid #f2f2f2; border-radius: 6px; padding: 4px 8px; font-size: 13px; background: #0b0b18; }
+.pm { min-width: 0; } .pstat:has(.pm:nth-child(4)) .pm { font-size: 11px; padding: 3px 4px; }
 .pm .nm { font-weight: bold; } .pm.low { border-color: #ffb02e; color: #ffcf7a; } .pm.down { border-color: #a33; color: #f88; }
 .blog { position: relative; left: auto; right: auto; width: calc(100% - 16px); min-height: 76px; font-size: 16px; line-height: 1.6; }
 .battle ~ .menu.cmd, .menu.cmd { bottom: calc(10px + env(safe-area-inset-bottom)); }
