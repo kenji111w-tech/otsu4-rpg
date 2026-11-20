@@ -1163,6 +1163,22 @@ export const ENEMY_HQ = {
     crystals(ctx, cx, cy - R * .45, R * .7, ['#ffffff', '#c0d8f0'], 5);
     ctx.fillStyle = '#e8c840'; ctx.beginPath(); ctx.moveTo(cx - R * .3, cy - R * .62); for (let i = 0; i < 5; i++) { ctx.lineTo(cx - R * .3 + i * R * .15, cy - R * (i % 2 ? .62 : .82)); } ctx.lineTo(cx + R * .3, cy - R * .62); ctx.fill();
     eyes2(ctx, cx, cy - R * .2, R); bubbles(ctx, cx, cy, R * 1.3, t, 'rgba(160,220,255,.85)'); plate(ctx, cx, cy + R * .45, R, '第1類', '#5a6a8a'); },
+  kanen(ctx, cx, cy, R, t) { const cs = ['#d8b830', '#a83a2a', '#a8a8b8', '#c8a030']; for (let i = 0; i < 7; i++) { ctx.fillStyle = cs[i % 4]; ctx.beginPath(); ctx.arc(cx + Math.sin(i * 2.1) * R * .3, cy + R * .45 - i * R * .14, R * (.24 - i * .015), 0, 7); ctx.fill(); }
+    flicker(ctx, cx - R * .3, cy - R * .1, R, t); flicker(ctx, cx + R * .32, cy + R * .2, R, t + 7); eyes2(ctx, cx, cy - R * .25, R); plate(ctx, cx, cy + R * .6, R, '第2類', '#8a6a1a'); },
+  iouyama(ctx, cx, cy, R, t) { ctx.fillStyle = lin(ctx, 0, cy - R * .5, 0, cy + R * .7, ['#f8e050', '#c8a020']); ctx.beginPath(); ctx.moveTo(cx - R * .6, cy + R * .7); ctx.lineTo(cx - R * .1, cy - R * .5); ctx.lineTo(cx + R * .15, cy - R * .4); ctx.lineTo(cx + R * .6, cy + R * .7); ctx.fill();
+    ctx.fillStyle = '#b83a2a'; for (let i = 0; i < 9; i++) { ctx.beginPath(); ctx.arc(cx + Math.sin(i * 1.9) * R * .35, cy + R * .2 + Math.cos(i * 2.7) * R * .3, R * .03, 0, 7); ctx.fill(); }
+    for (let i = 0; i < 5; i++) { const p = ((t / 2 + i * 10) % 50) / 50; ctx.fillStyle = `rgba(220,200,80,${.5 * (1 - p)})`; ctx.beginPath(); ctx.arc(cx + Math.sin(i * 2) * R * .15, cy - R * .5 - p * R * .5, R * (.08 + p * .14), 0, 7); ctx.fill(); }
+    eyes2(ctx, cx, cy, R); plate(ctx, cx, cy + R * .5, R, '100', '#8a6a1a'); },
+  ginpun(ctx, cx, cy, R, t) { const f = Math.max(0, Math.sin(t / 7)); if (f > .7) { glow(ctx, cx, cy, R * .9, `rgba(255,255,255,${(f - .7) * 2})`, 'rgba(255,255,255,0)'); }
+    for (let i = 0; i < 40; i++) { const a = i * 2.39996, r = R * .5 * Math.sqrt(i / 40); ctx.fillStyle = i % 3 ? '#c8ccd8' : '#f0f2f8'; ctx.beginPath(); ctx.arc(cx + Math.cos(a + t / 40) * r, cy + R * .1 + Math.sin(a + t / 40) * r * .8, R * .06, 0, 7); ctx.fill(); }
+    eyes2(ctx, cx, cy, R); plate(ctx, cx, cy + R * .58, R, '禁水', '#2a5aa8'); },
+  kokei(ctx, cx, cy, R, t) { ctx.fillStyle = lin(ctx, cx - R * .35, 0, cx + R * .35, 0, ['#c8c8d0', '#80808c']); rr(ctx, cx - R * .35, cy - R * .1, R * .7, R * .75, R * .08); ctx.fill(); ctx.fillStyle = '#f4f4f0'; ctx.beginPath(); ctx.ellipse(cx, cy - R * .1, R * .35, R * .1, 0, 0, 7); ctx.fill();
+    for (let i = 0; i < 3; i++) { const h = R * (.35 + .12 * Math.sin(t / 3 + i * 2)); ctx.fillStyle = i === 1 ? 'rgba(120,170,255,.9)' : 'rgba(170,210,255,.7)'; ctx.beginPath(); ctx.moveTo(cx + (i - 1) * R * .15 - R * .1, cy - R * .12); ctx.quadraticCurveTo(cx + (i - 1) * R * .15, cy - R * .12 - h * 1.6, cx + (i - 1) * R * .15 + R * .1, cy - R * .12); ctx.fill(); }
+    eyes2(ctx, cx, cy + R * .15, R); plate(ctx, cx, cy + R * .45, R, '1000', '#8a6a1a'); },
+  kozanou(ctx, cx, cy, R, t) { ctx.fillStyle = lin(ctx, 0, cy - R * .5, 0, cy + R * .9, ['#f0d040', '#a88010']); rr(ctx, cx - R * .45, cy - R * .4, R * .9, R * 1.3, R * .2); ctx.fill();
+    ctx.fillStyle = '#e8c838'; ctx.beginPath(); ctx.arc(cx, cy - R * .55, R * .28, 0, 7); ctx.fill(); eyes2(ctx, cx, cy - R * .55, R);
+    ctx.save(); ctx.translate(cx + R * .55, cy); ctx.rotate(-.5 + Math.sin(t / 9) * .15); ctx.fillStyle = '#6a4a2a'; ctx.fillRect(-R * .03, -R * .7, R * .06, R * 1); ctx.fillStyle = '#d8dce8'; ctx.beginPath(); ctx.moveTo(-R * .3, -R * .7); ctx.quadraticCurveTo(0, -R * .85, R * .3, -R * .7); ctx.lineTo(0, -R * .62); ctx.fill(); ctx.restore();
+    flicker(ctx, cx - R * .2, cy + R * .85, R, t); flicker(ctx, cx + R * .2, cy + R * .85, R, t + 5); plate(ctx, cx, cy + R * .25, R, '第2類', '#8a6a1a'); },
   // __ENEMY_END__
 };
 function mist(ctx, cx, cy, R, t) { for (let i = 0; i < 6; i++) { const p = ((t / 3 + i * 8) % 48) / 48; ctx.fillStyle = `rgba(250,230,120,${.35 * (1 - p)})`; ctx.beginPath(); ctx.arc(cx + Math.sin(i * 2.4) * R * .7, cy - R * .2 - p * R * .6, R * (.12 + p * .2), 0, 7); ctx.fill(); } }
@@ -1181,6 +1197,7 @@ function enjouBody(ctx, cx, cy, R, t, [c1, c2]) {
 function crystals(ctx, cx, cy, R, [c1, c2], n) { for (let i = 0; i < n; i++) { const x = cx + (i - (n - 1) / 2) * R * .22, h = R * (.5 + .35 * Math.sin(i * 2.3 + 1)), w = R * .16; ctx.fillStyle = lin(ctx, x - w, 0, x + w, 0, [c1, c2]); ctx.beginPath(); ctx.moveTo(x - w, cy + R * .45); ctx.lineTo(x - w, cy + R * .45 - h); ctx.lineTo(x, cy + R * .45 - h - R * .18); ctx.lineTo(x + w, cy + R * .45 - h); ctx.lineTo(x + w, cy + R * .45); ctx.fill(); ctx.strokeStyle = 'rgba(90,110,150,.5)'; ctx.lineWidth = R * .015; ctx.stroke(); } }
 function bubbles(ctx, cx, cy, R, t, col) { ctx.fillStyle = col; for (let i = 0; i < 6; i++) { const p = ((t / 2 + i * 8) % 48) / 48; ctx.globalAlpha = 1 - p; ctx.beginPath(); ctx.arc(cx + Math.sin(i * 2.7) * R * .45, cy - p * R * .6, R * .04, 0, 7); ctx.fill(); } ctx.globalAlpha = 1; }
 function eyes2(ctx, cx, cy, R) { ctx.fillStyle = '#fff'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + k * R * .13, cy, R * .07, 0, 7); ctx.fill(); }); ctx.fillStyle = '#222'; [-1, 1].forEach(k => { ctx.beginPath(); ctx.arc(cx + k * R * .13, cy + R * .015, R * .035, 0, 7); ctx.fill(); }); }
+function flicker(ctx, x, y, R, t) { const h = R * (.12 + .06 * Math.sin(t / 3)); ctx.fillStyle = 'rgba(255,140,40,.85)'; ctx.beginPath(); ctx.moveTo(x - R * .06, y); ctx.quadraticCurveTo(x, y - h * 2, x + R * .06, y); ctx.fill(); }
 function alcBody(ctx, cx, cy, R, t, nC) {
   const b = Math.sin(t / 12) * R * .04;
   ctx.fillStyle = 'rgba(205,235,255,.82)'; ctx.beginPath(); ctx.moveTo(cx - R * .4, cy + R * .8); ctx.quadraticCurveTo(cx - R * .5, cy - R * .45 + b, cx, cy - R * .5 + b); ctx.quadraticCurveTo(cx + R * .5, cy - R * .45 + b, cx + R * .4, cy + R * .8); ctx.closePath(); ctx.fill();
