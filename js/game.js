@@ -681,6 +681,7 @@ class Game {
     if (v === 'd') { const d = this.state.docs || []; await say(d.length ? ['大事なもの（手続きの順に並んでいる）：' + d.join(' → '), '書類は手続きの順番どおりにしか手に入らない。'] : '大事なもの：まだない。（許可の町で、手続きの書類が手に入る）'); }
   }
   async examCenter(saved) {
+    if (!this._syl) { try { this._syl = (await (await fetch('data/syllabus.json')).json()).items; } catch (e) { this._syl = []; } }
     if (!this._examConf) { try { this._examConf = await (await fetch('data/config/exam.json')).json(); applyConfig(this._examConf); } catch (e) { this._examConf = {}; } }
     const cleared = (saved && saved.cleared) || {}, all = !!(saved && saved.flags && saved.flags.cleared);
     const pool = examPool(this.questions, cleared, all);
@@ -693,7 +694,7 @@ class Game {
       const qs = run.ids.map(id => this.qById[id]).filter(Boolean), form = { ...FORMS.honban, set: run.set };
       await say(`本番模試（第${run.set}回）の途中です。続きから再開します。アプリを閉じていた間も時間は進んでいます。`);
       Learn.examMode = true; const r = await runExam(this.ui, qs, form, run); Learn.examMode = false;
-      if (!r.aborted) await showResult(r, this.qById, kid => this.whereTaught(kid)); return;
+      if (!r.aborted) await showResult(r, this.qById, kid => this.whereTaught(kid), kid => this.areaOf(kid)); return;
     }
     const hist = Learn.d.mocks || [], nset = nextMockSet(this.questions);
     const items = Object.entries(FORMS).filter(([k]) => k !== 'retry' || (all && !nset)).map(([k, f]) => ({ label: f.name, value: k, disabled: k === 'honban' && (!all || !nset), note: k === 'honban' ? (!all ? '物語をクリアすると受けられます' : nset ? `第${nset}回` : '6回分を受け終えました') : k === 'retry' ? '判定には数えません' : '' }));
@@ -701,10 +702,10 @@ class Game {
     const v = await choose('どれを受けますか？', items); if (!v) return;
     if (v === 'hist') { await say(['【これまでの模試】'].concat(hist.slice(-10).map(h => `${h.day} ${h.form}：` + Object.entries(h.by).map(([sj, x]) => `${sj}${x.ok}/${x.n}`).join('・') + (h.pass ? '　合格' : '　不合格')))); return this.examCenter(saved); }
     const form = v === 'honban' ? { ...FORMS.honban, set: nset } : FORMS[v];
-    if (v === 'retry') { const ok = await choose('再挑戦模試は、模試専用問題のうち前回から30日以上たった問題を中心に35問を組みます。既出の問題を含むので、推奨条件の判定には数えません。始めますか？', [{ label: '始める', value: 1 }]); if (!ok) return; Learn.examMode = true; Learn.subject = '模試'; const r = await runExam(this.ui, buildRetry(this.questions), FORMS.retry); Learn.examMode = false; await showResult(r, this.qById, kid => this.whereTaught(kid)); return; }
+    if (v === 'retry') { const ok = await choose('再挑戦模試は、模試専用問題のうち前回から30日以上たった問題を中心に35問を組みます。既出の問題を含むので、推奨条件の判定には数えません。始めますか？', [{ label: '始める', value: 1 }]); if (!ok) return; Learn.examMode = true; Learn.subject = '模試'; const r = await runExam(this.ui, buildRetry(this.questions), FORMS.retry); Learn.examMode = false; await showResult(r, this.qById, kid => this.whereTaught(kid), kid => this.areaOf(kid)); return; }
     if (v === 'honban') { const ok = await choose(`本番模試 第${nset}回。模試専用の問題35問を2時間で解きます。途中でアプリを閉じても時間は進み、開き直すと続きから再開します。中断すると判定に数えません。2時間とれますか？`, [{ label: '始める', value: 1 }]); if (!ok) return;
       const qs = this.questions.filter(q => q.pool === 'mock' && q.mock_set === nset); Learn.examMode = true; Learn.subject = '模試';
-      const r = await runExam(this.ui, qs, form); Learn.examMode = false; if (r.aborted) { await say('中断しました。この回は判定に数えません。'); return; } await showResult(r, this.qById, kid => this.whereTaught(kid)); return; }
+      const r = await runExam(this.ui, qs, form); Learn.examMode = false; if (r.aborted) { await say('中断しました。この回は判定に数えません。'); return; } await showResult(r, this.qById, kid => this.whereTaught(kid), kid => this.areaOf(kid)); return; }
     const short = Object.entries(form.parts).filter(([sj, n]) => cnt(sj) < n);
     if (short.length === Object.keys(form.parts).length && short.every(([sj]) => cnt(sj) === 0)) { await say('まだ習った範囲がありません。冒険を進めてから来てください。'); return; }
     if (short.length) await say(`まだ習った問題が足りない科目があるので、${short.map(([sj, n]) => `${sj}は${cnt(sj)}問`).join('、')}で出題します。`);
@@ -713,8 +714,9 @@ class Game {
     Learn.examMode = true; Learn.subject = '模試';
     const r = await runExam(this.ui, buildExam(pool, form), form);
     Learn.examMode = false;
-    await showResult(r, this.qById, kid => this.whereTaught(kid));
+    await showResult(r, this.qById, kid => this.whereTaught(kid), kid => this.areaOf(kid));
   }
+  areaOf(kid) { const it = (this._syl || []).find(x => (x.kid_prefixes || []).some(p => kid.startsWith(p))); return it ? `${it.area}` : 'その他'; }
   whereTaught(kid) { // その知識を教えている場所（町やダンジョンの名前と、ステージの名前）
     const q = this.questions.find(x => x.knowledge_id === kid && x.pool === 'practice' && x.stage > 0 && this.world.stages[`${x.town}-${x.stage}`]);
     if (!q) return null; const sid = `${q.town}-${q.stage}`, st = this.world.stages[sid];

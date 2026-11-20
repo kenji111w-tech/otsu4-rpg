@@ -93,7 +93,7 @@ export function runExam(layer, qs, form, resume = null) {
       qs.forEach((q, i) => { const c = ans[i] === q.answer; (by[q.subject] = by[q.subject] || { n: 0, ok: 0 }).n++; if (c) by[q.subject].ok++;
         Learn.record(q, { correct: c, unsure: mark[i], hint: false, mode: 'mock', order: orders[i], ms: Math.round(ms / qs.length) }); });
       const pass = Object.values(by).every(v => v.ok / v.n >= CONF.passRate);
-      const r = { day: new Date().toISOString().slice(0, 10), form: form.name, by, pass, ms, timeUp, first: !!form.mock, wrong: qs.map((q, i) => ({ q, a: ans[i] })).filter(x => x.a !== x.q.answer).map(x => ({ id: x.q.id, a: x.a })) };
+      const r = { day: new Date().toISOString().slice(0, 10), form: form.name, by, pass, ms, timeUp, first: !!form.mock, ids: qs.map(q => q.id), ok: qs.map((q, i) => ans[i] === q.answer), wrong: qs.map((q, i) => ({ q, a: ans[i] })).filter(x => x.a !== x.q.answer).map(x => ({ id: x.q.id, a: x.a })) };
       (Learn.d.mocks = Learn.d.mocks || []).push({ day: r.day, form: r.form, by, pass, ms, first: !!form.mock, set: form.set || null }); Learn.save();
       res(r);
     };
@@ -101,13 +101,18 @@ export function runExam(layer, qs, form, resume = null) {
   });
 }
 
-export async function showResult(r, qById, where = null) {
+export async function showResult(r, qById, where = null, areaOf = null) {
   const lines = [`【採点結果】${r.form}${r.timeUp ? '（時間切れ）' : ''}`];
   for (const [sj, v] of Object.entries(r.by)) { const p = Math.round(v.ok / v.n * 100); lines.push(`${sj}：${v.ok}／${v.n}問（${p}%）${v.ok / v.n >= CONF.passRate ? '　合格ライン到達' : '　あと' + (Math.ceil(v.n * CONF.passRate - 1e-9) - v.ok) + '問'}`); }
   lines.push(r.pass ? '判定：合格！ すべての科目で6割以上です。' : '判定：不合格……。1科目でも6割に届かないと不合格です。');
   lines.push(`かかった時間：${fmtMin(r.ms / 1e3)}`);
   if (r.first) { const rc = recommend(); lines.push(rc.ok ? '初見模試を3回連続、3科目とも80%以上。推奨条件を満たしました。本番に挑戦しましょう！' : `推奨条件（初見模試3回連続・各科目80%以上）：直近${rc.n}回分で判定中。`); }
   await say(lines);
+  if (areaOf && r.ids) { // 分野別：合格ラインに届かなかった分野
+    const ar = {}; r.ids.forEach((id, i) => { const q = qById[id], k = `${q.subject}／${areaOf(q.knowledge_id)}`; (ar[k] = ar[k] || { n: 0, ok: 0 }).n++; if (r.ok[i]) ar[k].ok++; });
+    const weak = Object.entries(ar).filter(([, v]) => v.ok / v.n < CONF.passRate).sort((a, b) => a[1].ok / a[1].n - b[1].ok / b[1].n);
+    await say(['【分野別の結果】'].concat(weak.length ? weak.map(([k, v]) => `${k}：${v.ok}／${v.n}問`).concat(['（合格ラインに届かなかった分野です）']) : ['すべての分野で合格ラインに届いています。']));
+  }
   if (r.wrong.length && where) { // 次に学ぶ場所：まちがえた知識を教えている場所を、多い順に
     const cnt = {}; for (const w of r.wrong) { const p = where(qById[w.id].knowledge_id); if (p) cnt[p] = (cnt[p] || 0) + 1; }
     const top = Object.entries(cnt).sort((a, b) => b[1] - a[1]).slice(0, 5);
