@@ -781,7 +781,14 @@ class Game {
   }
   // クリアしたとき：成長指標のあとに、にがてのまとめを見せる
   async clearReport() { await this.recordScreen(); await this.weakReport(true); }
-  itemOf(kid) { return (this._syl || []).find(x => (x.kid_prefixes || []).some(p => kid.startsWith(p))) || null; }
+  itemOf(kid) {
+    const it = (this._syl || []).find(x => (x.kid_prefixes || []).some(p => kid.startsWith(p)));
+    if (it || !/^R\d/.test(kid)) return it || null;
+    // 火の国（他類）は出題範囲一覧の外なので、知識（kid）ごとの項目を作る
+    this._fireItems = this._fireItems || {};
+    if (!this._fireItems[kid]) { const q = this.questions.find(x => x.knowledge_id === kid && x.topic !== 'identify'); const town = { R1: '第1類', R2: '第2類', R3: '第3類', R5: '第5類', R6: '第6類' }[kid.slice(0, 2)] || '火の国'; this._fireItems[kid] = { id: kid, item: `${town}：${q ? q.topic : kid}`, subject: '火の国（他類）', kid_prefixes: [kid] }; }
+    return this._fireItems[kid];
+  }
   // にがての判定：出題範囲の項目ごとに、最近10回の解答で「迷わず・ヒントなしで正解」の割合を出す（2回以上答えた項目）
   weakItems() {
     const by = {};
@@ -796,9 +803,9 @@ class Game {
       .filter(x => x.n >= 2 && x.rate < 70).sort((a, b) => a.rate - b.rate || b.n - a.n);
   }
   subjectRates() {
-    const by = {};
-    for (const a of Learn.d.answers) { if (a.held || a.mode === 'furikaeri') continue; const q = this.qById[a.qid]; if (!q || q.topic === 'identify' || q.call || !['法令', '物理化学', '性質消火'].includes(q.subject)) continue; const x = by[q.subject] = by[q.subject] || { ok: 0, n: 0 }; x.n++; if (a.correct && !a.hint) x.ok++; }
-    return ['法令', '物理化学', '性質消火'].filter(sj => by[sj]).map(sj => `${sj === '物理化学' ? '物理・化学' : sj === '性質消火' ? '性質・消火' : sj} ${Math.round(by[sj].ok / by[sj].n * 100)}%（${by[sj].n}問）`);
+    const SJ = ['法令', '物理・化学', '性質・消火', '他類（性質・消火）'], by = {};
+    for (const a of Learn.d.answers) { if (a.held || a.mode === 'furikaeri') continue; const q = this.qById[a.qid]; if (!q || q.topic === 'identify' || q.call || !SJ.includes(q.subject)) continue; const x = by[q.subject] = by[q.subject] || { ok: 0, n: 0 }; x.n++; if (a.correct && !a.hint) x.ok++; }
+    return SJ.filter(sj => by[sj]).map(sj => `${sj === '他類（性質・消火）' ? '火の国（他類）' : sj} ${Math.round(by[sj].ok / by[sj].n * 100)}%（${by[sj].n}問）`);
   }
   async weakReport(afterClear = false) {
     const w = this.weakItems(), sr = this.subjectRates();
