@@ -7,6 +7,7 @@ import { choose, say } from './ui.js';
 export const FORMS = {
   honban: { name: '本番模試（初見・模試専用問題35問・2時間）', parts: { '法令': 15, '物理・化学': 10, '性質・消火': 10 }, minutes: 120, mock: true },
   full: { name: '練習模試（本番形式35問・2時間）', parts: { '法令': 15, '物理・化学': 10, '性質・消火': 10 }, minutes: 120 },
+  retry: { name: '再挑戦模試（既出問題を含む・35問・2時間）', parts: { '法令': 15, '物理・化学': 10, '性質・消火': 10 }, minutes: 120, retry: true },
   menjo: { name: '練習模試（科目免除：性質・消火10問・35分）', parts: { '性質・消火': 10 }, minutes: 35, note: '乙種の他の類の免状を持っている人は、法令と物理・化学が免除されます。' },
   weak: { name: '苦手中心の練習模試（35問・時間制限なし）', parts: { '法令': 15, '物理・化学': 10, '性質・消火': 10 }, minutes: 0, weak: true },
 };
@@ -125,4 +126,16 @@ export function recommend() {
 export function nextMockSet(questions) {
   const used = new Set(Learn.d.mockSetsUsed || []), sets = [...new Set(questions.filter(q => q.pool === 'mock').map(q => q.mock_set))].sort((a, b) => a - b);
   return sets.find(s => !used.has(s)) || null;
+}
+
+// 再挑戦模試：模試専用問題のうち、前回の出題から30日以上たったものを優先して35問を組む
+export function buildRetry(questions) {
+  const last = {}; for (const a of Learn.d.answers) if (a.mode === 'mock') last[a.qid] = Math.max(last[a.qid] || 0, a.ts || 0);
+  const out = [], old = Date.now() - 30 * 864e5;
+  for (const [sj, n] of Object.entries(FORMS.retry.parts)) {
+    const cand = shuffle(questions.filter(q => q.pool === 'mock' && q.subject === sj));
+    cand.sort((a, b) => ((last[a.id] || 0) > old) - ((last[b.id] || 0) > old) || (last[a.id] || 0) - (last[b.id] || 0));
+    out.push(...cand.slice(0, n));
+  }
+  return out;
 }
