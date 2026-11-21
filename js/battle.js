@@ -184,6 +184,10 @@ export class Battle {
     let cand = all.filter(q => !e.used.has(q.id)); if (!cand.length) cand = all;
     { const own = cand.filter(q => q.kind !== 'situation' || q.town === e.area); if (own.length) cand = own; } // 状況問題は別の魔物が出てくる話なので、その場所の問題だけにする
     const area = cand.filter(q => q.town === e.area), pref = prefer ? cand.filter(prefer) : [];
+    if ((this.opt.focusUnseen || this.g.state.flags['focus_' + e.area]) && !this.g.state.cleared[e.area + '-boss'] && Math.random() < .85) { // 特訓：まだ出会っていない問題を中心に
+      const seen = this.g.seenSet(), un = area.filter(q => !seen.has(q.id));
+      if (un.length) { const q = pick(un); e.used.add(q.id); return q; }
+    }
     const due = cand.filter(q => Learn.isDue(q.knowledge_id)); // 復習の時期が来た知識を、半分くらいの確率で優先して出す
     const q = pick(pref.length ? pref : due.length && Math.random() < .5 ? due : area.length && Math.random() < .75 ? area : cand) || pick(this.g.questions.filter(x => x.town === 'V0'));
     if (q) e.used.add(q.id); return q;

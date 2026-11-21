@@ -40,7 +40,7 @@ class Game {
     });
     this.bindControls();
     Sound.init();
-    { const load = this.field.load.bind(this.field); this.field.load = (m, ...a) => { const r = load(m, ...a); Sound.bgm(this.mapBgm(m)); return r; }; }
+    { const load = this.field.load.bind(this.field); this.field.load = (m, ...a) => { const r = load(m, ...a); Sound.bgm(this.mapBgm(m)); try { this.updateMeter(); } catch (e) {} return r; }; }
     if (!isStandalone()) $('#trial').classList.remove('hide');
     window.__game = this; // 開発・テスト用
     hideSplash();
@@ -209,6 +209,33 @@ class Game {
       ['ショウボウ老師', hl('「きろく」は勉強の成績、「にがて」は苦手な所の練習、「ずかん」は出会った魔物じゃ。')],
       ['ショウボウ老師', hl('「せってい」では《音の設定》やバックアップができる。さっそく一度、開いてみなさい。')],
     ]);
+  }
+  // ===== 出題メーター：町（ボスのいる場所）ごとに、問題のうち何%に出会ったか =====
+  townPool(town) { this._tp = this._tp || {}; return this._tp[town] || (this._tp[town] = this.questions.filter(q => q.pool === 'practice' && q.town === town && q.topic !== 'identify' && !q.call)); }
+  seenSet() { return new Set(Learn.d.answers.map(a => a.qid)); }
+  meter(town) { const P = this.townPool(town), seen = this.seenSet(), n = P.filter(q => seen.has(q.id)).length; return { seen: n, total: P.length, pct: P.length ? Math.floor(n / P.length * 100) : 100 }; }
+  mapTown(m) { const M = this.world.maps[m || (this.field && this.field.mapId)]; const ev = M && (M.events || []).find(e => e.type === 'stage' && this.world.stages[e.id] && this.world.stages[`${e.id.split('-')[0]}-boss`]); return ev ? ev.id.split('-')[0] : null; }
+  updateMeter() {
+    let box = document.getElementById('meter');
+    if (!box) { box = el('div'); box.id = 'meter'; document.getElementById('field-wrap').appendChild(box); box.addEventListener('click', e => { e.stopPropagation(); if (!this.field.busy) { this.field.busy = true; this.meterHelp().finally(() => { this.field.busy = false; }); } }); }
+    const t = this.mapTown(); if (!t || !this.state || this.state.cleared[`${t}-boss`]) { box.classList.add('hide'); return; }
+    const m = this.meter(t); box.classList.remove('hide'); box.classList.toggle('ok', m.pct >= 80);
+    box.innerHTML = `<span class="ml">出題メーター</span><span class="mb"><i style="width:${m.pct}%"></i><b></b></span><span class="mp">${m.pct}%</span>`;
+  }
+  async meterHelp() {
+    const t = this.mapTown(), m = t ? this.meter(t) : null;
+    await say([[this.guide(), hl(`出題メーターは、この場所の問題のうち、もう出会った問題が何%あるかを示します。いまは${m ? `${m.seen}問／${m.total}問で${m.pct}%` : '―'}です。`)],
+      [this.guide(), hl('ボスに挑めるのは80%を超えてから（メーターの白い線）。足りないときは、解決した現場で「特訓」をすると、まだ出会っていない問題が中心に出ます。')]]);
+  }
+  // 特訓：まだ出会っていない問題を中心に戦う（その場所の現場の魔物と）
+  async train(town) {
+    const ids = Object.keys(this.world.stages).filter(k => k.startsWith(town + '-') && !k.endsWith('-boss'));
+    const st = this.world.stages[ids[ids.length - 1]]; if (!st) return;
+    this.state.flags['focus_' + town] = true;
+    const r = await this.battle(st.enemy, { stage: true, town, stageId: ids[ids.length - 1], focusUnseen: true, training: true });
+    const m = this.meter(town);
+    await say([[this.guide(), hl(`出題メーター：${m.pct}%（${m.seen}問／${m.total}問）。` + (m.pct >= 80 ? 'ボスに挑めます！' : 'あと少し。特訓を続けましょう。'))]]);
+    this.updateMeter(); return r;
   }
   // 仲間のプロフィール：担当・口ぐせ・試験で思い出す覚え方
   async mates() {
@@ -664,8 +691,25 @@ class Game {
     const G = this.guide();
     const s = this.state, S = this.world.stages[id];
     if (!s.flags.hoan) { await say('（まずは役場で話を聞いてみよう）'); this.field.y -= 0; return; }
-    if (s.cleared[id]) { await say(`${S.name}の事件は解決した。`); return; }
+    const tw = id.split('-')[0], gated = this.world.stages[tw + '-boss'] && tw !== 'F';
+    if (s.cleared[id]) {
+      if (!gated || s.cleared[tw + '-boss']) { await say(`${S.name}の事件は解決した。`); return; }
+      const m = this.meter(tw);
+      const v = await choose(`${S.name}（解決ずみ）　出題メーター ${m.pct}%`, [{ label: '特訓する', note: 'まだ出会っていない問題が中心', value: 't' }, { label: '出題メーターの説明', value: 'h' }]);
+      if (v === 't') await this.train(tw); if (v === 'h') await this.meterHelp();
+      return;
+    }
     if (S.need && !s.cleared[S.need]) { await say([[G, `ここはあとにしましょう。先に「${this.world.stages[S.need].name}」の事件を。`]]); return; }
+    if (S.boss && gated) { // ボスは、この場所の問題の80%以上に出会ってから
+      const m = this.meter(tw);
+      if (m.pct < 80) {
+        await say([[this.world.enemies[S.enemy].name, 'ふん……まだ未熟だな。そんな知識で、わしに勝てると思うのか。出直してこい！'],
+          [G, hl(`この場所の問題に、まだ${m.pct}%しか出会っていません（${m.seen}問／${m.total}問）。80%を超えるまで、特訓して勉強し直しましょう。`)]]);
+        const v = await choose(`出題メーター ${m.pct}%（80%でボスに挑める）`, [{ label: '特訓する', note: 'まだ出会っていない問題が中心', value: 't' }, { label: '出題メーターの説明', value: 'h' }]);
+        if (v === 't') await this.train(tw); if (v === 'h') await this.meterHelp();
+        return;
+      }
+    }
     const go = await choose(`${S.name}`, [{ label: '事件の現場に入る', value: 1 }]); if (!go) return;
     const town0 = id.split('-')[0], M = (this.world.mysteries || {})[town0];
     s.clues = s.clues || {};
@@ -728,7 +772,7 @@ class Game {
     { const S = opt && opt.stageId && this.world.stages[opt.stageId]; Sound.bgm(/^enjou/.test(enemyId) ? 'final' : S && S.boss ? 'boss' : 'battle'); }
     $('#pad').classList.add('hide'); const ar = this.world.enemies[enemyId].area || ''; Learn.subject = ar === 'tutorial' ? '導入' : ar[0] === 'P' ? '物理・化学' : ar[0] === 'H' ? '性質・消火' : ar[0] === 'F' ? '総合' : ar[0] === 'R' ? '火の国（他類）' : '法令';
     const r = await new Battle(this).run(enemyId, opt); $('#pad').classList.remove('hide');
-    if (r === 'win') Sound.jingle('victory', this.mapBgm()); else Sound.bgm(this.mapBgm());
+    if (r === 'win') Sound.jingle('victory', this.mapBgm()); else Sound.bgm(this.mapBgm()); try { this.updateMeter(); } catch (e) {}
     if (r === 'lose' && !opt.tutorial && !opt.stage) await this.retreat();
     return r;
   }

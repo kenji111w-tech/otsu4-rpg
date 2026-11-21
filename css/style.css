@@ -158,3 +158,11 @@ textarea.inp { height: 160px; }
   .titlescr .ver { font-size: 10px; }
   .titlemenu { bottom: calc(10px + env(safe-area-inset-bottom)); }
 }
+/* 出題メーター（町やダンジョンの右上。たたくと説明） */
+#meter { position: absolute; right: 0; top: 0; display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: rgba(0,0,0,.6); border-bottom-left-radius: 8px; font-size: 11px; cursor: pointer; z-index: 5; }
+#meter.hide { display: none; }
+#meter .mb { position: relative; width: 70px; height: 8px; background: #333; border-radius: 4px; overflow: hidden; }
+#meter .mb i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #e0702a, #ffd76a); }
+#meter .mb b { position: absolute; left: 80%; top: -2px; bottom: -2px; width: 2px; background: #fff; }
+#meter.ok .mb i { background: linear-gradient(90deg, #3aa874, #8ff0b0); }
+#meter .mp { font-weight: 700; min-width: 32px; text-align: right; }
