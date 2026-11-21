@@ -32,7 +32,7 @@ async def run():
             if await pg.evaluate("window.__sd"): break
             await bot_step(pg, None); await pg.wait_for_timeout(40)
         # 手がかりを4つ持った状態でボスの推理
-        await pg.evaluate("() => { const g=window.__game, s=g.state; ['L1-1','L1-2','L1-3','L1-4'].forEach(k=>s.cleared[k]=true); s.clues={L1:['油でぬれた大きな足あと','角でひっかいたラベル','書きかえられた台帳','空き地の鍵']}; window.__sd=false; g.stage('L1-boss').then(()=>window.__sd=true); }")
+        await pg.evaluate("() => { const g=window.__game, s=g.state; ['L1-1','L1-2','L1-3','L1-4'].forEach(k=>s.cleared[k]=true); s.clues={L1:['油でぬれた大きな足あと','角でひっかいたラベル','書きかえられた台帳','空き地の鍵']}; g.seenSet=()=>new Set(g.questions.map(q=>q.id)); window.__sd=false; g.stage('L1-boss').then(()=>window.__sd=true); }")
         await pg.wait_for_timeout(200); await pg.evaluate("[...document.querySelectorAll('#ui .menu .item')][0].click()"); await pg.wait_for_timeout(200)
         await shot('5reveal')
         print('shots', shots, 'errors', errs or 'none', flush=True)
