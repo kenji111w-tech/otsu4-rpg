@@ -32,7 +32,7 @@
      "y": 4,
      "type": "building",
      "id": "office",
-     "label": "役場"
+     "label": "予防課"
     },
     {
      "x": 3,
@@ -212,7 +212,7 @@
      "y": 3,
      "type": "building",
      "id": "office",
-     "label": "役場"
+     "label": "消防署"
     },
     {
      "x": 14,
@@ -453,7 +453,7 @@
      "y": 3,
      "type": "building",
      "id": "office",
-     "label": "役場"
+     "label": "消防署"
     },
     {
      "x": 14,
@@ -728,7 +728,7 @@
      "y": 3,
      "type": "building",
      "id": "office",
-     "label": "役場"
+     "label": "消防署"
     },
     {
      "x": 14,
@@ -1322,7 +1322,7 @@
      "y": 13,
      "look": "villager2",
      "talk": [
-      "わたしは城の書記官。届出の多くは「遅滞なく」――ぐずぐずせずに、という意味です。",
+      "わたしは城の予防係。届出の多くは「遅滞なく」――ぐずぐずせずに、という意味です。",
       "製造所等をやめたとき、危険物保安監督者や保安統括管理者を選んだとき・やめさせたとき。どれも遅滞なく届け出ます。"
      ],
      "aiko": "D3"
@@ -1373,7 +1373,7 @@
      "y": 3,
      "type": "building",
      "id": "office",
-     "label": "役場"
+     "label": "消防署"
     },
     {
      "x": 14,
@@ -1518,7 +1518,7 @@
      "y": 3,
      "type": "building",
      "id": "office",
-     "label": "役場"
+     "label": "消防署"
     },
     {
      "x": 14,
@@ -2036,7 +2036,7 @@
      "y": 3,
      "type": "building",
      "id": "office",
-     "label": "役場"
+     "label": "消防署"
     },
     {
      "x": 14,
@@ -2181,7 +2181,7 @@
      "y": 3,
      "type": "building",
      "id": "office",
-     "label": "役場"
+     "label": "消防署"
     },
     {
      "x": 14,
@@ -2326,7 +2326,7 @@
      "y": 3,
      "type": "building",
      "id": "office",
-     "label": "役場"
+     "label": "消防署"
     },
     {
      "x": 14,
@@ -2471,7 +2471,7 @@
      "y": 3,
      "type": "building",
      "id": "office",
-     "label": "役場"
+     "label": "消防署"
     },
     {
      "x": 14,
@@ -2616,7 +2616,7 @@
      "y": 3,
      "type": "building",
      "id": "office",
-     "label": "役場"
+     "label": "消防署"
     },
     {
      "x": 14,
@@ -2761,7 +2761,7 @@
      "y": 3,
      "type": "building",
      "id": "office",
-     "label": "役場"
+     "label": "消防署"
     },
     {
      "x": 14,
@@ -2906,7 +2906,7 @@
      "y": 3,
      "type": "building",
      "id": "office",
-     "label": "役場"
+     "label": "消防署"
     },
     {
      "x": 14,
@@ -3328,7 +3328,7 @@
      "y": 3,
      "type": "building",
      "id": "office",
-     "label": "役場"
+     "label": "消防署"
     },
     {
      "x": 14,
@@ -3464,7 +3464,7 @@
      "y": 3,
      "type": "building",
      "id": "office",
-     "label": "役場"
+     "label": "消防署"
     },
     {
      "x": 14,
@@ -3600,7 +3600,7 @@
      "y": 3,
      "type": "building",
      "id": "office",
-     "label": "役場"
+     "label": "消防署"
     },
     {
      "x": 14,
@@ -3736,7 +3736,7 @@
      "y": 3,
      "type": "building",
      "id": "office",
-     "label": "役場"
+     "label": "消防署"
     },
     {
      "x": 14,
@@ -3872,7 +3872,7 @@
      "y": 3,
      "type": "building",
      "id": "office",
-     "label": "役場"
+     "label": "消防署"
     },
     {
      "x": 14,

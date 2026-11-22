@@ -18,7 +18,7 @@ for i, T in enumerate(TOWNS):
     m = {'name': T['name'], 'encounter': False, 'tiles': list(base['tiles']), 'events': [], 'npcs': []}
     ev = m['events']
     ev += [{'x': 3, 'y': 3, 'type': 'building', 'id': 'inn', 'label': '宿屋', 'price': 0},
-           {'x': 8, 'y': 3, 'type': 'building', 'id': 'office', 'label': '役場'},
+           {'x': 8, 'y': 3, 'type': 'building', 'id': 'office', 'label': '消防署'},
            {'x': 14, 'y': 3, 'type': 'building', 'id': 'shop', 'label': '道具屋'}]
     pos = [(3, 9), (13, 9), (5, 12), (12, 12), (14, 13)]
     for (x, y), sid in zip(pos, [f"{T['code']}-{n}" for n in (1, 2, 3, 4)] + [f"{T['code']}-boss"]):

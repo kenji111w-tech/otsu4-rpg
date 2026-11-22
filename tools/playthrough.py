@@ -304,7 +304,7 @@ async def bot_step(pg, state):
         if (title === '知恵の釜') { const f = items.find(b => !b.classList.contains('off') && !b.classList.contains('cancel')); (f || m.querySelector('.cancel')).click(); return 'kama2'; }
         if (title.startsWith('にがて')) { const f = items.find(b => !b.classList.contains('off') && !b.classList.contains('cancel')); (f || m.querySelector('.cancel')).click(); return 'weak'; }
         if (title === 'ふくろ') { by('もどる').click(); return 'x'; }
-        if (title === '役場') { window.__off = (window.__off||0)+1; (window.__off===1? by('届出') : by('もどる')).click(); return 'office'; }
+        if (title.startsWith('消防署')) { window.__off = (window.__off||0)+1; (window.__off===1? by('届出') : by('もどる')).click(); return 'office'; }
         if (title.startsWith('宿屋')) { by('泊まる').click(); return 'inn'; }
         if (title.includes('のこうどう')) {
           const sp = by('じゅもん'); if (sp && !sp.classList.contains('off') && Math.random() < .25) { sp.click(); return 'spell'; }

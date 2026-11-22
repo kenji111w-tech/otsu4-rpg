@@ -19,7 +19,7 @@ function charTexture(look, dir, fr = 0) {
 }
 function labelTexture(text) {
   const c = document.createElement('canvas'); c.width = 256; c.height = 72; const x = c.getContext('2d');
-  x.fillStyle = 'rgba(10,10,30,.78)'; x.beginPath(); x.roundRect(4, 6, 248, 60, 14); x.fill(); x.strokeStyle = '#ffd76a'; x.lineWidth = 3; x.stroke();
+  const fl = /消防署|予防課/.test(text); x.fillStyle = fl ? 'rgba(170,20,20,.92)' : 'rgba(10,10,30,.78)'; x.beginPath(); x.roundRect(4, 6, 248, 60, 14); x.fill(); x.strokeStyle = fl ? '#ffffff' : '#ffd76a'; x.lineWidth = 3; x.stroke();
   x.fillStyle = '#fff'; x.font = 'bold 34px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(text, 128, 38);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
@@ -153,14 +153,22 @@ export class Field3D {
       let w = 0; while (this.map.tiles[j][i + w] === ch) w++; let h = 0; while (this.map.tiles[j + h] && this.map.tiles[j + h][i] === ch) h++;
       for (let b = 0; b < h; b++) for (let a = 0; a < w; a++) seen.add((i + a) + ',' + (j + b));
       const cx = i + (w - 1) / 2, cz = j + (h - 1) / 2 + .1, house = ch === 'R';
-      const body = new THREE.Mesh(new THREE.BoxGeometry(w - .1, house ? 1.3 : 1.1, h - .1), new THREE.MeshLambertMaterial({ color: house ? 0xf0e2c4 : 0x9a7048 }));
+      // 建物の種類（扉の前のイベント）で見た目を変える：消防署は赤い壁・灰色の屋根・赤色灯・白い車庫の扉
+      const bev = house ? (this.map.events || []).find(e => e.type === 'building' && e.y === j + h && e.x >= i && e.x < i + w) : null;
+      const fire = bev && (bev.id === 'office' || bev.id === 'firehouse');
+      const body = new THREE.Mesh(new THREE.BoxGeometry(w - .1, house ? 1.3 : 1.1, h - .1), new THREE.MeshLambertMaterial({ color: fire ? 0xc8322a : house ? 0xf0e2c4 : 0x9a7048 }));
       body.position.set(cx, house ? .65 : .55, cz); body.castShadow = body.receiveShadow = true; this.scene.add(body);
       if (house) {
         const roofG = new THREE.CylinderGeometry(.01, (h + .3) * .62, w + .3, 4, 1); roofG.rotateZ(Math.PI / 2); roofG.rotateX(Math.PI / 4);
-        const roof = new THREE.Mesh(roofG, new THREE.MeshLambertMaterial({ color: 0xb8432c, flatShading: true })); roof.scale.set(1, .75, 1); roof.position.set(cx, 1.62, cz); roof.castShadow = true; this.scene.add(roof);
+        const roof = new THREE.Mesh(roofG, new THREE.MeshLambertMaterial({ color: fire ? 0x55585e : 0xb8432c, flatShading: true })); roof.scale.set(1, .75, 1); roof.position.set(cx, 1.62, cz); roof.castShadow = true; this.scene.add(roof);
+        if (fire) {
+          const band = new THREE.Mesh(new THREE.BoxGeometry(w - .06, .14, h - .06), new THREE.MeshLambertMaterial({ color: 0xffffff })); band.position.set(cx, 1.12, cz); this.scene.add(band);
+          const lamp = new THREE.Mesh(new THREE.SphereGeometry(.16, 12, 8), new THREE.MeshBasicMaterial({ color: 0xff2020 })); lamp.position.set(cx, 2.12, cz); this.scene.add(lamp);
+          const tower = new THREE.Mesh(new THREE.BoxGeometry(.34, 1.1, .34), new THREE.MeshLambertMaterial({ color: 0xd8d8d8 })); tower.position.set(i + w - .5, 1.9, cz - (h - .1) / 2 + .2); tower.castShadow = true; this.scene.add(tower);
+        }
         for (let a = 0; a < w; a++) { const win = new THREE.Mesh(new THREE.PlaneGeometry(.32, .28), new THREE.MeshLambertMaterial({ color: 0x6aa0d0, emissive: 0x000000 })); win.position.set(i + a, .85, cz + (h - .1) / 2 + .005); this.scene.add(win); (this.windows = this.windows || []).push(win); }
         // 扉（建物のすぐ下のD）
-        for (let a = 0; a < w; a++) if (this.tile(i + a, j + h) === 'D') { const door = new THREE.Mesh(new THREE.BoxGeometry(.42, .7, .06), new THREE.MeshLambertMaterial({ color: 0x5a3418 })); door.position.set(i + a, .35, cz + (h - .1) / 2 + .03); this.scene.add(door); }
+        for (let a = 0; a < w; a++) if (this.tile(i + a, j + h) === 'D') { const door = new THREE.Mesh(new THREE.BoxGeometry(fire ? .62 : .42, fire ? .8 : .7, .06), new THREE.MeshLambertMaterial({ color: fire ? 0xf2f2f2 : 0x5a3418 })); door.position.set(i + a, .35, cz + (h - .1) / 2 + .03); this.scene.add(door); }
       } else {
         const top = new THREE.Mesh(new THREE.BoxGeometry(w + .1, .12, h + .1), new THREE.MeshLambertMaterial({ color: 0x6a4a2e })); top.position.set(cx, 1.15, cz); top.castShadow = true; this.scene.add(top);
         for (let a = 0; a < w; a++) { const bar = new THREE.Mesh(new THREE.CylinderGeometry(.18, .18, .45, 12), new THREE.MeshLambertMaterial({ color: 0x8a5a2a })); bar.position.set(i + a, .22, cz + h / 2 + .15); bar.castShadow = true; this.scene.add(bar); }

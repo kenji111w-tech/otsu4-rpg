@@ -53,7 +53,7 @@ class Game {
     return { v: 1, name, map: 'village', x: 7, y: 12, party: ['hero'], members: m, skills: [], items: { yakusou: 3, mizu: 1 }, gold: 20, exp: 0,
       flags: { night: true }, cleared: {}, zukan: {}, lastInn: { map: 'village', x: 3, y: 11 }, combo: { n: 0, topics: [] }, savedAt: null };
   }
-  save() { // 役場の「届出」
+  save() { // 消防署の窓口への「届出」
     const s = this.state; s.map = this.field.mapId; s.x = this.field.x; s.y = this.field.y; s.savedAt = new Date().toISOString();
     store.set('game', s); Learn.save();
   }
@@ -146,7 +146,7 @@ class Game {
     lines.push('ロードマップ（目安70時間）：' + this.roadmapLines().slice(0, 2).join('、'));
     lines.push(st.due ? `復習の時期が来た知識が${st.due}こあります。草原に「復活した魔物」として現れます。` : '今日の復習はありません。');
     const lb = Learn.d.lastBackup; const days = lb ? Math.floor((Date.now() - new Date(lb)) / 86400e3) : null;
-    if (st.answers > 0 && (days == null || days >= 14)) lines.push('しばらくバックアップをしていません。役場の「バックアップ」から書き出しておくと安心です。');
+    if (st.answers > 0 && (days == null || days >= 14)) lines.push('しばらくバックアップをしていません。消防署の窓口の「バックアップ」から書き出しておくと安心です。');
     await say(lines);
   }
 
@@ -181,9 +181,10 @@ class Game {
         ['ショウボウ老師', 'うむ、見事じゃ。知恵で大技を止める――それがこの世界の戦い方じゃ。'],
         ['ショウボウ老師', 'やくそうを3つ持っていけ。北の草原を抜けた先に、法令の国の「定義の町」がある。'],
         ['ショウボウ老師', 'それから、旅の記録のつけ方を教えておこう。大事なことじゃ。'],
-        ['ショウボウ老師', '旅の記録（セーブ）は、村や町の「役場」で「届出」をすると残る。この村なら、右上の建物が役場じゃ。'],
-        ['ショウボウ老師', '役場の人に話しかけて「届出（旅の記録をつける）」を選ぶ。それだけじゃ。届出をしないまま旅をやめると、その前の届出から続きになるぞ。'],
-        ['ショウボウ老師', 'ダンジョンの中には役場がない。入る前に必ず届出をしておくのじゃ。'],
+        ['ショウボウ老師', '旅の記録（セーブ）は、村や町の「消防署」の窓口で「届出」をすると残る。この村なら、右上の建物が消防署の予防課じゃ。'],
+        ['ショウボウ老師', '現実でも、危険物の届出は《市町村長等》にあてて出し、ふだんの窓口は《消防本部や消防署の予防課》じゃ。受け付けると、受付印を押した控えを返してくれる。'],
+        ['ショウボウ老師', '窓口で「届出（旅の記録をつける）」を選ぶ。それだけじゃ。届出をしないまま旅をやめると、その前の届出から続きになるぞ。'],
+        ['ショウボウ老師', 'ダンジョンの中には消防署がない。入る前に必ず届出をしておくのじゃ。'],
         ['ショウボウ老師', 'ただし、問題を解いた「学びの記録」は、解くたびに自動で残る。届出を忘れても、覚えたことは消えん。安心せい。'],
         `${n}はやくそうを3つ受け取った。`,
       ]);
@@ -258,9 +259,9 @@ class Game {
   async hoanJoin() {
     const n = this.state.name;
     await say([
-      ['ホアン', 'ようこそ、定義の町の役場へ。……と言いたいところですが、見てのとおりです。'],
+      ['ホアン', 'ようこそ、定義の町の消防署へ。……と言いたいところですが、見てのとおりです。'],
       ['ホアン', '町じゅうの樽のラベルが入れ替えられ、量り屋はごまかし、空き地には勝手に油が積まれている。'],
-      ['ホアン', '書記官の私が「決まりを守ってください」と言っても、だれも聞きやしない。ルールなんて、もう……。'],
+      ['ホアン', '予防課の係員の私が「決まりを守ってください」と言っても、だれも聞きやしない。ルールなんて、もう……。'],
       [n, '（老師に言われて、危険物取扱者を目指していることを話した）'],
       ['ホアン', '……危険物取扱者を？ なら、まずは「危険物とは何か」から。私が教えましょう。いっしょに町を回ってください。'],
       'ホアンが仲間に加わった！',
@@ -297,7 +298,7 @@ class Game {
       ['ホアン', '取扱者、免状、講習、点検……。資格と手続きは、人を縛るためじゃなく、人を守るためにあるんですね。'],
       ['ホアン', `${n}さん。法令の国の3つの町を回りました。この先には、基準の砦、運搬の峠、そして法令の城が待っています。`],
       ['ホアン', '北の街道の東に、石造りの砦がありました。あれが「基準の砦」。施設の位置や構造の基準を、魔物たちがねじ曲げているそうです。'],
-      ['ホアン', '砦の中には宿屋も役場もありません。届出（セーブ）をして、やくそうを持ってから向かいましょう。'],
+      ['ホアン', '砦の中には宿屋も消防署もありません。届出（セーブ）をして、やくそうを持ってから向かいましょう。'],
     ]);
     this.state.flags.l3clear = true;
     await this.clearReport();
@@ -379,7 +380,7 @@ class Game {
     this.state.flags.endingSeen = true;
     this.field.load('village', 3, 6); this.state.map = 'village'; this.state.lastInn = { map: 'village', x: 3, y: 11 };
     this.save();
-    await say(['（エンディングのあとも、冒険は続けられます。いまの冒険を役場の届出と同じように記録しました）', ['ショウボウ老師', `${n}、よく戻った。火の国へ行く気になったら、いつでも消防署に来るのじゃ。`]]);
+    await say(['（エンディングのあとも、冒険は続けられます。いまの冒険を消防署への届出と同じように記録しました）', ['ショウボウ老師', `${n}、よく戻った。火の国へ行く気になったら、いつでも消防署に来るのじゃ。`]]);
   }
   // エンディング（スタッフロール風）。見たあとも遊び続けられる
   async endingRoll() {
@@ -636,7 +637,7 @@ class Game {
       if (ev.to === 'castle3' && !s.flags.castle3) { s.flags.castle3 = true; await say(['法令の城に入った。', '赤いじゅうたんの上に、破られた届出書が散らばっている。', ['ホアン', 'ここは法令の国の中心。城の主ムトドケが、届出も規程も、ぜんぶ無視させているそうです。'], ['ホアン', '届出、予防規程、貯蔵と取扱いの決まり、事故のときの決まり。法令の国で学ぶ最後の部屋です！']]); }
       if (ev.to === 'town3' && !s.flags.town3) { s.flags.town3 = true; await say(['保安の町に着いた。', '町の中央に、大きな講習所が建っている。', ['ホアン', 'ここは危険物取扱者の町。免状や講習、保安の体制を学びましょう。']]); }
       if (ev.to === 'town2' && !s.flags.town2) { s.flags.town2 = true; await say(['許可の町に着いた。', 'あちこちで工事の音がする。真新しいタンク、建てかけの倉庫……。', ['ホアン', 'ここは「製造所等」をつくる手続きを学ぶ町です。許可、承認、届出。順番に見ていきましょう。']]); }
-      if (ev.to === 'town1' && !s.flags.town1) { s.flags.town1 = true; await say(['定義の町に着いた。', '町の人たちが、樽の前で困り果てている……。', '（役場で話を聞いてみよう）']); }
+      if (ev.to === 'town1' && !s.flags.town1) { s.flags.town1 = true; await say(['定義の町に着いた。', '町の人たちが、樽の前で困り果てている……。', '（消防署の予防課で話を聞いてみよう）']); }
       return;
     }
     if (ev.type === 'building') return this.building(ev);
@@ -675,12 +676,12 @@ class Game {
     if (ev.id === 'office') {
       if (this.field.mapId === 'town1' && !s.flags.hoan) await this.hoanJoin();
       while (true) {
-        const v = await choose('役場', [
+        const v = await choose('消防署 予防課（届出の窓口）', [
           { label: '届出（旅の記録をつける）', value: 'save' },
           { label: 'バックアップ（書き出し・読み込み）', value: 'backup' },
         ]);
         if (!v) return;
-        if (v === 'save') { this.save(); await say(['届出を受け付けました。旅の記録をつけました。', '（学習の記録は、解くたびに自動で保存されています）']); }
+        if (v === 'save') { this.save(); await say(['届出を受け付けました。受付印を押した控えを受け取った。（旅の記録をつけました）', '（学習の記録は、解くたびに自動で保存されています）']); }
         if (v === 'backup') { const r = await this.backupMenu(); if (r === 'reset') { this.field.busy = false; return this.title(); } }
       }
     }
@@ -690,7 +691,7 @@ class Game {
   async stage(id) {
     const G = this.guide();
     const s = this.state, S = this.world.stages[id];
-    if (!s.flags.hoan) { await say('（まずは役場で話を聞いてみよう）'); this.field.y -= 0; return; }
+    if (!s.flags.hoan) { await say('（まずは消防署の予防課で話を聞いてみよう）'); this.field.y -= 0; return; }
     const tw = id.split('-')[0], gated = this.world.stages[tw + '-boss'] && tw !== 'F';
     if (s.cleared[id]) {
       if (!gated || s.cleared[tw + '-boss']) { await say(`${S.name}の事件は解決した。`); return; }
