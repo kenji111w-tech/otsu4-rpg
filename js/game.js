@@ -1105,5 +1105,5 @@ function setupSW() {
 }
 try { setupSW(); } catch (e) {}
 
-window.addEventListener('error', e => { const d = document.getElementById('err'); if (d) { d.textContent = 'エラー：' + e.message; d.classList.remove('hide'); } });
+window.addEventListener('error', e => { if (!e.filename || e.message === 'Script error.') { console.warn('外部の(中身の見えない)エラーを無視', e.message); return; } const d = document.getElementById('err'); if (d) { d.textContent = 'エラー：' + e.message; d.classList.remove('hide'); } });
 new Game().start().catch(e => { const d = document.getElementById('err'); d.textContent = '読み込みに失敗しました：' + e.message; d.classList.remove('hide'); });
