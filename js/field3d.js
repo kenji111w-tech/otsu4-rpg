@@ -141,8 +141,8 @@ export class Field3D {
     this.px = x; this.py = y; this.vec = null; this.trail = [{ x, y: y + 1 }, { x, y }];
     // 💬：まだ話していない人・話が変わった人・用事のある建物の上に出す
     this.bubbles = [];
-    (this.map.npcs || []).forEach((n, i) => { const b = this.mkBubble(); this.npcs[i].add(b); b.position.set(0, 1.95, 0); this.bubbles.push({ b, kind: 'npc', d: n }); });
-    (this.map.events || []).filter(e => e.type === 'building').forEach(e => { const b = this.mkBubble(); b.position.set(e.x + .55, 2.55, e.y - .7); scene.add(b); this.bubbles.push({ b, kind: 'building', d: e }); });
+    (this.map.npcs || []).forEach((n, i) => { const b = this.mkBubble(); b.material.depthTest = true; this.npcs[i].add(b); b.position.set(0, 2.2, 0); this.bubbles.push({ b, kind: 'npc', d: n }); });
+    (this.map.events || []).filter(e => e.type === 'building').forEach(e => { const b = this.mkBubble(); b.position.set(e.x, 2.85, e.y - .7); scene.add(b); this.bubbles.push({ b, kind: 'building', d: e }); });
     this.bubbleT = 0;
     this.applyNight();
   }
@@ -154,7 +154,7 @@ export class Field3D {
       x.fillStyle = '#2a2a40'; [40, 64, 88].forEach(cx => { x.beginPath(); x.arc(cx, 44, 8, 0, 7); x.fill(); });
       this._bubTex = new THREE.CanvasTexture(c); this._bubTex.colorSpace = THREE.SRGBColorSpace;
     }
-    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: this._bubTex, depthTest: false, transparent: true })); sp.scale.set(.62, .54, 1); sp.renderOrder = 10; sp.visible = false; return sp;
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: this._bubTex, depthTest: false, transparent: true })); sp.scale.set(.9, .79, 1); sp.renderOrder = 10; sp.visible = false; return sp;
   }
   updateBubbles(now) {
     if (now - (this.bubbleT || 0) < 300 || !this.bubbles) return; this.bubbleT = now;
@@ -175,7 +175,11 @@ export class Field3D {
   }
   moveAnalog(dt) {
     const v = this.vec, sp = 4.6 * v.m * dt; let dx = v.x * sp, dy = v.y * sp;
-    const d = dir8(v.x, v.y), face = FACE[d] || d; if (face !== this.dir) { this.dir = face; this.setDirTex(); }
+    // 絵の向き：縦に近いときは上下の絵（横向きの絵になる角度をせまく）
+    const face = Math.abs(v.y) >= Math.abs(v.x) * .7 ? (v.y < 0 ? 'up' : 'down') : (v.x < 0 ? 'left' : 'right'); if (face !== this.dir) { this.dir = face; this.setDirTex(); }
+    // 万一、壁に重なってしまったときは、ぶつかり判定なしで抜け出させる
+    if (this.hit(this.px, this.py)) { this.px += dx; this.py += dy; const tx = Math.round(this.px), ty = Math.round(this.py); if (tx !== this.x || ty !== this.y) { this.prev = { x: this.x, y: this.y }; this.x = tx; this.y = ty; } return true; }
+    const ox = this.px, oy = this.py;
     // 通り道に合わせる補正：ほぼ縦（横）に進むときは、横（縦）のずれをマスの真ん中へ少しずつ寄せる
     const lane = 1.6 * dt;
     if (Math.abs(v.y) > .96) { const o = Math.round(this.px) - this.px; dx += Math.sign(o) * Math.min(Math.abs(o), lane * v.m); }
@@ -198,8 +202,10 @@ export class Field3D {
         }
       }
     }
+    this.encDist = (this.encDist || 0) + Math.hypot(this.px - ox, this.py - oy);
     const tx = Math.round(this.px), ty = Math.round(this.py);
-    if (tx !== this.x || ty !== this.y) { this.prev = { x: this.x, y: this.y }; this.x = tx; this.y = ty; this.arrive(); }
+    // 魔物の判定は、マスを移ったときで、前の判定から1マス近く歩いたときだけ（斜めで2回判定しないように）
+    if (tx !== this.x || ty !== this.y) { this.prev = { x: this.x, y: this.y }; this.x = tx; this.y = ty; const enc = this.encDist >= .85; if (enc) this.encDist = 0; this.arrive(!enc); }
     return moved;
   }
   mkChar(look) {
@@ -274,10 +280,10 @@ export class Field3D {
     if (this.perfChecked) return; this.frames++; if (dt > .028) this.slow++;
     if (this.frames >= 90) { this.perfChecked = true; if (this.slow > 35) { this.renderer.setPixelRatio(1); this.renderer.shadowMap.enabled = false; if (this.sun) this.sun.castShadow = false; this.lowPower = true; } }
   }
-  async arrive() {
+  async arrive(noEnc = false) {
     const ev = this.eventAt(this.x, this.y);
     if (ev && (ev.type !== 'stage' || this.hooks.stageVisible(ev.id))) { this.held = null; this.vec = null; this.busy = true; await this.hooks.onEvent(ev); this.busy = false; return; }
-    if (this.map.encounter) {
+    if (this.map.encounter && !noEnc) {
       const c = this.tile(this.x, this.y); const rate = c === '.' ? 1 / 12 : c === ',' ? 1 / 10 : c === '=' ? 1 / 40 : 0;
       if (Math.random() < rate) { this.held = null; this.vec = null; this.busy = true; await this.hooks.onEncounter(); this.busy = false; return; }
     }
@@ -329,7 +335,7 @@ export class Field3D {
     let mx = hx, my = hy + 1, need = .95, px0 = hx, py0 = hy;
     for (let i = tr.length - 1; i >= 0; i--) { const p = tr[i], seg = Math.hypot(px0 - p.x, py0 - p.y); if (seg >= need) { const k = need / seg; mx = px0 + (p.x - px0) * k; my = py0 + (p.y - py0) * k; need = 0; break; } need -= seg; px0 = p.x; py0 = p.y; mx = p.x; my = p.y; }
     this.placeParty(hx, hy, mx, my);
-    this.updateBubbles(now); if (this.bubbles) { const k = Math.sin(now / 260) * .05; this.bubbles.forEach(o => { if (o.b.visible) o.b.position.y = (o.kind === 'npc' ? 1.95 : 2.55) + k; }); }
+    this.updateBubbles(now); if (this.bubbles) { const k = Math.sin(now / 260) * .05; this.bubbles.forEach(o => { if (o.b.visible) o.b.position.y = (o.kind === 'npc' ? 2.2 : 2.85) + k; }); }
     const walkingNow = walking || (this.held && !this.busy && this.anim); const fr = walkingNow ? (Math.floor(now / 140) % 2) + 1 : 0;
     this.setWalkFrame(fr);
     const bob = walkingNow ? Math.abs(Math.sin(t * 14)) * .04 : Math.sin(t * 2) * .01;

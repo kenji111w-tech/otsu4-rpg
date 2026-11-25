@@ -617,7 +617,7 @@ class Game {
     const s = this.state;
     if (ev.type === 'exit') {
       if (this.field.mapId === 'village' && !s.flags.tutorial) { await say(s.flags.night ? '夜の外は危ない。夜が明けたら消防署へ行こう。' : '老師に会ってから旅立とう。消防署は村の左上だ。'); this.field.y += 1; return; }
-      if (ev.need && !s.cleared[ev.need]) { await say(ev.needmsg || 'まだ先へは進めない。'); this.field.x -= 1; return; }
+      if (ev.need && !s.cleared[ev.need]) { await say(ev.needmsg || 'まだ先へは進めない。'); { const f = this.field, pv = f.prev || { x: f.x, y: f.y + 1 }; f.x = pv.x; f.y = pv.y; f.px = pv.x; f.py = pv.y; f.vec = null; } return; }
       this.field.load(ev.to, ev.tx, ev.ty); s.map = ev.to;
       if (ev.to === 'dungeon1' && !s.flags.dungeon1) { s.flags.dungeon1 = true; await say(['基準の砦に入った。', '冷たい石の通路に、たいまつの火がゆれている。', ['ホアン', 'ここは施設の「位置・構造・設備の基準」を守るための砦でした。魔物たちが数字をねじ曲げています。'], ['ホアン', '砦の中は魔物が多い。青く光る泉で休めます。宝箱も探してみましょう。']]); }
       if (ev.to === 'pass2' && !s.flags.pass2) { s.flags.pass2 = true; await say(['運搬の峠に出た。', '細い山道を、荷車やタンクローリーの魔物が行き来している。', ['ホアン', 'ここは危険物を「運ぶ」ときの決まりを学ぶ場所です。容器に入れて運ぶ「運搬」と、タンクローリーで運ぶ「移送」。'], ['ホアン', 'この峠にも宿屋はありません。泉と宝箱を探しましょう。']]); }
