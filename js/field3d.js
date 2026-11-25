@@ -138,7 +138,69 @@ export class Field3D {
     this.heroObj = mkChar('hero'); this.mateObj = this.party[1] ? mkChar(this.party[1]) : null;
     const nm = document.getElementById('mapname'); if (nm) nm.textContent = this.map.name;
     this.placeParty(this.x, this.y, this.x, this.y + 1);
+    this.px = x; this.py = y; this.vec = null; this.trail = [{ x, y: y + 1 }, { x, y }];
+    // 💬：まだ話していない人・話が変わった人・用事のある建物の上に出す
+    this.bubbles = [];
+    (this.map.npcs || []).forEach((n, i) => { const b = this.mkBubble(); this.npcs[i].add(b); b.position.set(0, 1.95, 0); this.bubbles.push({ b, kind: 'npc', d: n }); });
+    (this.map.events || []).filter(e => e.type === 'building').forEach(e => { const b = this.mkBubble(); b.position.set(e.x + .55, 2.55, e.y - .7); scene.add(b); this.bubbles.push({ b, kind: 'building', d: e }); });
+    this.bubbleT = 0;
     this.applyNight();
+  }
+  mkBubble() {
+    if (!this._bubTex) { // 吹き出し（白い角丸に「…」）。絵文字の字形にたよらず自分で描く
+      const c = document.createElement('canvas'); c.width = 128; c.height = 112; const x = c.getContext('2d');
+      x.fillStyle = '#fff'; x.strokeStyle = '#2a2a40'; x.lineWidth = 6; x.beginPath(); x.roundRect(8, 8, 112, 72, 26); x.fill(); x.stroke();
+      x.beginPath(); x.moveTo(40, 76); x.lineTo(30, 104); x.lineTo(62, 78); x.closePath(); x.fill(); x.stroke(); x.fillStyle = '#fff'; x.fillRect(36, 70, 30, 9);
+      x.fillStyle = '#2a2a40'; [40, 64, 88].forEach(cx => { x.beginPath(); x.arc(cx, 44, 8, 0, 7); x.fill(); });
+      this._bubTex = new THREE.CanvasTexture(c); this._bubTex.colorSpace = THREE.SRGBColorSpace;
+    }
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: this._bubTex, depthTest: false, transparent: true })); sp.scale.set(.62, .54, 1); sp.renderOrder = 10; sp.visible = false; return sp;
+  }
+  updateBubbles(now) {
+    if (now - (this.bubbleT || 0) < 300 || !this.bubbles) return; this.bubbleT = now;
+    this.bubbles.forEach(o => { o.b.visible = !!(this.hooks.news && this.hooks.news(o.kind, o.d, this.mapId)); });
+  }
+
+  // ---------- アナログ移動：スティックを倒した方向へ、倒した強さの速さで進む ----------
+  setVec(vx, vy, m) { if (!m || m <= 0) { this.vec = null; return; } this.vec = { x: vx, y: vy, m: Math.min(1, m) }; }
+  solid(tx, ty) { return !this.canWalk(tx, ty); }
+  hit(cx, cy, R = .3) { // 円（主人公）が通れないマスに重なるか。マスは整数座標を中心とした1×1
+    for (let ty = Math.round(cy - R); ty <= Math.round(cy + R); ty++) for (let tx = Math.round(cx - R); tx <= Math.round(cx + R); tx++) {
+      if (tx === this.x && ty === this.y) continue; // いま立っているマスは通れる（人と重なって立っているときなど）
+      if (!this.solid(tx, ty)) continue;
+      const nx = Math.max(tx - .5, Math.min(cx, tx + .5)), ny = Math.max(ty - .5, Math.min(cy, ty + .5));
+      if ((cx - nx) ** 2 + (cy - ny) ** 2 < R * R - 1e-6) return true;
+    }
+    return false;
+  }
+  moveAnalog(dt) {
+    const v = this.vec, sp = 4.6 * v.m * dt; let dx = v.x * sp, dy = v.y * sp;
+    const d = dir8(v.x, v.y), face = FACE[d] || d; if (face !== this.dir) { this.dir = face; this.setDirTex(); }
+    // 通り道に合わせる補正：ほぼ縦（横）に進むときは、横（縦）のずれをマスの真ん中へ少しずつ寄せる
+    const lane = 1.6 * dt;
+    if (Math.abs(v.y) > .96) { const o = Math.round(this.px) - this.px; dx += Math.sign(o) * Math.min(Math.abs(o), lane * v.m); }
+    if (Math.abs(v.x) > .96) { const o = Math.round(this.py) - this.py; dy += Math.sign(o) * Math.min(Math.abs(o), lane * v.m); }
+    let moved = false;
+    // 横方向
+    if (dx) {
+      if (!this.hit(this.px + dx, this.py)) { this.px += dx; moved = true; }
+      else { // 角すべり：少し縦にずらせば通れるなら、縦にずらす（扉や細い道に吸い寄せる）
+        const c = Math.round(this.py), o = c - this.py; if (Math.abs(o) > .02 && Math.abs(o) < .62 && !this.solid(Math.round(this.px + Math.sign(dx) * .8), c)) { const m = Math.sign(o) * Math.min(Math.abs(o), Math.abs(dx)); if (!this.hit(this.px, this.py + m)) { this.py += m; moved = true; } }
+      }
+    }
+    if (dy) {
+      if (!this.hit(this.px, this.py + dy)) { this.py += dy; moved = true; }
+      else {
+        const c = Math.round(this.px), o = c - this.px; if (Math.abs(o) > .02 && Math.abs(o) < .62 && !this.solid(c, Math.round(this.py + Math.sign(dy) * .8))) { const m = Math.sign(o) * Math.min(Math.abs(o), Math.abs(dy)); if (!this.hit(this.px + m, this.py)) { this.px += m; moved = true; } }
+        else { // 扉の吸い寄せ：建物の前で縦に押したとき、となりのマスが扉なら、そちらへ寄せる
+          const door = [-1, 1].map(k => this.eventAt(this.x + k, this.y)).find(e => e && e.type === 'building' && Math.abs(e.x - this.px) < 1.1);
+          if (door) { const m = Math.sign(door.x - this.px) * Math.min(Math.abs(door.x - this.px), Math.abs(dy) * 1.2); if (!this.hit(this.px + m, this.py)) { this.px += m; moved = true; } }
+        }
+      }
+    }
+    const tx = Math.round(this.px), ty = Math.round(this.py);
+    if (tx !== this.x || ty !== this.y) { this.prev = { x: this.x, y: this.y }; this.x = tx; this.y = ty; this.arrive(); }
+    return moved;
   }
   mkChar(look) {
     const g = new THREE.Group(); const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.tex(look, 'down'), transparent: true, alphaTest: .1 })); const real = !STYLE.dot && !STYLE.soft && !!Assets.chars[look]; s.scale.set(real ? 1.15 : 1.0, real ? 1.75 : 1.5, 1); s.position.y = real ? .85 : .72; g.add(s); g.userData.y0 = s.position.y;
@@ -214,10 +276,10 @@ export class Field3D {
   }
   async arrive() {
     const ev = this.eventAt(this.x, this.y);
-    if (ev && (ev.type !== 'stage' || this.hooks.stageVisible(ev.id))) { this.held = null; this.busy = true; await this.hooks.onEvent(ev); this.busy = false; return; }
+    if (ev && (ev.type !== 'stage' || this.hooks.stageVisible(ev.id))) { this.held = null; this.vec = null; this.busy = true; await this.hooks.onEvent(ev); this.busy = false; return; }
     if (this.map.encounter) {
       const c = this.tile(this.x, this.y); const rate = c === '.' ? 1 / 12 : c === ',' ? 1 / 10 : c === '=' ? 1 / 40 : 0;
-      if (Math.random() < rate) { this.held = null; this.busy = true; await this.hooks.onEncounter(); this.busy = false; return; }
+      if (Math.random() < rate) { this.held = null; this.vec = null; this.busy = true; await this.hooks.onEncounter(); this.busy = false; return; }
     }
     if (this.held && !this.busy) this.step(this.held); // 押している間は止まらずに歩き続ける
   }
@@ -228,10 +290,9 @@ export class Field3D {
     cv.addEventListener('pointerdown', e => { id = e.pointerId; sx = e.clientX; sy = e.clientY; moved = false; try { cv.setPointerCapture(id); } catch (er) {} });
     cv.addEventListener('pointermove', e => {
       if (e.pointerId !== id) return; const dx = e.clientX - sx, dy = e.clientY - sy; if (Math.hypot(dx, dy) < 18) return;
-      moved = true; const d = dir8(dx, dy);
-      if (this.held !== d) { this.held = d; if (!this.anim) this.step(d); }
+      moved = true; const L = Math.hypot(dx, dy); this.setVec(dx / L, dy / L, Math.min(1, (L - 10) / 50));
     });
-    const end = e => { if (e.pointerId !== id) return; id = null; this.held = null; if (!moved) this.action(true); };
+    const end = e => { if (e.pointerId !== id) return; id = null; this.held = null; this.vec = null; if (!moved) this.action(true); };
     cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
   }
   // 目の前の相手や建物を調べる。nearby のときは、まわり8マスにいる相手にも向きを変えて話しかける
@@ -241,7 +302,7 @@ export class Field3D {
     let [dx, dy] = DIRS[this.dir], t = this.target(dx, dy);
     if (!t && nearby) for (const d of ['up', 'down', 'left', 'right', 'ul', 'ur', 'dl', 'dr']) { const [ax, ay] = DIRS[d]; t = this.target(ax, ay); if (t) { this.dir = FACE[d] || d; if (this.setDirTex) this.setDirTex(); break; } }
     if (!t) return false;
-    this.busy = true; this.held = null;
+    this.busy = true; this.held = null; this.vec = null;
     if (t.n) await this.hooks.onTalk(t.n); else await this.hooks.onEvent(t.ev);
     this.busy = false; return true;
   }
@@ -254,10 +315,22 @@ export class Field3D {
     this.perf(dt);
     if (this.anim && now - this.anim.t0 >= STEP_MS) { this.anim = null; this.arrive(); }
     (this.exitMarks || []).forEach(m => { const k = Math.sin(now / 300); m.ar.position.y = .9 + k * .12; m.ring.material.opacity = .55 + k * .25; });
-    let hx = this.x, hy = this.y, mx = this.prev.x, my = this.prev.y, walking = 0;
-    if (this.anim) { const k = Math.min(1, (now - this.anim.t0) / STEP_MS); hx = this.anim.fx + (this.x - this.anim.fx) * k; hy = this.anim.fy + (this.y - this.anim.fy) * k; mx = this.anim.px + (this.prev.x - this.anim.px) * k; my = this.anim.py + (this.prev.y - this.anim.py) * k; walking = 1; }
+    let hx = this.x, hy = this.y, walking = 0;
+    if (this.anim) { const k = Math.min(1, (now - this.anim.t0) / STEP_MS); hx = this.anim.fx + (this.x - this.anim.fx) * k; hy = this.anim.fy + (this.y - this.anim.fy) * k; walking = 1; this.px = this.x; this.py = this.y; }
+    else {
+      // ほかの処理（地図の切りかえ・押し戻し）でマスが変わったときは、その場所に合わせる
+      if (this.px == null || Math.round(this.px) !== this.x || Math.round(this.py) !== this.y) { this.px = this.x; this.py = this.y; }
+      if (this.vec && !this.busy && this.moveAnalog(dt)) walking = 1;
+      hx = this.px; hy = this.py;
+    }
+    // 仲間は主人公の通った道をなぞって後ろを歩く
+    const tr = this.trail || (this.trail = [{ x: hx, y: hy + 1 }]); const last = tr[tr.length - 1];
+    if (!last || Math.hypot(hx - last.x, hy - last.y) > .04) { tr.push({ x: hx, y: hy }); if (tr.length > 80) tr.shift(); }
+    let mx = hx, my = hy + 1, need = .95, px0 = hx, py0 = hy;
+    for (let i = tr.length - 1; i >= 0; i--) { const p = tr[i], seg = Math.hypot(px0 - p.x, py0 - p.y); if (seg >= need) { const k = need / seg; mx = px0 + (p.x - px0) * k; my = py0 + (p.y - py0) * k; need = 0; break; } need -= seg; px0 = p.x; py0 = p.y; mx = p.x; my = p.y; }
     this.placeParty(hx, hy, mx, my);
-    const walkingNow = walking || (this.held && !this.busy); const fr = walkingNow ? (Math.floor(now / 140) % 2) + 1 : 0;
+    this.updateBubbles(now); if (this.bubbles) { const k = Math.sin(now / 260) * .05; this.bubbles.forEach(o => { if (o.b.visible) o.b.position.y = (o.kind === 'npc' ? 1.95 : 2.55) + k; }); }
+    const walkingNow = walking || (this.held && !this.busy && this.anim); const fr = walkingNow ? (Math.floor(now / 140) % 2) + 1 : 0;
     this.setWalkFrame(fr);
     const bob = walkingNow ? Math.abs(Math.sin(t * 14)) * .04 : Math.sin(t * 2) * .01;
     this.heroObj.userData.s.position.y = this.heroObj.userData.y0 + bob; if (this.mateObj) this.mateObj.userData.s.position.y = this.mateObj.userData.y0 + (walking ? Math.abs(Math.cos(t * 18)) * .06 : 0);

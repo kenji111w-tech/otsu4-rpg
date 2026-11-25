@@ -29,6 +29,8 @@ export class Field {
     if (ev && ev.type === 'stage' && !this.hooks.stageVisible(ev.id)) return true;
     return true;
   }
+  // アナログのスティック入力（2D版は8方向に置きかえて歩く）
+  setVec(vx, vy, m) { if (!m || m <= 0) { this.held = null; return; } const a = Math.atan2(vy, vx), k = ((Math.round(a / (Math.PI / 4)) % 8) + 8) % 8; const d = ['right', 'dr', 'down', 'dl', 'left', 'ul', 'up', 'ur'][k]; if (this.held !== d) { this.held = d; if (!this.anim) this.step(d); } }
   step(d) {
     if (this.busy || this.anim) return;
     this.dir = FACE[d] || d; const [dx, dy] = DIRS[d]; const nx = this.x + dx, ny = this.y + dy;

@@ -33,7 +33,7 @@ class Game {
     let use3d = true; try { const c = document.createElement('canvas'); use3d = !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { use3d = false; }
     const FieldClass = use3d ? Field3D : Field;
     this.field = new FieldClass($('#field'), w, {
-      onEvent: ev => this.onEvent(ev), onEncounter: () => this.encounter(), onTalk: n => this.talk(n),
+      onEvent: ev => this.onEvent(ev), onEncounter: () => this.encounter(), onTalk: n => this.talk(n), news: (k, d, m) => this.news(k, d, m),
       stageVisible: id => this.stageVisible(id), stageCleared: id => !!(this.state && this.state.cleared[id]),
       isNight: () => this.state && this.state.flags.night,
       chestOpen: id => !!(this.state && (this.state.chests || {})[id]),
@@ -55,7 +55,7 @@ class Game {
   }
   save() { // 消防署の窓口への「届出」
     const s = this.state; s.map = this.field.mapId; s.x = this.field.x; s.y = this.field.y; s.savedAt = new Date().toISOString();
-    store.set('game', s); Learn.save();
+    store.set('game', s); Learn.save(); this.dirty = false;
   }
   gainExp(n) {
     const msgs = []; this.state.exp += n;
@@ -772,7 +772,7 @@ class Game {
   async battle(enemyId, opt) {
     { const S = opt && opt.stageId && this.world.stages[opt.stageId]; Sound.bgm(/^enjou/.test(enemyId) ? 'final' : S && S.boss ? 'boss' : 'battle'); }
     $('#pad').classList.add('hide'); const ar = this.world.enemies[enemyId].area || ''; Learn.subject = ar === 'tutorial' ? '導入' : ar[0] === 'P' ? '物理・化学' : ar[0] === 'H' ? '性質・消火' : ar[0] === 'F' ? '総合' : ar[0] === 'R' ? '火の国（他類）' : '法令';
-    const r = await new Battle(this).run(enemyId, opt); $('#pad').classList.remove('hide');
+    const r = await new Battle(this).run(enemyId, opt); $('#pad').classList.remove('hide'); if (r === 'win') this.dirty = true;
     if (r === 'win') Sound.jingle('victory', this.mapBgm()); else Sound.bgm(this.mapBgm()); try { this.updateMeter(); } catch (e) {}
     if (r === 'lose' && !opt.tutorial && !opt.stage) await this.retreat();
     return r;
@@ -828,7 +828,21 @@ class Game {
     }
   }
   // 町の人の話。合言葉を教える人は、話のあとに「この言葉が出たら、この答え」を教えてくれる
+  // 💬を出すか：まだ話していない人・話が変わった人・用事のある建物
+  npcSig(n) { const s = this.state; const fresh = n.aiko ? this.aiko.filter(t => t.town === n.aiko && !(s.aiko || []).includes(t.id)).length : 0; return n.talk.join('|').length + ':' + n.talk[0] + ':' + fresh; }
+  news(kind, d, mapId) {
+    const s = this.state; if (!s) return false;
+    if (kind === 'npc') { const k = `${mapId}:${d.x}:${d.y}`; return ((s.talked || {})[k]) !== this.npcSig(d); }
+    if (d.id === 'firehouse') return !s.flags.tutorial;
+    if (d.id === 'office') return (mapId === 'town1' && !s.flags.hoan) || !!this.dirty;
+    return false;
+  }
   async talk(n) {
+    { const s = this.state; s.talked = s.talked || {}; const k = `${this.field.mapId}:${n.x}:${n.y}`; this._talkKey = k; }
+    await this.talkBody(n);
+    this.state.talked[this._talkKey] = this.npcSig(n);
+  }
+  async talkBody(n) {
     await say(n.talk.map(t => ['村人', /とか言|って言う/.test(t) ? t : hl(t)])); // 魔物のうそを伝えるうわさ話は光らせない
     if (!n.aiko) return;
     const s = this.state; s.aiko = s.aiko || [];
@@ -1063,22 +1077,20 @@ class Game {
   // ---------- 操作 ----------
   bindControls() {
     const f = this.field;
-    // 移動スティック：指の向きで8方向に歩く。指を離すまで歩き続ける
+    // 移動スティック：倒した向きにそのまま進む（アナログ）。指を離すまで歩き続ける
     const stick = $('#stick'), knob = $('#knob'); let pid = null;
     const move = e => {
       const r = stick.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
       let dx = e.clientX - cx, dy = e.clientY - cy; const dist = Math.hypot(dx, dy), max = r.width / 2 - 30;
       if (dist > max) { dx = dx / dist * max; dy = dy / dist * max; }
       knob.style.transform = `translate(${dx}px, ${dy}px)`;
-      if (dist < 24) { f.held = null; return; }
-      // 向きのぶれ止め：今の向きから約32度以上ずれたら向きを変える（斜めにも入りやすいように小さめ）
-      const ang = Math.atan2(dy, dx), C = { right: 0, dr: 1, down: 2, dl: 3, left: 4, ul: -3, up: -2, ur: -1 };
-      if (f.held && C[f.held] != null) { let df = Math.abs(ang - C[f.held] * Math.PI / 4); if (df > Math.PI) df = 2 * Math.PI - df; if (df < Math.PI / 4 * 0.7) return; }
-      const d = dir8(dx, dy); if (f.held !== d) { f.held = d; if (!f.anim) f.step(d); }
+      // 倒した方向へそのまま、倒した強さの速さで進む（真ん中のあそびは小さめ）
+      if (dist < 10) { f.setVec(0, 0, 0); return; }
+      f.setVec(dx / dist, dy / dist, .35 + .65 * Math.min(1, (Math.min(dist, max) - 10) / (max * .7)));
     };
     stick.addEventListener('pointerdown', e => { e.preventDefault(); pid = e.pointerId; try { stick.setPointerCapture(pid); } catch (er) {} stick.classList.add('on'); move(e); });
     stick.addEventListener('pointermove', e => { if (e.pointerId === pid) move(e); });
-    const up = e => { if (e.pointerId !== pid) return; pid = null; stick.classList.remove('on'); knob.style.transform = ''; f.held = null; };
+    const up = e => { if (e.pointerId !== pid) return; pid = null; stick.classList.remove('on'); knob.style.transform = ''; f.held = null; f.setVec(0, 0, 0); };
     stick.addEventListener('pointerup', up); stick.addEventListener('pointercancel', up);
     $('#btnA').addEventListener('click', () => f.action(true));
     // ボタン以外の場所をたたいても、まわりに話す相手や調べる物があれば「しらべる・はなす」と同じにする
